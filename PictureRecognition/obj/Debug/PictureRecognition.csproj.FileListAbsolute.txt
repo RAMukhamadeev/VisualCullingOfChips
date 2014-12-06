@@ -1,0 +1,1 @@
+c:\users\руслан\documents\visual studio 2013\Projects\PictureRecognition\PictureRecognition\bin\Debug\PictureRecognition.exe.config
