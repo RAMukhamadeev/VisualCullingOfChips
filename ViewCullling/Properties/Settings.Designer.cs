@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace PictureRecognition.Properties
+namespace ViewCullling.Properties
 {
 
 

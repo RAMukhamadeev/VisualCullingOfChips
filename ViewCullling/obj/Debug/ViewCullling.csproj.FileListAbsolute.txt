@@ -1,0 +1,19 @@
+c:\users\руслан\documents\visual studio 2013\Projects\ViewCullling\ViewCullling\bin\Debug\ViewCullling.exe.config
+D:\Проекты\ViewCullling\ViewCullling\bin\Debug\ViewCullling.exe.config
+D:\Проекты\ViewCullling\ViewCullling\bin\Debug\ViewCullling.exe
+D:\Проекты\ViewCullling\ViewCullling\bin\Debug\ViewCullling.pdb
+D:\Проекты\ViewCullling\ViewCullling\obj\Debug\ViewCullling.csprojResolveAssemblyReference.cache
+D:\Проекты\ViewCullling\ViewCullling\obj\Debug\ViewCullling.MainForm.resources
+D:\Проекты\ViewCullling\ViewCullling\obj\Debug\ViewCullling.Properties.Resources.resources
+D:\Проекты\ViewCullling\ViewCullling\obj\Debug\ViewCullling.csproj.GenerateResource.Cache
+D:\Проекты\ViewCullling\ViewCullling\obj\Debug\ViewCullling.exe
+D:\Проекты\ViewCullling\ViewCullling\obj\Debug\ViewCullling.pdb
+C:\Users\Руслан\Desktop\ViewCullling\ViewCullling\bin\Debug\ViewCullling.exe.config
+C:\Users\Руслан\Desktop\ViewCullling\ViewCullling\obj\Debug\ViewCullling.exe
+C:\Users\Руслан\Desktop\ViewCullling\ViewCullling\obj\Debug\ViewCullling.pdb
+C:\Users\Руслан\Desktop\ViewCullling\ViewCullling\bin\Debug\ViewCullling.exe
+C:\Users\Руслан\Desktop\ViewCullling\ViewCullling\bin\Debug\ViewCullling.pdb
+C:\Users\Руслан\Desktop\ViewCullling\ViewCullling\obj\Debug\ViewCullling.csprojResolveAssemblyReference.cache
+C:\Users\Руслан\Desktop\ViewCullling\ViewCullling\obj\Debug\ViewCullling.MainForm.resources
+C:\Users\Руслан\Desktop\ViewCullling\ViewCullling\obj\Debug\ViewCullling.Properties.Resources.resources
+C:\Users\Руслан\Desktop\ViewCullling\ViewCullling\obj\Debug\ViewCullling.csproj.GenerateResource.Cache
