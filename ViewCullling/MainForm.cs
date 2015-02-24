@@ -104,13 +104,13 @@ namespace ViewCullling
             Bitmap bmp = new Bitmap("OUT__12_5__percent.bmp");
             pbImage.SizeMode = PictureBoxSizeMode.Zoom;
             
-            mas = BitmapToByteRGB(bmp);
+            mas = BitmapToByteRgb(bmp);
             width = mas.GetUpperBound(2) + 1;
             height = mas.GetUpperBound(1) + 1;
 
             ProcessPicture();
 
-            Bitmap newBmp = ByteToBitmapRGB(mas);
+            Bitmap newBmp = ByteToBitmapRgb(mas);
             pbImage.Image = newBmp;
 
             newBmp.Save("procc.bmp");

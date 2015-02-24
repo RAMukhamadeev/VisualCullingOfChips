@@ -9,7 +9,7 @@ using System.Drawing;
 
 namespace NIIPP.ComputerVision
 {
-    class VisualCulling
+    class VisualInspection
     {
         public unsafe byte[, ,] BitmapToByteRgb(Bitmap bmp)
         {
