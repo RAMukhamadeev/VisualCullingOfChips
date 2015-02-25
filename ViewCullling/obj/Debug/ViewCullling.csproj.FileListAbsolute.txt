@@ -23,9 +23,9 @@ C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCullling\obj\Deb
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCullling\bin\Debug\ViewCullling.exe
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCullling\bin\Debug\ViewCullling.pdb
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.csprojResolveAssemblyReference.cache
-C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.MainForm.resources
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.Properties.Resources.resources
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.csproj.GenerateResource.Cache
 D:\GitHub\VisualCullingOfChips\ViewCullling\bin\Debug\ViewCullling.exe.config
 D:\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.exe
 D:\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.pdb
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.FormMain.resources
