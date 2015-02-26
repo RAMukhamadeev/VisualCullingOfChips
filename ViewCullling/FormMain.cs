@@ -27,8 +27,8 @@ namespace ViewCullling
             InitializeComponent();
 
             // для отладки
-            PathToGoodChipFile = "exampleOfGoodChip.bmp";
-            PathToTestingChipsFolder = "testFolder";
+            PathToGoodChipFile = "\\Storage\\exampleOfGoodChip.bmp";
+            PathToTestingChipsFolder = "\\Storage\\testFolder";
         }
 
         private void InitDgvTestingOfChips()
@@ -123,7 +123,7 @@ namespace ViewCullling
                 dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.Yellow;
 
                 Bitmap bmp = vi.CheckNextChip(fileInfo.FullName);
-                bmp.Save("results\\" + fileInfo.Name);
+                bmp.Save("\\Storage\\results\\" + fileInfo.Name);
 
                 string curRes = "Годный";
                 dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.LawnGreen;
@@ -147,7 +147,7 @@ namespace ViewCullling
             Bitmap bmp = new Bitmap(PathToGoodChipFile);
             Segmentation segm = new Segmentation(bmp);
             Bitmap segmentedBmp = segm.GetSegmentedPicture();
-            segmentedBmp.Save(Path.GetFileNameWithoutExtension(PathToGoodChipFile) + "_segmented.bmp");
+            segmentedBmp.Save("\\Storage\\" + Path.GetFileNameWithoutExtension(PathToGoodChipFile) + "_segmented.bmp");
 
             // сохраняем сегментированные изображения чипов, которые проверяем
             //DirectoryInfo di = new DirectoryInfo(PathToTestingChipsFolder);
@@ -169,7 +169,7 @@ namespace ViewCullling
             if (e.ColumnIndex == 3)
             {
                 string nameOfFile = dgvTestingOfChips.Rows[e.RowIndex].Cells[0].Value.ToString();
-                Process.Start("results\\" + nameOfFile);
+                Process.Start("\\Storage\\results\\" + nameOfFile);
             }
         }
 
