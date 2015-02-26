@@ -97,8 +97,13 @@ namespace ViewCullling
 
         private void btnStartTesting_Click(object sender, EventArgs e)
         {
+            Thread workThread = new Thread(ReleaseTesting);
+            workThread.Start();
+        }
+
+        private void ReleaseTesting()
+        {
             VisualInspect vi = new VisualInspect(_pathToGoodChipFile);
-            //SaveSegmentationPicture();
             DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
 
             int currFile = 0;
@@ -120,9 +125,7 @@ namespace ViewCullling
                 dgvTestingOfChips.Rows[currFile].Cells[1].Value = curRes;
                 dgvTestingOfChips.Rows[currFile].Cells[2].Value = DateTime.Now.ToString();
                 dgvTestingOfChips.Rows[currFile].Cells[3].Value = "Открыть";
-
                 dgvTestingOfChips.Invalidate();
-                Application.DoEvents();
 
                 currFile++;
             }

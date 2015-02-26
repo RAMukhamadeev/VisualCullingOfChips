@@ -277,7 +277,7 @@ namespace NIIPP.ComputerVision
                 minj = Math.Min(minj, j);
             }
 
-            bool isDamage = !(maxi - mini < 8 || maxj - minj < 8 || queue.Count < 150);
+            bool isDamage = !(maxi - mini < 10 || maxj - minj < 10 || queue.Count < 100 || (maxi - mini)*(maxj - minj) > 5 * queue.Count);
 
             if (isDamage)
             {
