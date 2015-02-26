@@ -20,8 +20,16 @@ namespace NIIPP.ComputerVision
 
         private bool IsBackground(byte r, byte g, byte b)
         {
-            int delta = Math.Abs(95 - r) + Math.Abs(107 - g) + Math.Abs(237 - b);
+            int delta = Math.Abs(95 - r) + Math.Abs(110 - g) + Math.Abs(232 - b);
             return delta < 120;
+
+            // OUT__50__percent
+            //int delta = Math.Abs(10 - r) + Math.Abs(20 - g) + Math.Abs(115 - b);
+            //return delta < 135;
+
+            //призма Т
+            //int delta = Math.Abs(107 - r) + Math.Abs(83 - g) + Math.Abs(189 - b);
+            //return delta < 115;
         }
 
         private void ReleaseSegmentation()

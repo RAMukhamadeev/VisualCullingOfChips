@@ -10,8 +10,9 @@ namespace ViewCullling
 {
     public partial class FormMain : Form
     {
-        private string _pathToGoodChipFile = "exampleOfGoodChip.bmp";
-        private string _pathToTestingChipsFolder = "testFolder";
+        public string PathToGoodChipFile { get; private set; }
+        public string PathToTestingChipsFolder { get; private set; }
+        public static FormMain Instance { get; private set; }
 
         private readonly string[] _nameOfColumns = {
                                      "Название файла",
@@ -22,7 +23,12 @@ namespace ViewCullling
 
         public FormMain()
         {
+            Instance = this;
             InitializeComponent();
+
+            // для отладки
+            PathToGoodChipFile = "exampleOfGoodChip.bmp";
+            PathToTestingChipsFolder = "testFolder";
         }
 
         private void InitDgvTestingOfChips()
@@ -44,7 +50,7 @@ namespace ViewCullling
 
         private void LoadInfoAboutTestingSet()
         {
-            DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
+            DirectoryInfo di = new DirectoryInfo(PathToTestingChipsFolder);
             foreach (FileInfo fileInfo in di.GetFiles())
             {
                 if (Path.GetExtension(fileInfo.Name) != ".bmp")
@@ -64,8 +70,8 @@ namespace ViewCullling
             InitDgvTestingOfChips();
 
             // для отладки
-            lblPathToGoodChip.Text = _pathToGoodChipFile;
-            lblPathToTestFolder.Text = _pathToTestingChipsFolder;
+            lblPathToGoodChip.Text = PathToGoodChipFile;
+            lblPathToTestFolder.Text = PathToTestingChipsFolder;
             LoadInfoAboutTestingSet();
         }
 
@@ -79,8 +85,8 @@ namespace ViewCullling
             OpenFileDialog ofd = new OpenFileDialog();
             if (ofd.ShowDialog() == DialogResult.OK)
             {
-                _pathToGoodChipFile = ofd.FileName;
-                lblPathToGoodChip.Text = ofd.FileName;
+                PathToGoodChipFile = ofd.FileName;
+                lblPathToGoodChip.Text = Path.GetFileName(ofd.FileName);
             }
         }
 
@@ -89,28 +95,32 @@ namespace ViewCullling
             FolderBrowserDialog fbd = new FolderBrowserDialog();
             if (fbd.ShowDialog() == DialogResult.OK)
             {
-                _pathToTestingChipsFolder = fbd.SelectedPath;
-                lblPathToTestFolder.Text = fbd.SelectedPath;
+                PathToTestingChipsFolder = fbd.SelectedPath;
+                lblPathToTestFolder.Text = Path.GetFileName(fbd.SelectedPath);
                 LoadInfoAboutTestingSet();
             }
         }
 
         private void btnStartTesting_Click(object sender, EventArgs e)
         {
-            Thread workThread = new Thread(ReleaseTesting);
-            workThread.Start();
+            //Thread workThread = new Thread(ReleaseTesting);
+            //workThread.Start();
+            SaveSegmentationPicture();
         }
 
         private void ReleaseTesting()
         {
-            VisualInspect vi = new VisualInspect(_pathToGoodChipFile);
-            DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
+            VisualInspect vi = new VisualInspect(PathToGoodChipFile);
+            DirectoryInfo di = new DirectoryInfo(PathToTestingChipsFolder);
 
             int currFile = 0;
             foreach (FileInfo fileInfo in di.GetFiles())
             {
                 if (Path.GetExtension(fileInfo.Name) != ".bmp")
                     continue;
+
+                dgvTestingOfChips.Rows[currFile].Cells[1].Value = "Обрабатывается...";
+                dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.Yellow;
 
                 Bitmap bmp = vi.CheckNextChip(fileInfo.FullName);
                 bmp.Save("results\\" + fileInfo.Name);
@@ -134,24 +144,24 @@ namespace ViewCullling
         private void SaveSegmentationPicture()
         {
             // сохраняем сегментированный изображение хорошего чипа
-            Bitmap bmp = new Bitmap(_pathToGoodChipFile);
+            Bitmap bmp = new Bitmap(PathToGoodChipFile);
             Segmentation segm = new Segmentation(bmp);
             Bitmap segmentedBmp = segm.GetSegmentedPicture();
-            segmentedBmp.Save(Path.GetFileNameWithoutExtension(_pathToGoodChipFile) + "_segmented.bmp");
+            segmentedBmp.Save(Path.GetFileNameWithoutExtension(PathToGoodChipFile) + "_segmented.bmp");
 
             // сохраняем сегментированные изображения чипов, которые проверяем
-            DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
-            foreach (FileInfo fileInfo in di.GetFiles())
-            {
-                if (Path.GetExtension(fileInfo.Name) != ".bmp")
-                    continue;
-                Bitmap nextPic = new Bitmap(fileInfo.FullName);
-                Segmentation nextSegm = new Segmentation(nextPic);
-                nextPic = nextSegm.GetSegmentedPicture();
-                nextPic.Save(
-                    String.Format("testFolder_segmented\\{0}_segmented.bmp", Path.GetFileNameWithoutExtension(fileInfo.Name))
-                    );
-            }
+            //DirectoryInfo di = new DirectoryInfo(PathToTestingChipsFolder);
+            //foreach (FileInfo fileInfo in di.GetFiles())
+            //{
+            //    if (Path.GetExtension(fileInfo.Name) != ".bmp")
+            //        continue;
+            //    Bitmap nextPic = new Bitmap(fileInfo.FullName);
+            //    Segmentation nextSegm = new Segmentation(nextPic);
+            //    nextPic = nextSegm.GetSegmentedPicture();
+            //    nextPic.Save(
+            //        String.Format("testFolder_segmented\\{0}_segmented.bmp", Path.GetFileNameWithoutExtension(fileInfo.Name))
+            //        );
+            //}
         }
 
         private void dgvTestingOfChips_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
@@ -161,6 +171,12 @@ namespace ViewCullling
                 string nameOfFile = dgvTestingOfChips.Rows[e.RowIndex].Cells[0].Value.ToString();
                 Process.Start("results\\" + nameOfFile);
             }
+        }
+
+        private void rGBКомпонентаОбразцаToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FormRgbAnalyzeOfGoodChip formRgbAnalyzeOfGoodChip = new FormRgbAnalyzeOfGoodChip();
+            formRgbAnalyzeOfGoodChip.Show();
         }
     }
 }
