@@ -27,7 +27,7 @@ namespace ViewCullling
             InitializeComponent();
 
             // для отладки
-            PathToGoodChipFile = "\\Storage\\exampleOfGoodChip.bmp";
+            PathToGoodChipFile = "\\Storage\\exampleOfGoodChip2.bmp";
             PathToTestingChipsFolder = "\\Storage\\testFolder2";
         }
 
@@ -150,18 +150,18 @@ namespace ViewCullling
             segmentedBmp.Save("\\Storage\\" + Path.GetFileNameWithoutExtension(PathToGoodChipFile) + "_segmented.bmp");
 
             // сохраняем сегментированные изображения чипов, которые проверяем
-            DirectoryInfo di = new DirectoryInfo(PathToTestingChipsFolder);
-            foreach (FileInfo fileInfo in di.GetFiles())
-            {
-                if (Path.GetExtension(fileInfo.Name) != ".bmp")
-                    continue;
-                Bitmap nextPic = new Bitmap(fileInfo.FullName);
-                Segmentation nextSegm = new Segmentation(nextPic);
-                nextPic = nextSegm.GetSegmentedPicture();
-                nextPic.Save(
-                    String.Format("\\Storage\\testFolder_segmented\\{0}_segmented.bmp", Path.GetFileNameWithoutExtension(fileInfo.Name))
-                    );
-            }
+            //DirectoryInfo di = new DirectoryInfo(PathToTestingChipsFolder);
+            //foreach (FileInfo fileInfo in di.GetFiles())
+            //{
+            //    if (Path.GetExtension(fileInfo.Name) != ".bmp")
+            //        continue;
+            //    Bitmap nextPic = new Bitmap(fileInfo.FullName);
+            //    Segmentation nextSegm = new Segmentation(nextPic);
+            //    nextPic = nextSegm.GetSegmentedPicture();
+            //    nextPic.Save(
+            //        String.Format("\\Storage\\testFolder_segmented\\{0}_segmented.bmp", Path.GetFileNameWithoutExtension(fileInfo.Name))
+            //        );
+            //}
         }
 
         private void dgvTestingOfChips_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)

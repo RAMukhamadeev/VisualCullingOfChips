@@ -23,8 +23,8 @@ namespace NIIPP.ComputerVision
             //int delta = Math.Abs(95 - r) + Math.Abs(110 - g) + Math.Abs(232 - b);
             //return delta < 120;
 
-            int delta = Math.Abs(75 - r) + Math.Abs(90 - g) + Math.Abs(185 - b);
-            return delta < 85;
+            int delta = Math.Abs(72 - r) + Math.Abs(88 - g) + Math.Abs(185 - b);
+            return delta < 90;
 
             // серый
             //int delta = Math.Abs(140 - r) + Math.Abs(143 - g) + Math.Abs(152 - b);
@@ -307,10 +307,19 @@ namespace NIIPP.ComputerVision
                 //}
 
                 // рисуем рамку
-                mini = Math.Max(mini - 3, 0);
-                maxi = Math.Min(maxi + 3, nextChipWithSprites.GetUpperBound(0));
-                minj = Math.Max(minj - 3, 0);
-                maxj = Math.Min(maxj + 3, nextChipWithSprites.GetUpperBound(1));
+                mini -= 4;
+                minj -= 4;
+                maxj += 4;
+                maxi += 4;
+
+                int limitForI = nextChipWithSprites.GetUpperBound(0) - 1 - offset.Y,
+                    limitForJ = nextChipWithSprites.GetUpperBound(1) - 1 - offset.X;
+
+                mini = Math.Max(mini, 1);
+                maxi = Math.Min(maxi, limitForI);
+                minj = Math.Max(minj, 1);
+                maxj = Math.Min(maxj, limitForJ);
+
                 for (int i = mini - 1; i <= mini + 1; i++)
                 {
                     for (int j = minj; j <= maxj; j++)
