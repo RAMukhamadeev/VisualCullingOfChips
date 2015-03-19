@@ -20,11 +20,11 @@ namespace NIIPP.ComputerVision
 
         private bool IsBackground(byte r, byte g, byte b)
         {
-            //int delta = Math.Abs(95 - r) + Math.Abs(110 - g) + Math.Abs(232 - b);
-            //return delta < 120;
+            int delta = Math.Abs(95 - r) + Math.Abs(110 - g) + Math.Abs(232 - b);
+            return delta < 120;
 
-            int delta = Math.Abs(72 - r) + Math.Abs(88 - g) + Math.Abs(185 - b);
-            return delta < 90;
+            //int delta = Math.Abs(72 - r) + Math.Abs(88 - g) + Math.Abs(185 - b);
+            //return delta < 90;
 
             // серый
             //int delta = Math.Abs(140 - r) + Math.Abs(143 - g) + Math.Abs(152 - b);
