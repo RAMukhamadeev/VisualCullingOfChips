@@ -20,8 +20,11 @@ namespace NIIPP.ComputerVision
 
         private bool IsBackground(byte r, byte g, byte b)
         {
-            int delta = Math.Abs(95 - r) + Math.Abs(110 - g) + Math.Abs(232 - b);
-            return delta < 120;
+            int delta = Math.Abs(63 - r) + Math.Abs(50 - g) + Math.Abs(100 - b);
+            return delta < 50;
+
+            //int delta = Math.Abs(95 - r) + Math.Abs(110 - g) + Math.Abs(232 - b);
+            //return delta < 120;
 
             //int delta = Math.Abs(72 - r) + Math.Abs(88 - g) + Math.Abs(185 - b);
             //return delta < 90;
@@ -297,14 +300,14 @@ namespace NIIPP.ComputerVision
             if (isDamage)
             {
                 // закрашиваем остров - повреждение
-                //foreach (Point nextPoint in queue)
-                //{
-                //    int curri = nextPoint.Y,
-                //        currj = nextPoint.X;
-                //    nextChipWithSprites[curri + offset.Y, currj + offset.X, 0] = Color.Coral.R;
-                //    nextChipWithSprites[curri + offset.Y, currj + offset.X, 1] = Color.Coral.G;
-                //    nextChipWithSprites[curri + offset.Y, currj + offset.X, 2] = Color.Coral.B;
-                //}
+                foreach (Point nextPoint in queue)
+                {
+                    int curri = nextPoint.Y,
+                        currj = nextPoint.X;
+                    nextChipWithSprites[curri + offset.Y, currj + offset.X, 0] = Color.Coral.R;
+                    nextChipWithSprites[curri + offset.Y, currj + offset.X, 1] = Color.Coral.G;
+                    nextChipWithSprites[curri + offset.Y, currj + offset.X, 2] = Color.Coral.B;
+                }
 
                 // рисуем рамку
                 mini -= 4;

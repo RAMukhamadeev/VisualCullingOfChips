@@ -70,9 +70,9 @@ namespace ViewCullling
             InitDgvTestingOfChips();
 
             // для отладки
-            lblPathToGoodChip.Text = PathToGoodChipFile;
-            lblPathToTestFolder.Text = PathToTestingChipsFolder;
-            LoadInfoAboutTestingSet();
+            //lblPathToGoodChip.Text = PathToGoodChipFile;
+            //lblPathToTestFolder.Text = PathToTestingChipsFolder;
+            //LoadInfoAboutTestingSet();
         }
 
         private void закрытьToolStripMenuItem_Click(object sender, EventArgs e)
@@ -103,9 +103,9 @@ namespace ViewCullling
 
         private void btnStartTesting_Click(object sender, EventArgs e)
         {
-            Thread workThread = new Thread(ReleaseTesting);
-            workThread.Start();
-            //SaveSegmentationPicture();
+            //Thread workThread = new Thread(ReleaseTesting);
+            //workThread.Start();
+            SaveSegmentationPicture();
         }
 
         private void ReleaseTesting()
