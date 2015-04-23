@@ -6,9 +6,9 @@ using NIIPP.ComputerVision;
 
 namespace ViewCullling
 {
-    public partial class FormRgbAnalyzeOfGoodChip : Form
+    public partial class FormRgbAnalyze : Form
     {
-        public FormRgbAnalyzeOfGoodChip()
+        public FormRgbAnalyze()
         {
             InitializeComponent();
         }

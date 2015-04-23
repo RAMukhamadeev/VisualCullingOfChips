@@ -31,9 +31,11 @@ D:\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.pdb
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.FormMain.resources
 D:\GitHub\VisualCullingOfChips\ViewCullling\bin\Debug\ViewCullling.exe
 D:\GitHub\VisualCullingOfChips\ViewCullling\bin\Debug\ViewCullling.pdb
-D:\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.csprojResolveAssemblyReference.cache
 D:\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.FormMain.resources
 D:\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.Properties.Resources.resources
 D:\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.csproj.GenerateResource.Cache
-D:\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.FormRgbAnalyzeOfGoodChip.resources
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.FormRgbAnalyzeOfGoodChip.resources
+D:\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.csprojResolveAssemblyReference.cache
+D:\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.FormStartAnalyze.resources
+D:\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.FormAddNewProject.resources
+D:\GitHub\VisualCullingOfChips\ViewCullling\obj\Debug\ViewCullling.FormRgbAnalyze.resources

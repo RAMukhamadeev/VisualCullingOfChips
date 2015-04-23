@@ -32,6 +32,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -46,12 +49,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FormRgbAnalyzeOfGoodChip.cs">
+    <Compile Include="FormAddNewProject.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FormRgbAnalyzeOfGoodChip.Designer.cs">
-      <DependentUpon>FormRgbAnalyzeOfGoodChip.cs</DependentUpon>
+    <Compile Include="FormAddNewProject.Designer.cs">
+      <DependentUpon>FormAddNewProject.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormRgbAnalyze.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormRgbAnalyze.Designer.cs">
+      <DependentUpon>FormRgbAnalyze.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormStartAnalyze.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormStartAnalyze.Designer.cs">
+      <DependentUpon>FormStartAnalyze.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Globals.cs" />
     <Compile Include="NIIPP.ComputerVision.cs" />
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>
@@ -61,11 +77,17 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="FormAddNewProject.resx">
+      <DependentUpon>FormAddNewProject.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormMain.resx">
       <DependentUpon>FormMain.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FormRgbAnalyzeOfGoodChip.resx">
-      <DependentUpon>FormRgbAnalyzeOfGoodChip.cs</DependentUpon>
+    <EmbeddedResource Include="FormRgbAnalyze.resx">
+      <DependentUpon>FormRgbAnalyze.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormStartAnalyze.resx">
+      <DependentUpon>FormStartAnalyze.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -88,6 +110,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -130,8 +130,8 @@ namespace NIIPP.ComputerVision
     public class VisualInspect
     {
         private readonly byte[,,] _segmentedMassGoodChip;
-        private int _widthOfGood,
-                    _heightOfGood;
+        private readonly int _widthOfGood;
+        private readonly int _heightOfGood;
 
         private readonly Bitmap _originGoodChip;
         private Bitmap _nextChipForTest;
@@ -156,25 +156,8 @@ namespace NIIPP.ComputerVision
         {
             Point offset = new Point(0, 0);
 
-            int currHeight = nextPicMass.GetUpperBound(0) + 1,
-                currWidth = nextPicMass.GetUpperBound(1) + 1;
-
             int minDiff = Int32.MaxValue;
             Point bestOffset = new Point(0, 0);
-
-            // идем по диогонали
-            //while (_heightOfGood + offset.Y <= currHeight && _widthOfGood + offset.X <= currWidth)
-            //{
-            //    int currRes = CheckSuperpositionBruteforce(nextPicMass, offset);
-            //    // если нашли минимальный результат - сохраняем
-            //    if (currRes < minDiff)
-            //    {
-            //        minDiff = currRes;
-            //        bestOffset.X = offset.X;
-            //        bestOffset.Y = offset.Y;
-            //    }
-            //    offset.X++; offset.Y++;
-            //}
 
             // ищем по высоте
             offset.X = bestOffset.X;
@@ -361,10 +344,7 @@ namespace NIIPP.ComputerVision
                 }
             }
 
-            if (isDamage)
-                return queue.Count;
-            else
-                return 0;
+            return isDamage ? queue.Count : 0;
         }
 
         private Bitmap CheckChipForDamage(byte[,,] nextPicMass, Point offset)
