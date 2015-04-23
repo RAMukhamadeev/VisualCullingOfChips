@@ -43,6 +43,8 @@
             // 
             // msMain
             // 
+            this.msMain.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+            this.msMain.Font = new System.Drawing.Font("Candara", 10.875F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.msMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.файлToolStripMenuItem,
             this.анализToolStripMenuItem,
@@ -50,8 +52,7 @@
             this.запускToolStripMenuItem});
             this.msMain.Location = new System.Drawing.Point(0, 0);
             this.msMain.Name = "msMain";
-            this.msMain.Padding = new System.Windows.Forms.Padding(3, 1, 0, 1);
-            this.msMain.Size = new System.Drawing.Size(685, 24);
+            this.msMain.Size = new System.Drawing.Size(1370, 44);
             this.msMain.TabIndex = 1;
             this.msMain.Text = "msMain";
             // 
@@ -60,13 +61,13 @@
             this.файлToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.закрытьToolStripMenuItem});
             this.файлToolStripMenuItem.Name = "файлToolStripMenuItem";
-            this.файлToolStripMenuItem.Size = new System.Drawing.Size(48, 22);
+            this.файлToolStripMenuItem.Size = new System.Drawing.Size(90, 40);
             this.файлToolStripMenuItem.Text = "Файл";
             // 
             // закрытьToolStripMenuItem
             // 
             this.закрытьToolStripMenuItem.Name = "закрытьToolStripMenuItem";
-            this.закрытьToolStripMenuItem.Size = new System.Drawing.Size(120, 22);
+            this.закрытьToolStripMenuItem.Size = new System.Drawing.Size(195, 40);
             this.закрытьToolStripMenuItem.Text = "Закрыть";
             this.закрытьToolStripMenuItem.Click += new System.EventHandler(this.закрытьToolStripMenuItem_Click);
             // 
@@ -75,13 +76,13 @@
             this.анализToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.rGBКомпонентаОбразцаToolStripMenuItem});
             this.анализToolStripMenuItem.Name = "анализToolStripMenuItem";
-            this.анализToolStripMenuItem.Size = new System.Drawing.Size(59, 22);
+            this.анализToolStripMenuItem.Size = new System.Drawing.Size(116, 40);
             this.анализToolStripMenuItem.Text = "Анализ";
             // 
             // rGBКомпонентаОбразцаToolStripMenuItem
             // 
             this.rGBКомпонентаОбразцаToolStripMenuItem.Name = "rGBКомпонентаОбразцаToolStripMenuItem";
-            this.rGBКомпонентаОбразцаToolStripMenuItem.Size = new System.Drawing.Size(214, 22);
+            this.rGBКомпонентаОбразцаToolStripMenuItem.Size = new System.Drawing.Size(412, 40);
             this.rGBКомпонентаОбразцаToolStripMenuItem.Text = "RGB компонента образца";
             this.rGBКомпонентаОбразцаToolStripMenuItem.Click += new System.EventHandler(this.rGBКомпонентаОбразцаToolStripMenuItem_Click);
             // 
@@ -90,13 +91,13 @@
             this.проектToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.добавитьНовыToolStripMenuItem});
             this.проектToolStripMenuItem.Name = "проектToolStripMenuItem";
-            this.проектToolStripMenuItem.Size = new System.Drawing.Size(59, 22);
+            this.проектToolStripMenuItem.Size = new System.Drawing.Size(119, 40);
             this.проектToolStripMenuItem.Text = "Проект";
             // 
             // добавитьНовыToolStripMenuItem
             // 
             this.добавитьНовыToolStripMenuItem.Name = "добавитьНовыToolStripMenuItem";
-            this.добавитьНовыToolStripMenuItem.Size = new System.Drawing.Size(333, 22);
+            this.добавитьНовыToolStripMenuItem.Size = new System.Drawing.Size(677, 40);
             this.добавитьНовыToolStripMenuItem.Text = "Добавить новый проект визуального контроля";
             this.добавитьНовыToolStripMenuItem.Click += new System.EventHandler(this.добавитьНовыToolStripMenuItem_Click);
             // 
@@ -105,26 +106,26 @@
             this.запускToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.запускАнализаToolStripMenuItem});
             this.запускToolStripMenuItem.Name = "запускToolStripMenuItem";
-            this.запускToolStripMenuItem.Size = new System.Drawing.Size(57, 22);
+            this.запускToolStripMenuItem.Size = new System.Drawing.Size(111, 40);
             this.запускToolStripMenuItem.Text = "Запуск";
             // 
             // запускАнализаToolStripMenuItem
             // 
             this.запускАнализаToolStripMenuItem.Name = "запускАнализаToolStripMenuItem";
-            this.запускАнализаToolStripMenuItem.Size = new System.Drawing.Size(239, 22);
+            this.запускАнализаToolStripMenuItem.Size = new System.Drawing.Size(460, 40);
             this.запускАнализаToolStripMenuItem.Text = "Запуск визуального контроля";
             this.запускАнализаToolStripMenuItem.Click += new System.EventHandler(this.запускАнализаToolStripMenuItem_Click);
             // 
             // FormMain
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(192F, 192F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(685, 485);
+            this.ClientSize = new System.Drawing.Size(1370, 970);
             this.Controls.Add(this.msMain);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.msMain;
-            this.Margin = new System.Windows.Forms.Padding(2);
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "FormMain";
             this.Text = "ViewCulling";
             this.Load += new System.EventHandler(this.MainForm_Load);
