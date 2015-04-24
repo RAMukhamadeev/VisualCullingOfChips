@@ -48,11 +48,12 @@ namespace NIIPP.ComputerVision
             _masRgb = Utils.BitmapToByteRgb(innerPic);
             _height = _masRgb.GetUpperBound(0) + 1;
             _width = _masRgb.GetUpperBound(1) + 1;
-            RadiusOfStartFilling = 5;
             _backColR = backgroundColor.R;
             _backColG = backgroundColor.G;
             _backColB = backgroundColor.B;
             _delta = delta;
+
+            RadiusOfStartFilling = 5;
         }
 
         /// <summary>
@@ -180,6 +181,8 @@ namespace NIIPP.ComputerVision
                     }
                 }
             }
+
+            st.Clear();
         }
     }
 
