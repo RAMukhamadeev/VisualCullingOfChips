@@ -52,7 +52,7 @@
             this.запускToolStripMenuItem});
             this.msMain.Location = new System.Drawing.Point(0, 0);
             this.msMain.Name = "msMain";
-            this.msMain.Size = new System.Drawing.Size(1370, 44);
+            this.msMain.Size = new System.Drawing.Size(984, 44);
             this.msMain.TabIndex = 1;
             this.msMain.Text = "msMain";
             // 
@@ -121,11 +121,11 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(192F, 192F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(1370, 970);
+            this.ClientSize = new System.Drawing.Size(984, 582);
             this.Controls.Add(this.msMain);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.msMain;
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "FormMain";
             this.Text = "ViewCulling";
             this.Load += new System.EventHandler(this.MainForm_Load);
