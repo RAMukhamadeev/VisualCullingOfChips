@@ -13,7 +13,7 @@ namespace NIIPP.ComputerVision
         /// <summary>
         /// Минимальный радиус фоновой области, из которой начинается заливка изображения фоновыми пикселями
         /// </summary>
-        public int RadiusOfStartFilling { get; set; }
+        private int RadiusOfStartFilling { get; set; }
         /// <summary>
         /// Трехмерный массив - двумерный массив пикселей + 3 измерение RGB компоненты
         /// </summary>
@@ -53,7 +53,7 @@ namespace NIIPP.ComputerVision
             _backColB = backgroundColor.B;
             _delta = delta;
 
-            RadiusOfStartFilling = 5;
+            RadiusOfStartFilling = 15;
         }
 
         /// <summary>
@@ -66,22 +66,6 @@ namespace NIIPP.ComputerVision
         private bool IsBackground(byte r, byte g, byte b)
         {
             return Math.Abs(_backColR - r) + Math.Abs(_backColG - g) + Math.Abs(_backColB - b) <= _delta;
-
-            //int delta = Math.Abs(63 - r) + Math.Abs(50 - g) + Math.Abs(100 - b);
-            //return delta < 50;
-            //int delta = Math.Abs(95 - r) + Math.Abs(110 - g) + Math.Abs(232 - b);
-            //return delta < 120;
-            //int delta = Math.Abs(72 - r) + Math.Abs(88 - g) + Math.Abs(185 - b);
-            //return delta < 90;
-            // серый
-            //int delta = Math.Abs(140 - r) + Math.Abs(143 - g) + Math.Abs(152 - b);
-            //return delta < 150;
-            // OUT__50__percent
-            //int delta = Math.Abs(10 - r) + Math.Abs(20 - g) + Math.Abs(115 - b);
-            //return delta < 135;
-            //призма Т
-            //int delta = Math.Abs(107 - r) + Math.Abs(83 - g) + Math.Abs(189 - b);
-            //return delta < 115;
         }
 
         /// <summary>
@@ -89,8 +73,8 @@ namespace NIIPP.ComputerVision
         /// </summary>
         private void ReleaseSegmentation()
         {
-            int[] dx = { 0, 0, RadiusOfStartFilling, RadiusOfStartFilling };
-            int[] dy = { 0, RadiusOfStartFilling, 0, RadiusOfStartFilling };
+            int[] dx = { 0, 0, RadiusOfStartFilling, RadiusOfStartFilling, RadiusOfStartFilling / 2, 0, RadiusOfStartFilling / 2, RadiusOfStartFilling, RadiusOfStartFilling / 2 };
+            int[] dy = { 0, RadiusOfStartFilling, 0, RadiusOfStartFilling, RadiusOfStartFilling / 2, RadiusOfStartFilling / 2, 0, RadiusOfStartFilling / 2, RadiusOfStartFilling };
 
             for (int i = 0; i < _height - RadiusOfStartFilling; i++)
                 for (int j = 0; j < _width - RadiusOfStartFilling; j++)
@@ -155,25 +139,28 @@ namespace NIIPP.ComputerVision
 
             int[] di = { 0, 0, 1, -1, -1, 1, -1, 1 };
             int[] dj = { 1, -1, 0, 0, -1, 1, 1, -1 };
-            Stack<Point> st = new Stack<Point>();
-            st.Push(new Point(ist, jst));
+
+            List<Point> st = new List<Point> {new Point(ist, jst)};
             _masRgb[ist, jst, 0] = 0;
             _masRgb[ist, jst, 1] = 0;
             _masRgb[ist, jst, 2] = 0;
 
-            while (st.Count > 0)
+            int currPos = 0;
+            while (st.Count > currPos)
             {
-                Point currPoint = st.Pop();
+                Point currPoint = st[currPos++];
                 for (int k = 0; k < di.Length; k++)
                 {
                     int i = currPoint.X + di[k],
                         j = currPoint.Y + dj[k];
                     if (i < 0 || i >= height || j < 0 || j >= width)
                         continue;
+                    if (_masRgb[i, j, 0] == 0 && _masRgb[i, j, 1] == 0 && _masRgb[i, j, 2] == 0)
+                        continue;
 
                     if (IsBackground(_masRgb[i, j, 0], _masRgb[i, j, 1], _masRgb[i, j, 2]))
                     {
-                        st.Push(new Point(i, j));
+                        st.Add(new Point(i, j));
 
                         _masRgb[i, j, 0] = 0;
                         _masRgb[i, j, 1] = 0;
