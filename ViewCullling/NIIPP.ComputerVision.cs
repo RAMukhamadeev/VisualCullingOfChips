@@ -178,17 +178,6 @@ namespace NIIPP.ComputerVision
     /// </summary>
     public class SuperImposition
     {
-        /// <summary>
-        /// Высота изображения годного чипа
-        /// </summary>
-        private readonly int _heightOfGood;
-        /// <summary>
-        /// Ширина изображения годного чипа
-        /// </summary>
-        private readonly int _widthOfGood;
-        /// <summary>
-        /// Изображение годного чипа в виде массива пикселей
-        /// </summary>
         private readonly byte[,,] _originPicMas;
 
         /// <summary>
@@ -198,9 +187,75 @@ namespace NIIPP.ComputerVision
         public SuperImposition(byte[, ,] originPicMas)
         {
             _originPicMas = originPicMas;
-            _heightOfGood = originPicMas.GetUpperBound(0) + 1;
-            _widthOfGood = originPicMas.GetUpperBound(1) + 1;
         }
+
+        private int[,] CalcRectanglePixelCount(byte[, ,] inputMas)
+        {
+            int height = inputMas.GetUpperBound(0) + 1;
+            int width = inputMas.GetUpperBound(1) + 1;
+            int[,] res = new int[height, width];
+
+            res[0, 0] = inputMas[0, 0, 1] != 0 ? 1 : 0;
+            for (int i = 1; i < height; i++)
+                res[i, 0] += res[i - 1, 0] + (inputMas[i, 0, 0] != 0 ? 1 : 0);
+            for (int j = 1; j < width; j++)
+                res[0, j] += res[0, j - 1] + (inputMas[0, j, 0] != 0 ? 1 : 0);
+            for (int i = 1; i < height; i++)
+                for (int j = 1; j < width; j++)
+                    res[i, j] += (inputMas[i, j, 0] != 0 ? 1 : 0) + res[i - 1, j] + res[i, j - 1] - res[i - 1, j - 1];
+
+            return res;
+        }
+
+        private void PrepareOriginMas()
+        {
+            int heightOfGood = _originPicMas.GetUpperBound(0) + 1;
+            int widthOfGood = _originPicMas.GetUpperBound(1) + 1;
+
+            int[,] calc = CalcRectanglePixelCount(_originPicMas);
+            const int bandwidth = 10;
+
+            int bottom = heightOfGood + 1, top = 0;
+            int x = widthOfGood - 1, y;
+
+            double minCountUp = Double.MaxValue;
+            y = heightOfGood - 1;
+            while (y > heightOfGood / 2)
+            {
+                int currCount = calc[x, y] - calc[x, y - 1];
+                if (currCount < minCountUp)
+                    minCountUp = currCount;
+                double koeff = (currCount - minCountUp) / minCountUp;
+
+                if (koeff > 0.2)
+                {
+                    bottom = Math.Min(y + 3, heightOfGood - 1);
+                }
+                y--;
+            }
+
+            double minCountDown = Double.MaxValue;
+            y = 0;
+            while (y < heightOfGood / 2)
+            {
+                int currCount = calc[x, y] - calc[x, y + 1];
+                if (currCount < minCountDown)
+                    minCountDown = currCount;
+                double koeff = (currCount - minCountDown) / minCountDown;
+
+                if (koeff > 0.2)
+                {
+                    top = Math.Max(y - 3, 0);
+                }
+                y++;
+            }
+
+        }
+
+        //public Point FindBestImposition(byte[, ,] nextPicMass)
+        //{
+            
+        //}
 
         /// <summary>
         /// Находит лучшее совмещения данного изображения
@@ -255,15 +310,18 @@ namespace NIIPP.ComputerVision
         /// <returns>Количество несовпадающих пикселей</returns>
         private int CheckSuperpositionBruteforce(byte[, ,] nextPicMass, Point offset)
         {
+            int heightOfGood = _originPicMas.GetUpperBound(0) + 1;
+            int widthOfGood = _originPicMas.GetUpperBound(1) + 1;
+
             // проверка на выход за границы массива
             int currHeight = nextPicMass.GetUpperBound(0) + 1,
                 currWidth = nextPicMass.GetUpperBound(1) + 1;
-            if (_heightOfGood + offset.Y > currHeight || offset.Y < 0 || _widthOfGood + offset.X > currWidth || offset.X < 0)
+            if (heightOfGood + offset.Y > currHeight || offset.Y < 0 || widthOfGood + offset.X > currWidth || offset.X < 0)
                 return Int32.MaxValue;
 
             int res = 0;
-            for (int i = 0; i < _heightOfGood / 3; i++)
-                for (int j = 0; j < _widthOfGood / 3; j++)
+            for (int i = 0; i < heightOfGood / 3; i++)
+                for (int j = 0; j < widthOfGood / 3; j++)
                     if (_originPicMas[i, j, 0] != nextPicMass[i + offset.Y, j + offset.X, 0])
                         res++;
 
