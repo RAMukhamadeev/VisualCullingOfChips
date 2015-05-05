@@ -225,38 +225,43 @@ namespace NIIPP.ComputerVision
 
         private void PrepareOriginMas()
         {
-            int halfOfWidth = 10;
-
+            const int halfOfWidth = 10;
             int heightOfGood = _originMas.GetUpperBound(0) + 1;
             int widthOfGood = _originMas.GetUpperBound(1) + 1;
-
             int x = widthOfGood - 1;
-            double minCountUp = Double.MaxValue;
-            int y = heightOfGood - 1 - halfOfWidth;
+
+            int y = (heightOfGood - 1) - halfOfWidth;
+            // идем снизу вверх
             while (y > heightOfGood / 2)
             {
-                int upCount = _calcedOriginMas[x, y] - _calcedOriginMas[x, y + halfOfWidth];
-                int downCount = _calcedOriginMas[x, y - halfOfWidth] - _calcedOriginMas[x, y];
+                int upCount = _calcedOriginMas[y, x] - _calcedOriginMas[y - halfOfWidth, x];
+                int downCount = _calcedOriginMas[y + halfOfWidth, x] - _calcedOriginMas[y, x];
                 double koeff = (double) (upCount) / (downCount + upCount);
-                if (koeff > 0.7 && upCount * 10 > widthOfGood * halfOfWidth)
-                    _bottom = y + 5;
+                if (koeff > 0.7 && upCount*10 > widthOfGood*halfOfWidth)
+                {
+                    _bottom = y + 3;
+                    break;
+                }
                 y--;
             }
 
-            double minCountDown = Double.MaxValue;
             y = halfOfWidth;
+            // идем сверху вниз
             while (y < heightOfGood / 2)
             {
-                int upCount = _calcedOriginMas[x, y] - _calcedOriginMas[x, y - halfOfWidth];
-                int downCount = _calcedOriginMas[x, y + halfOfWidth] - _calcedOriginMas[x, y];
+                int upCount = _calcedOriginMas[y, x] - _calcedOriginMas[y - halfOfWidth, x];
+                int downCount = _calcedOriginMas[y + halfOfWidth, x] - _calcedOriginMas[y, x];
                 double koeff = (double) (downCount) / (downCount + upCount);
-                if (koeff > 0.7 && downCount * 10 > widthOfGood * halfOfWidth)
-                    _top = y - 5;
+                if (koeff > 0.7 && downCount*10 > widthOfGood*halfOfWidth)
+                {
+                    _top = y - 3;
+                    break;
+                }
                 y++;
             }
         }
 
-        private int CheckStipePositions(Point point)
+        private int CheckStripePositions(Point point)
         {
             int wOrigin = _originMas.GetUpperBound(1) + 1;
 
@@ -265,7 +270,7 @@ namespace NIIPP.ComputerVision
             {
                 for (int j = 0; j < wOrigin; j++)
                 {
-                    if (_originMas[i, j, 0] != _currMas[i + point.X, j + point.Y, 0])
+                    if (_originMas[i, j, 0] != _currMas[i + point.Y, j + point.X, 0])
                         res++;
                 }
             }
@@ -274,7 +279,7 @@ namespace NIIPP.ComputerVision
             {
                 for (int j = 0; j < wOrigin; j++)
                 {
-                    if (_originMas[i, j, 0] != _currMas[i + point.X, j + point.Y, 0])
+                    if (_originMas[i, j, 0] != _currMas[i + point.Y, j + point.X, 0])
                         res++;
                 }
             }
@@ -288,7 +293,7 @@ namespace NIIPP.ComputerVision
             int minDiffer = Int32.MaxValue;
             foreach (var point in points)
             {
-                int currDiffer = CheckStipePositions(point);
+                int currDiffer = CheckStripePositions(point);
                 if (currDiffer < minDiffer)
                 {
                     minDiffer = currDiffer;
@@ -307,8 +312,8 @@ namespace NIIPP.ComputerVision
             int w = _currMas.GetUpperBound(1) + 1;
             int hOrigin = _originMas.GetUpperBound(0) + 1;
             int wOrigin = _originMas.GetUpperBound(1) + 1;
-            int countOfPixelsUp = _calcedOriginMas[wOrigin - 1, _top + Bandwidth] - _calcedOriginMas[wOrigin - 1, _top];
-            int countOfPixelsDown = _calcedOriginMas[wOrigin - 1, _bottom] - _calcedOriginMas[wOrigin - 1, _bottom - Bandwidth];
+            int countOfPixelsUp = _calcedOriginMas[_top + Bandwidth, wOrigin - 1] - _calcedOriginMas[_top, wOrigin - 1];
+            int countOfPixelsDown = _calcedOriginMas[_bottom, wOrigin - 1] - _calcedOriginMas[ _bottom - Bandwidth, wOrigin - 1];
             int limitI = h - hOrigin + 1;
             int startJ = wOrigin;
 
@@ -316,14 +321,16 @@ namespace NIIPP.ComputerVision
             {
                 for (int j = startJ; j < w; j++)
                 {
-                    int currCountOfPixelsUp = _calcedCurrMas[_top + i + Bandwidth, j] - _calcedCurrMas[_top + i, j - wOrigin];
-                    int currCountOfPixelsDown = _calcedCurrMas[_bottom + i, j] - _calcedCurrMas[_bottom + i - Bandwidth, j - wOrigin];
+                    int currCountOfPixelsUp = _calcedCurrMas[_top + i + Bandwidth, j] - (_calcedCurrMas[_top + i, j] + _calcedCurrMas[_top + i + Bandwidth, j - wOrigin]) 
+                        + _calcedCurrMas[_top + i, j - wOrigin];
+                    int currCountOfPixelsDown = _calcedCurrMas[_bottom + i, j] - (_calcedCurrMas[_bottom + i - Bandwidth, j] + _calcedCurrMas[_bottom + i, j - wOrigin])
+                        + _calcedCurrMas[_bottom + i - Bandwidth, j - wOrigin];
 
                     double upDelta = (double)(Math.Abs(countOfPixelsUp - currCountOfPixelsUp)) / (countOfPixelsUp + currCountOfPixelsUp);
                     double downDelta = (double)(Math.Abs(countOfPixelsDown - currCountOfPixelsDown)) / (countOfPixelsDown + currCountOfPixelsDown);
 
-                    if (upDelta < 0.2 && downDelta < 0.2)
-                        probablePositions.Add(new Point(i, j - wOrigin));
+                    if (upDelta < 0.1 && downDelta < 0.1)
+                        probablePositions.Add(new Point(j - wOrigin, i));
                 }
             }
 

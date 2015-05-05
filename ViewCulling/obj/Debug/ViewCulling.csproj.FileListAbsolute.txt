@@ -11,3 +11,16 @@ D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.csproj.Generate
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.exe
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.pdb
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormTestOfImposition.resources
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\bin\Debug\ViewCulling.exe.config
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.exe
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.pdb
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\bin\Debug\ViewCulling.exe
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\bin\Debug\ViewCulling.pdb
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.csprojResolveAssemblyReference.cache
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormAddNewProject.resources
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormMain.resources
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormRgbAnalyze.resources
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormStartAnalyze.resources
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormTestOfImposition.resources
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.Properties.Resources.resources
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.csproj.GenerateResource.Cache

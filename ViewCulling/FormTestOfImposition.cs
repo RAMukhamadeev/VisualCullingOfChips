@@ -15,6 +15,36 @@ namespace ViewCulling
             InitializeComponent();
         }
 
+        private Bitmap OverlapTwoImage(byte[,,] mas1, byte[,,] mas2, Point offset)
+        {
+            for (int i = 0; i < mas1.GetUpperBound(0) + 1; i++)
+                for (int j = 0; j < mas1.GetUpperBound(1) + 1; j++)
+                    if (mas1[i, j, 0] != 0)
+                    {
+                        mas1[i, j, 0] = 0;
+                        mas1[i, j, 1] = Byte.MaxValue;
+                        mas1[i, j, 2] = 0;
+                    }
+            for (int i = 0; i < mas2.GetUpperBound(0) + 1; i++)
+                for (int j = 0; j < mas2.GetUpperBound(1) + 1; j++)
+                    if (mas2[i, j, 0] != 0)
+                    {
+                        mas2[i, j, 0] = Byte.MaxValue;
+                        mas2[i, j, 1] = 0;
+                        mas2[i, j, 2] = 0;
+                    }
+
+            for (int i = 0; i < mas2.GetUpperBound(0) + 1; i++)
+                for (int j = 0; j < mas2.GetUpperBound(1) + 1; j++)
+                {
+                    mas1[i + offset.Y, j + offset.X, 0] += mas2[i, j, 0];
+                    mas1[i + offset.Y, j + offset.X, 1] += mas2[i, j, 1];
+                    mas1[i + offset.Y, j + offset.X, 2] += mas2[i, j, 2];
+                }
+
+            return Utils.ByteToBitmapRgb(mas1);
+        }
+
         private void показСовмещенияToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Bitmap bmpOriginal = new Bitmap(_pathToOriginFile);
@@ -30,9 +60,12 @@ namespace ViewCulling
             var masOrigin = segmentation2.GetSegmentedMass();
 
             SuperImposition superImposition = new SuperImposition(masOrigin);
-            Point point = superImposition.FindBestImposition(masTested);
+            Point offset = superImposition.FindBestImposition(masTested);
 
-            MessageBox.Show(point.X + " " + point.Y);
+            //MessageBox.Show(point.X + " " + point.Y);
+
+            pbImage.Image = OverlapTwoImage(masTested, masOrigin, offset);
+
         }
 
         private void тестируемыйФайлToolStripMenuItem_Click(object sender, EventArgs e)
