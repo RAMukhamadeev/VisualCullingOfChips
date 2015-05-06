@@ -53,6 +53,9 @@ namespace ViewCulling
             Color backColor = Color.FromArgb(96, 109, 235);
             int lim = 115;
 
+            //Color backColor = Color.FromArgb(55, 46, 105);
+            //int lim = 40;
+
             Segmentation segmentation1 = new Segmentation(bmpTested, backColor, lim);
             var masTested = segmentation1.GetSegmentedMass();
 
@@ -60,12 +63,16 @@ namespace ViewCulling
             var masOrigin = segmentation2.GetSegmentedMass();
 
             SuperImposition superImposition = new SuperImposition(masOrigin);
-            Point offset = superImposition.FindBestImposition(masTested);
 
-            //MessageBox.Show(point.X + " " + point.Y);
+            DateTime timeBefore = DateTime.Now;
+            Point offset = superImposition.FindBestImposition(masTested);
+            DateTime timeAfter = DateTime.Now;
+
+            TimeSpan timeSpan = timeAfter - timeBefore;
 
             pbImage.Image = OverlapTwoImage(masTested, masOrigin, offset);
 
+           // MessageBox.Show(timeSpan.TotalMilliseconds.ToString());
         }
 
         private void тестируемыйФайлToolStripMenuItem_Click(object sender, EventArgs e)
@@ -86,6 +93,11 @@ namespace ViewCulling
             {
                 _pathToOriginFile = ofd.FileName;
             }
+        }
+
+        private void FormTestOfImposition_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

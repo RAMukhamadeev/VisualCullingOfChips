@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Windows.Forms;
 
 namespace NIIPP.ComputerVision
 {
@@ -178,14 +179,42 @@ namespace NIIPP.ComputerVision
     /// </summary>
     public class SuperImposition
     {
+        /// <summary>
+        /// Разложенное в массив цветов изображение годного чипа
+        /// </summary>
         private readonly byte[,,] _originMas;
+        /// <summary>
+        /// Разложенное в массив цветов изображение текущего тестируемого чипа
+        /// </summary>
         private byte[,,] _currMas;
-
+        /// <summary>
+        /// Рекуррентная матрица распределения пикселей массива цветов изображение годного чипа
+        /// </summary>
         private readonly int[,] _calcedOriginMas;
+        /// <summary>
+        /// Рекуррентная матрица распределения пикселей массива цветов изображение текущего тестируемого чипа
+        /// </summary>
         private int[,] _calcedCurrMas;
 
+        /// <summary>
+        /// Самая верхняя координата Y верхней индикаторной полосы (горизонтальная)
+        /// </summary>
         private int _top;
+        /// <summary>
+        /// Самая нижняя координата Y нижней индикаторной полосы (горизонтальная)
+        /// </summary>
         private int _bottom;
+        /// <summary>
+        /// Самая правая координата X правой индикаторной полосы (вертикальная)
+        /// </summary>
+        private int _right;
+        /// <summary>
+        /// Самая левая координата X левой индикаторной полосы (вертикальная)
+        /// </summary>
+        private int _left;
+        /// <summary>
+        /// Ширина краевой индикаторной полосы по которой происходит совмещение
+        /// </summary>
         private const int Bandwidth = 20;
 
         /// <summary>
@@ -197,14 +226,14 @@ namespace NIIPP.ComputerVision
             _originMas = originMas;
 
             _calcedOriginMas = CalcRectanglePixelCount(originMas);
-            PrepareOriginMas();
+            FindStripePositions();
         }
 
         /// <summary>
-        /// Создает новый массив в (i, j) ячейке которого находится сумма пикселей не-подложки в прямоугольнике (0, 0; i, j) 
+        /// Создает новый рекуррентный массив в (i, j) ячейке которого находится сумма пикселей не-подложки в прямоугольнике (0, 0; i, j) 
         /// </summary>
-        /// <param name="inputMas"></param>
-        /// <returns></returns>
+        /// <param name="inputMas">Исследуемый массив</param>
+        /// <returns>Рекуррентный массив</returns>
         private int[,] CalcRectanglePixelCount(byte[, ,] inputMas)
         {
             int height = inputMas.GetUpperBound(0) + 1;
@@ -223,44 +252,96 @@ namespace NIIPP.ComputerVision
             return res;
         }
 
-        private void PrepareOriginMas()
+        /// <summary>
+        /// Ищет подходящие позиции индикаторных полос
+        /// </summary>
+        private void FindStripePositions()
         {
             const int halfOfWidth = 10;
+            const int coverageCoeff = 7;
+            const double extremeIncrease = 0.7;
+
             int heightOfGood = _originMas.GetUpperBound(0) + 1;
             int widthOfGood = _originMas.GetUpperBound(1) + 1;
-            int x = widthOfGood - 1;
 
+            int x = widthOfGood - 1;
             int y = (heightOfGood - 1) - halfOfWidth;
             // идем снизу вверх
             while (y > heightOfGood / 2)
             {
                 int upCount = _calcedOriginMas[y, x] - _calcedOriginMas[y - halfOfWidth, x];
                 int downCount = _calcedOriginMas[y + halfOfWidth, x] - _calcedOriginMas[y, x];
-                double koeff = (double) (upCount) / (downCount + upCount);
-                if (koeff > 0.7 && upCount*10 > widthOfGood*halfOfWidth)
+                double coeff = (double) (upCount) / (downCount + upCount);
+                if (coeff > extremeIncrease && upCount * coverageCoeff > widthOfGood * halfOfWidth)
                 {
-                    _bottom = y + 3;
+                    _bottom = y;
                     break;
                 }
                 y--;
             }
+            if (_bottom == 0)
+                _bottom = (int) (heightOfGood*0.75);
 
+            x = widthOfGood - 1;
             y = halfOfWidth;
             // идем сверху вниз
             while (y < heightOfGood / 2)
             {
                 int upCount = _calcedOriginMas[y, x] - _calcedOriginMas[y - halfOfWidth, x];
                 int downCount = _calcedOriginMas[y + halfOfWidth, x] - _calcedOriginMas[y, x];
-                double koeff = (double) (downCount) / (downCount + upCount);
-                if (koeff > 0.7 && downCount*10 > widthOfGood*halfOfWidth)
+                double coeff = (double) (downCount) / (downCount + upCount);
+                if (coeff > extremeIncrease && downCount * coverageCoeff > widthOfGood * halfOfWidth)
                 {
-                    _top = y - 3;
+                    _top = y;
                     break;
                 }
                 y++;
             }
+            if (_top == 0)
+                _top = (int) (heightOfGood*0.25);
+
+            x = (widthOfGood - 1) - halfOfWidth;
+            y = heightOfGood - 1;
+            // идем справа налево
+            while (x > widthOfGood / 2)
+            {
+                int rightCount = _calcedOriginMas[y, x + halfOfWidth] - _calcedOriginMas[y, x];
+                int leftCount = _calcedOriginMas[y, x] - _calcedOriginMas[y, x - halfOfWidth];
+                double coeff = (double) (leftCount) / (rightCount + leftCount);
+                if (coeff > extremeIncrease && leftCount * coverageCoeff > heightOfGood * halfOfWidth)
+                {
+                    _right = x;
+                    break;
+                }
+                x--;
+            }
+            if (_right == 0)
+                _right = (int) (widthOfGood*0.75);
+
+            x = halfOfWidth;
+            y = heightOfGood - 1;
+            // идем слева направо
+            while (x < widthOfGood / 2)
+            {
+                int rightCount = _calcedOriginMas[y, x + halfOfWidth] - _calcedOriginMas[y, x];
+                int leftCount = _calcedOriginMas[y, x] - _calcedOriginMas[y, x - halfOfWidth];
+                double coeff = (double)(rightCount) / (rightCount + leftCount);
+                if (coeff > extremeIncrease && rightCount * coverageCoeff > heightOfGood * halfOfWidth)
+                {
+                    _left = x;
+                    break;
+                }
+                x++;
+            }
+            if (_left == 0)
+                _left = (int) (widthOfGood*0.25);
         }
 
+        /// <summary>
+        /// Проверка заданной позиции путем непосредственного анализа пикселей индикаторных полос
+        /// </summary>
+        /// <param name="point">Заданная позиция</param>
+        /// <returns>Коэффициент совпадения (количество отличающихся пикселей)</returns>
         private int CheckStripePositions(Point point)
         {
             int wOrigin = _originMas.GetUpperBound(1) + 1;
@@ -287,6 +368,11 @@ namespace NIIPP.ComputerVision
             return res;
         }
 
+        /// <summary>
+        /// Находит наиболее подходящую точку совмещения изображений путем анализа заданного множество возможных точек совмещения
+        /// </summary>
+        /// <param name="points">Заданное множество возможных точек совмещения</param>
+        /// <returns>Наиболее подходящая точка совмещения</returns>
         private Point FindBestStripePoint(List<Point> points)
         {
             Point bestPoint = new Point(0, 0);
@@ -303,17 +389,27 @@ namespace NIIPP.ComputerVision
 
             return bestPoint;
         }
-
+        
+        /// <summary>
+        /// Находит множество возможных точек совмещения изображений с помощью анализа позиций индикаторных полос
+        /// </summary>
+        /// <returns>Множество возможных точек совмещения</returns>
         private List<Point> FindProbablePositions()
         {
+            const double acceptablePercent = 0.12;
+
             List<Point> probablePositions = new List<Point>();
 
             int h = _currMas.GetUpperBound(0) + 1;
             int w = _currMas.GetUpperBound(1) + 1;
             int hOrigin = _originMas.GetUpperBound(0) + 1;
             int wOrigin = _originMas.GetUpperBound(1) + 1;
+
             int countOfPixelsUp = _calcedOriginMas[_top + Bandwidth, wOrigin - 1] - _calcedOriginMas[_top, wOrigin - 1];
             int countOfPixelsDown = _calcedOriginMas[_bottom, wOrigin - 1] - _calcedOriginMas[ _bottom - Bandwidth, wOrigin - 1];
+            int countOfPixelsRight = _calcedOriginMas[hOrigin - 1, _right] - _calcedOriginMas[hOrigin - 1, _right - Bandwidth];
+            int countOfPixelsLeft = _calcedOriginMas[hOrigin - 1, _left + Bandwidth] - _calcedOriginMas[hOrigin - 1, _left];
+
             int limitI = h - hOrigin + 1;
             int startJ = wOrigin;
 
@@ -321,15 +417,25 @@ namespace NIIPP.ComputerVision
             {
                 for (int j = startJ; j < w; j++)
                 {
-                    int currCountOfPixelsUp = _calcedCurrMas[_top + i + Bandwidth, j] - (_calcedCurrMas[_top + i, j] + _calcedCurrMas[_top + i + Bandwidth, j - wOrigin]) 
+                    int currCountOfPixelsUp = _calcedCurrMas[_top + i + Bandwidth, j] 
+                        - (_calcedCurrMas[_top + i, j] + _calcedCurrMas[_top + i + Bandwidth, j - wOrigin]) 
                         + _calcedCurrMas[_top + i, j - wOrigin];
-                    int currCountOfPixelsDown = _calcedCurrMas[_bottom + i, j] - (_calcedCurrMas[_bottom + i - Bandwidth, j] + _calcedCurrMas[_bottom + i, j - wOrigin])
+                    int currCountOfPixelsDown = _calcedCurrMas[_bottom + i, j] 
+                        - (_calcedCurrMas[_bottom + i - Bandwidth, j] + _calcedCurrMas[_bottom + i, j - wOrigin])
                         + _calcedCurrMas[_bottom + i - Bandwidth, j - wOrigin];
+                    int currCountOfPixelsRight = _calcedCurrMas[hOrigin + i - 1, j - wOrigin + _right] 
+                        - (_calcedCurrMas[hOrigin + i - 1, j - wOrigin + _right - Bandwidth] + _calcedCurrMas[i, j - wOrigin + _right])
+                        + _calcedCurrMas[i, j - wOrigin + _right - Bandwidth];
+                    int currCountOfPixelsLeft = _calcedCurrMas[hOrigin + i - 1, j - wOrigin + _left + Bandwidth] 
+                        - (_calcedCurrMas[hOrigin + i - 1, j - wOrigin + _left] + _calcedCurrMas[i, j - wOrigin + _left + Bandwidth])
+                        + _calcedCurrMas[i, j - wOrigin + _left];
 
-                    double upDelta = (double)(Math.Abs(countOfPixelsUp - currCountOfPixelsUp)) / (countOfPixelsUp + currCountOfPixelsUp);
-                    double downDelta = (double)(Math.Abs(countOfPixelsDown - currCountOfPixelsDown)) / (countOfPixelsDown + currCountOfPixelsDown);
+                    double upDelta = (double)(Math.Abs(countOfPixelsUp - currCountOfPixelsUp)) / countOfPixelsUp;
+                    double downDelta = (double)(Math.Abs(countOfPixelsDown - currCountOfPixelsDown)) / countOfPixelsDown;
+                    double rightDelta = (double)(Math.Abs(countOfPixelsRight - currCountOfPixelsRight)) / countOfPixelsRight;
+                    double leftDelta = (double)(Math.Abs(countOfPixelsLeft - currCountOfPixelsLeft)) / countOfPixelsLeft;
 
-                    if (upDelta < 0.1 && downDelta < 0.1)
+                    if (upDelta < acceptablePercent && downDelta < acceptablePercent && rightDelta < acceptablePercent && leftDelta < acceptablePercent)
                         probablePositions.Add(new Point(j - wOrigin, i));
                 }
             }
@@ -440,54 +546,11 @@ namespace NIIPP.ComputerVision
 
             Point res = FindBestStripePoint(probablePositions);
 
-           // res = FindPreciseImposition(res);
+            res = FindPreciseImposition(res);
+
+          //  MessageBox.Show(probablePositions.Count.ToString());
 
             return res;
-        }
-
-        /// <summary>
-        /// Находит лучшее совмещения данного изображения
-        /// </summary>
-        /// <param name="nextPicMass">Массив пикселей изображения тестируемого чипа</param>
-        /// <returns></returns>
-        public Point FindBestImposition2(byte[, ,] nextPicMass)
-        {
-            Point offset = new Point(0, 0);
-
-            int minDiff = Int32.MaxValue;
-            Point bestOffset = new Point(0, 0);
-
-            // ищем по высоте
-            offset.X = bestOffset.X;
-            int bestY = bestOffset.Y;
-            for (int i = -200; i <= 200; i++)
-            {
-                offset.Y = bestY + i;
-                int currRes = CheckSuperpositionBruteforce(nextPicMass, offset);
-                // если нашли минимальный результат - сохраняем
-                if (currRes < minDiff)
-                {
-                    minDiff = currRes;
-                    bestOffset.Y = offset.Y;
-                }
-            }
-
-            // ищем по ширине
-            offset.Y = bestOffset.Y;
-            int bestX = bestOffset.X;
-            for (int j = -200; j <= 200; j++)
-            {
-                offset.X = bestX + j;
-                int currRes = CheckSuperpositionBruteforce(nextPicMass, offset);
-                // если нашли минимальный результат - сохраняем
-                if (currRes < minDiff)
-                {
-                    minDiff = currRes;
-                    bestOffset.X = offset.X;
-                }
-            }
-
-            return bestOffset;
         }
 
         /// <summary>
@@ -498,6 +561,8 @@ namespace NIIPP.ComputerVision
         /// <returns>Количество несовпадающих пикселей</returns>
         private int CheckSuperpositionBruteforce(byte[, ,] nextPicMass, Point offset)
         {
+            const int partOfSquare = 3;
+
             int heightOfGood = _originMas.GetUpperBound(0) + 1;
             int widthOfGood = _originMas.GetUpperBound(1) + 1;
 
@@ -508,8 +573,8 @@ namespace NIIPP.ComputerVision
                 return Int32.MaxValue;
 
             int res = 0;
-            for (int i = 0; i < heightOfGood / 3; i++)
-                for (int j = 0; j < widthOfGood / 3; j++)
+            for (int i = 0; i < heightOfGood / partOfSquare; i++)
+                for (int j = 0; j < widthOfGood / partOfSquare; j++)
                     if (_originMas[i, j, 0] != nextPicMass[i + offset.Y, j + offset.X, 0])
                         res++;
 
@@ -588,7 +653,7 @@ namespace NIIPP.ComputerVision
             _currChipForTest = bmp;
 
             // находим наилучшее совмещение
-            Point offset = _superImposition.FindBestImposition2(segmentedMass);
+            Point offset = _superImposition.FindBestImposition(segmentedMass);
 
             // сравниваем хороший чип и очередной тестируемый
             Bitmap picWithSprites = CheckChipForDamage(segmentedMass, offset);

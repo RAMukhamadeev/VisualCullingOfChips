@@ -44,9 +44,12 @@
             // 
             // pbImage
             // 
+            this.pbImage.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.pbImage.Location = new System.Drawing.Point(12, 42);
             this.pbImage.Name = "pbImage";
-            this.pbImage.Size = new System.Drawing.Size(906, 497);
+            this.pbImage.Size = new System.Drawing.Size(925, 475);
             this.pbImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pbImage.TabIndex = 0;
             this.pbImage.TabStop = false;
@@ -59,7 +62,7 @@
             this.стартToolStripMenuItem});
             this.menuStripMain.Location = new System.Drawing.Point(0, 0);
             this.menuStripMain.Name = "menuStripMain";
-            this.menuStripMain.Size = new System.Drawing.Size(930, 24);
+            this.menuStripMain.Size = new System.Drawing.Size(949, 24);
             this.menuStripMain.TabIndex = 1;
             this.menuStripMain.Text = "menuStrip1";
             // 
@@ -120,13 +123,15 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(930, 561);
+            this.ClientSize = new System.Drawing.Size(949, 529);
             this.Controls.Add(this.pbImage);
             this.Controls.Add(this.menuStripMain);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStripMain;
             this.Name = "FormTestOfImposition";
             this.Text = "FormTestOfImposition";
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
+            this.Load += new System.EventHandler(this.FormTestOfImposition_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pbImage)).EndInit();
             this.menuStripMain.ResumeLayout(false);
             this.menuStripMain.PerformLayout();
