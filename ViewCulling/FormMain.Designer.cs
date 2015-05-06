@@ -56,7 +56,7 @@
             this.msMain.Location = new System.Drawing.Point(0, 0);
             this.msMain.Name = "msMain";
             this.msMain.Padding = new System.Windows.Forms.Padding(3, 1, 0, 1);
-            this.msMain.Size = new System.Drawing.Size(492, 24);
+            this.msMain.Size = new System.Drawing.Size(639, 24);
             this.msMain.TabIndex = 1;
             this.msMain.Text = "msMain";
             // 
@@ -140,11 +140,11 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(492, 291);
+            this.ClientSize = new System.Drawing.Size(639, 282);
             this.Controls.Add(this.msMain);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.msMain;
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "FormMain";
             this.Text = "ViewCulling";
             this.Load += new System.EventHandler(this.MainForm_Load);

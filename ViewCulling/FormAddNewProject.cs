@@ -180,16 +180,40 @@ namespace ViewCulling
             return bmp.Clone(rect, bmp.PixelFormat);
         }
 
+        private Bitmap CutBitmapImage(Bitmap bmp, Point offset, int width, int height)
+        {
+            Rectangle rect = new Rectangle(offset.X, offset.Y, width, height);
+            return bmp.Clone(rect, bmp.PixelFormat);
+        }
+
         private void обрезатьToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (CurrResume != Resume.Cutting)
                 return;
 
+            // определяем позицию текущего изображения на форме
             int pos = _images.IndexOf(_currImage);
 
+            // обрезаем изображение на форме
+            _images[pos] = CutBitmapImage(_images[pos], trbLeftPosition.Value, trbRightPosition.Value, trbUpPosition.Value, trbDownPosition.Value);
+
+
+            Color col = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
+
+            Segmentation segmentation = new Segmentation(_images[pos], col, trbToleranceLimit.Value);
+            byte[,,] originMas = segmentation.GetSegmentedMass();
+
+            SuperImposition superImposition = new SuperImposition(originMas);
             for (int i = 0; i < _images.Count; i++)
             {
-                _images[i] = CutBitmapImage(_images[i], trbLeftPosition.Value, trbRightPosition.Value, trbUpPosition.Value, trbDownPosition.Value);
+                if (i == pos)
+                    continue;
+
+                Segmentation currSegmentation = new Segmentation(_images[i], col, trbToleranceLimit.Value);
+                byte[, ,] currMas = currSegmentation.GetSegmentedMass();
+
+                Point offset = superImposition.FindBestImposition(currMas);
+                _images[i] = CutBitmapImage(_images[i], offset, _images[pos].Width, _images[pos].Height);
             }
 
             _currImage = _images[pos];
@@ -200,7 +224,6 @@ namespace ViewCulling
             trbUpPosition.Value = 0;
             trbDownPosition.Value = 0;
             RefreshCuttingLabels();
-
             SetDimensionsOfPositionTrackBars(_currImage);
         }
 
@@ -253,6 +276,11 @@ namespace ViewCulling
         }
 
         private void добавитьИзображениеГодногоЧипаToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LoadGoodChipImage();
+        }
+
+        private void LoadGoodChipImage()
         {
             OpenFileDialog ofd = new OpenFileDialog {Multiselect = true};
             if (ofd.ShowDialog() == DialogResult.OK)
@@ -311,7 +339,10 @@ namespace ViewCulling
 
         private void pbGoodChipImage_Click(object sender, EventArgs e)
         {
-
+            if (_currResume == Resume.None)
+            {
+                LoadGoodChipImage();
+            }
         }
 
         private void pbRightArrow_Click(object sender, EventArgs e)

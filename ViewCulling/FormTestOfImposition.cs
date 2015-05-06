@@ -72,7 +72,7 @@ namespace ViewCulling
 
             pbImage.Image = OverlapTwoImage(masTested, masOrigin, offset);
 
-           // MessageBox.Show(timeSpan.TotalMilliseconds.ToString());
+            MessageBox.Show(timeSpan.TotalMilliseconds.ToString());
         }
 
         private void тестируемыйФайлToolStripMenuItem_Click(object sender, EventArgs e)

@@ -225,7 +225,7 @@ namespace NIIPP.ComputerVision
         {
             _originMas = originMas;
 
-            _calcedOriginMas = CalcRectanglePixelCount(originMas);
+            _calcedOriginMas = CalcRectanglePixelCount(_originMas);
             FindStripePositions();
         }
 
@@ -396,7 +396,7 @@ namespace NIIPP.ComputerVision
         /// <returns>Множество возможных точек совмещения</returns>
         private List<Point> FindProbablePositions()
         {
-            const double acceptablePercent = 0.12;
+            const double acceptablePercent = 0.2;
 
             List<Point> probablePositions = new List<Point>();
 
@@ -435,7 +435,17 @@ namespace NIIPP.ComputerVision
                     double rightDelta = (double)(Math.Abs(countOfPixelsRight - currCountOfPixelsRight)) / countOfPixelsRight;
                     double leftDelta = (double)(Math.Abs(countOfPixelsLeft - currCountOfPixelsLeft)) / countOfPixelsLeft;
 
-                    if (upDelta < acceptablePercent && downDelta < acceptablePercent && rightDelta < acceptablePercent && leftDelta < acceptablePercent)
+                    int countOfAcceptable = 0;
+                    if (upDelta < acceptablePercent)
+                        countOfAcceptable++;
+                    if (downDelta < acceptablePercent)
+                        countOfAcceptable++;
+                    if (rightDelta < acceptablePercent)
+                        countOfAcceptable++;
+                    if (leftDelta < acceptablePercent)
+                        countOfAcceptable++;
+
+                    if (countOfAcceptable >= 4)
                         probablePositions.Add(new Point(j - wOrigin, i));
                 }
             }
@@ -540,15 +550,13 @@ namespace NIIPP.ComputerVision
         public Point FindBestImposition(byte[, ,] currMas)
         {
             _currMas = currMas;
-            _calcedCurrMas = CalcRectanglePixelCount(currMas);
+            _calcedCurrMas = CalcRectanglePixelCount(_currMas);
 
             List<Point> probablePositions = FindProbablePositions();
 
             Point res = FindBestStripePoint(probablePositions);
 
             res = FindPreciseImposition(res);
-
-          //  MessageBox.Show(probablePositions.Count.ToString());
 
             return res;
         }
