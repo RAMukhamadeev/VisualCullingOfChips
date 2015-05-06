@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using NIIPP.ComputerVision;
 
@@ -138,8 +139,8 @@ namespace ViewCulling
         private void SegmentationWithCurrentParameters()
         {
             Color col = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
-            Segmentation segmentation = new Segmentation(_currImage, col, trbToleranceLimit.Value);
-            pbGoodChipImage.Image = segmentation.GetSegmentedPicture();
+            Segmentation segmentation = new Segmentation(col, trbToleranceLimit.Value);
+            pbGoodChipImage.Image = segmentation.GetSegmentedPicture(_currImage);
             GC.Collect();
         }
 
@@ -200,8 +201,8 @@ namespace ViewCulling
 
             Color col = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
 
-            Segmentation segmentation = new Segmentation(_images[pos], col, trbToleranceLimit.Value);
-            byte[,,] originMas = segmentation.GetSegmentedMass();
+            Segmentation segmentation = new Segmentation(col, trbToleranceLimit.Value);
+            byte[,,] originMas = segmentation.GetSegmentedMass(_images[pos]);
 
             SuperImposition superImposition = new SuperImposition(originMas);
             for (int i = 0; i < _images.Count; i++)
@@ -209,9 +210,7 @@ namespace ViewCulling
                 if (i == pos)
                     continue;
 
-                Segmentation currSegmentation = new Segmentation(_images[i], col, trbToleranceLimit.Value);
-                byte[, ,] currMas = currSegmentation.GetSegmentedMass();
-
+                byte[, ,] currMas = segmentation.GetSegmentedMass(_images[i]);
                 Point offset = superImposition.FindBestImposition(currMas);
                 _images[i] = CutBitmapImage(_images[i], offset, _images[pos].Width, _images[pos].Height);
             }
@@ -278,6 +277,16 @@ namespace ViewCulling
         private void добавитьИзображениеГодногоЧипаToolStripMenuItem_Click(object sender, EventArgs e)
         {
             LoadGoodChipImage();
+        }
+
+        private void CreateUnion()
+        {
+            Color col = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
+            Bitmap res = Utils.UnionOfImages(col, trbToleranceLimit.Value, _images);
+
+            FormUnionOfPictures formUnionOfPictures = new FormUnionOfPictures();
+            formUnionOfPictures.Show();
+            formUnionOfPictures.SetImage(res);
         }
 
         private void LoadGoodChipImage()
@@ -391,6 +400,11 @@ namespace ViewCulling
                 SegmentationWithCurrentParameters();
             if (CurrResume == Resume.Cutting)
                 DrawFrame();
+        }
+
+        private void создатьОбъединениеToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateUnion();
         }
 
     }

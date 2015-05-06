@@ -56,11 +56,11 @@ namespace ViewCulling
             //Color backColor = Color.FromArgb(55, 46, 105);
             //int lim = 40;
 
-            Segmentation segmentation1 = new Segmentation(bmpTested, backColor, lim);
-            var masTested = segmentation1.GetSegmentedMass();
+            Segmentation segmentation1 = new Segmentation(backColor, lim);
+            var masTested = segmentation1.GetSegmentedMass(bmpTested);
 
-            Segmentation segmentation2 = new Segmentation(bmpOriginal, backColor, lim);
-            var masOrigin = segmentation2.GetSegmentedMass();
+            Segmentation segmentation2 = new Segmentation(backColor, lim);
+            var masOrigin = segmentation2.GetSegmentedMass(bmpOriginal);
 
             SuperImposition superImposition = new SuperImposition(masOrigin);
 

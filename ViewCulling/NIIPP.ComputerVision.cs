@@ -2,10 +2,34 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace NIIPP.ComputerVision
 {
+    /// <summary>
+    /// Набор цветов используемых в библиотеке
+    /// </summary>
+    static class VisionColors
+    {
+        /// <summary>
+        /// Цвет слоя отличного от подложки
+        /// </summary>
+        public static readonly Color NoWafer = Color.FromArgb(174, 179, 23);
+        /// <summary>
+        /// Цвет подложки
+        /// </summary>
+        public static readonly Color Wafer = Color.FromArgb(0, 0, 0);
+        /// <summary>
+        /// Цвет повреждения
+        /// </summary>
+        public static readonly Color Damage = Color.FromArgb(255, 127, 80);
+        /// <summary>
+        /// Цвет рамки вокруг повреждения
+        /// </summary>
+        public static readonly Color Frame = Color.FromArgb(172, 255, 47);
+    }
+
     /// <summary>
     /// Класс для сегментации изображений
     /// </summary>
@@ -18,15 +42,15 @@ namespace NIIPP.ComputerVision
         /// <summary>
         /// Трехмерный массив - двумерный массив пикселей + 3 измерение RGB компоненты
         /// </summary>
-        private readonly byte[,,] _masRgb;
+        private byte[,,] _masRgb;
         /// <summary>
         /// Высота изображения
         /// </summary>
-        private readonly int _height;
+        private int _height;
         /// <summary>
         /// Ширина изображения
         /// </summary>
-        private readonly int _width;
+        private int _width;
 
         // RGB-компоненты цвета фона
         private readonly int 
@@ -44,11 +68,8 @@ namespace NIIPP.ComputerVision
         /// <param name="innerPic">Изображение, которое необходимо сегментировать в формате Bitmap</param>
         /// <param name="backgroundColor">Цвет фона изображения</param>
         /// <param name="delta">Допустимое отклонение фонового пикселя</param>
-        public Segmentation(Bitmap innerPic, Color backgroundColor, int delta)
+        public Segmentation(Color backgroundColor, int delta)
         {
-            _masRgb = Utils.BitmapToByteRgb(innerPic);
-            _height = _masRgb.GetUpperBound(0) + 1;
-            _width = _masRgb.GetUpperBound(1) + 1;
             _backColR = backgroundColor.R;
             _backColG = backgroundColor.G;
             _backColB = backgroundColor.B;
@@ -96,11 +117,11 @@ namespace NIIPP.ComputerVision
             for (int i = 0; i < _height; i++)
                 for (int j = 0; j < _width; j++)
                 {
-                    if (_masRgb[i, j, 0] != 0 || _masRgb[i, j, 1] != 0 || _masRgb[i, j, 2] != 0)
+                    if (_masRgb[i, j, 0] != VisionColors.Wafer.R)
                     {
-                        _masRgb[i, j, 0] = 174;
-                        _masRgb[i, j, 1] = 179;
-                        _masRgb[i, j, 2] = 23;
+                        _masRgb[i, j, 0] = VisionColors.NoWafer.R;
+                        _masRgb[i, j, 1] = VisionColors.NoWafer.G;
+                        _masRgb[i, j, 2] = VisionColors.NoWafer.B;
                     }
                 }
         }
@@ -108,9 +129,14 @@ namespace NIIPP.ComputerVision
         /// <summary>
         /// Возвращает сегментированное изображение в формате Bitmap
         /// </summary>
+        /// <param name="innerPic">Изображение, которое необходимо сегментировать</param>
         /// <returns>Сегментированное изображение в формате Bitmap</returns>
-        public Bitmap GetSegmentedPicture()
+        public Bitmap GetSegmentedPicture(Bitmap innerPic)
         {
+            _masRgb = Utils.BitmapToByteRgb(innerPic);
+            _height = _masRgb.GetUpperBound(0) + 1;
+            _width = _masRgb.GetUpperBound(1) + 1;
+
             ReleaseSegmentation();
 
             Bitmap outerPic = Utils.ByteToBitmapRgb(_masRgb);
@@ -120,9 +146,14 @@ namespace NIIPP.ComputerVision
         /// <summary>
         /// Возвращает сегментированное изображение в виде трехмерного массива
         /// </summary>
+        /// <param name="innerPic">Изображение, которое необходимо сегментировать</param>
         /// <returns>Трехмерный массив, описывающий изображение, третье измерение (0 - R, 1 - G, 2 - B) RGB компоненты цвета</returns>
-        public byte[,,] GetSegmentedMass()
+        public byte[, ,] GetSegmentedMass(Bitmap innerPic)
         {
+            _masRgb = Utils.BitmapToByteRgb(innerPic);
+            _height = _masRgb.GetUpperBound(0) + 1;
+            _width = _masRgb.GetUpperBound(1) + 1;
+
             ReleaseSegmentation();
 
             return _masRgb;
@@ -133,7 +164,7 @@ namespace NIIPP.ComputerVision
         /// </summary>
         /// <param name="ist">i-координата массива точки</param>
         /// <param name="jst">j-координата массива точки</param>
-        void FillBackground(int ist, int jst)
+        private void FillBackground(int ist, int jst)
         {
             int height = _masRgb.GetUpperBound(0) + 1,
                 width = _masRgb.GetUpperBound(1) + 1;
@@ -163,9 +194,9 @@ namespace NIIPP.ComputerVision
                     {
                         st.Add(new Point(i, j));
 
-                        _masRgb[i, j, 0] = 0;
-                        _masRgb[i, j, 1] = 0;
-                        _masRgb[i, j, 2] = 0;
+                        _masRgb[i, j, 0] = VisionColors.Wafer.R;
+                        _masRgb[i, j, 1] = VisionColors.Wafer.G;
+                        _masRgb[i, j, 2] = VisionColors.Wafer.B;
                     }
                 }
             }
@@ -560,7 +591,7 @@ namespace NIIPP.ComputerVision
 
             return res;
         }
-
+        
         /// <summary>
         /// Проверка заданного смещения (неоптимально в лоб)
         /// </summary>
@@ -634,8 +665,8 @@ namespace NIIPP.ComputerVision
             Bitmap originGoodChip = new Bitmap(pathToGoodChipFile);
 
             // сегментируем оригинал
-            Segmentation segm = new Segmentation(originGoodChip, Color.Blue, 100); // TO DO: исправить
-            _segmentedMassGoodChip = segm.GetSegmentedMass();
+            Segmentation segm = new Segmentation(Color.Blue, 100); // TO DO: исправить
+            _segmentedMassGoodChip = segm.GetSegmentedMass(originGoodChip);
 
             // фиксируем размеры массива
             _heightOfGood = _segmentedMassGoodChip.GetUpperBound(0) + 1;
@@ -654,8 +685,8 @@ namespace NIIPP.ComputerVision
         {
             // сегментируем очередной чип, который нужно проверить
             Bitmap bmp = new Bitmap(pathToChipFile);
-            Segmentation segm = new Segmentation(bmp, Color.Blue, 100); // TO DO: исправить
-            byte[,,] segmentedMass = segm.GetSegmentedMass();
+            Segmentation segm = new Segmentation(Color.Blue, 100); // TO DO: исправить
+            byte[,,] segmentedMass = segm.GetSegmentedMass(bmp);
 
             // сохраняем изображение очередного чипа
             _currChipForTest = bmp;
@@ -746,9 +777,9 @@ namespace NIIPP.ComputerVision
                 {
                     int curri = nextPoint.Y,
                         currj = nextPoint.X;
-                    nextChipWithSprites[curri + offset.Y, currj + offset.X, 0] = Color.Coral.R;
-                    nextChipWithSprites[curri + offset.Y, currj + offset.X, 1] = Color.Coral.G;
-                    nextChipWithSprites[curri + offset.Y, currj + offset.X, 2] = Color.Coral.B;
+                    nextChipWithSprites[curri + offset.Y, currj + offset.X, 0] = VisionColors.Damage.R;
+                    nextChipWithSprites[curri + offset.Y, currj + offset.X, 1] = VisionColors.Damage.G;
+                    nextChipWithSprites[curri + offset.Y, currj + offset.X, 2] = VisionColors.Damage.B;
                 }
 
                 // рисуем рамку
@@ -769,36 +800,36 @@ namespace NIIPP.ComputerVision
                 {
                     for (int j = minj; j <= maxj; j++)
                     {
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 0] = Color.GreenYellow.R;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 1] = Color.GreenYellow.G;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 2] = Color.GreenYellow.B;
+                        nextChipWithSprites[i + offset.Y, j + offset.X, 0] = VisionColors.Frame.R;
+                        nextChipWithSprites[i + offset.Y, j + offset.X, 1] = VisionColors.Frame.G;
+                        nextChipWithSprites[i + offset.Y, j + offset.X, 2] = VisionColors.Frame.B;
                     }
                 }
                 for (int i = maxi - 1; i <= maxi + 1; i++)
                 {
                     for (int j = minj; j <= maxj; j++)
                     {
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 0] = Color.GreenYellow.R;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 1] = Color.GreenYellow.G;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 2] = Color.GreenYellow.B;
+                        nextChipWithSprites[i + offset.Y, j + offset.X, 0] = VisionColors.Frame.R;
+                        nextChipWithSprites[i + offset.Y, j + offset.X, 1] = VisionColors.Frame.G;
+                        nextChipWithSprites[i + offset.Y, j + offset.X, 2] = VisionColors.Frame.B;
                     }
                 }
                 for (int j = minj - 1; j <= minj + 1; j++)
                 {
                     for (int i = mini; i <= maxi; i++)
                     {
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 0] = Color.GreenYellow.R;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 1] = Color.GreenYellow.G;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 2] = Color.GreenYellow.B;
+                        nextChipWithSprites[i + offset.Y, j + offset.X, 0] = VisionColors.Frame.R;
+                        nextChipWithSprites[i + offset.Y, j + offset.X, 1] = VisionColors.Frame.G;
+                        nextChipWithSprites[i + offset.Y, j + offset.X, 2] = VisionColors.Frame.B;
                     }
                 }
                 for (int j = maxj - 1; j <= maxj + 1; j++)
                 {
                     for (int i = mini; i <= maxi; i++)
                     {
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 0] = Color.GreenYellow.R;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 1] = Color.GreenYellow.G;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 2] = Color.GreenYellow.B;
+                        nextChipWithSprites[i + offset.Y, j + offset.X, 0] = VisionColors.Frame.R;
+                        nextChipWithSprites[i + offset.Y, j + offset.X, 1] = VisionColors.Frame.G;
+                        nextChipWithSprites[i + offset.Y, j + offset.X, 2] = VisionColors.Frame.B;
                     }
                 }
             }
@@ -837,6 +868,38 @@ namespace NIIPP.ComputerVision
     /// </summary>
     static class Utils
     {
+
+        public static Bitmap UnionOfImages(Color backColor, int lim, List<Bitmap> images)
+        {
+            int width = images.First().Width;
+            int height = images.First().Height;
+
+            int[,] res = new int[height, width];
+
+            Segmentation segmentation = new Segmentation(backColor, lim);
+            foreach (Bitmap image in images)
+            {
+                byte[,,] currMas = segmentation.GetSegmentedMass(image);
+
+                for (int i = 0; i < height; i++)
+                    for (int j = 0; j < width; j++)
+                        if (currMas[i, j, 0] != 0)
+                            res[i, j]++;
+            }
+
+            byte[,,] outputPicture = new byte[height, width, 3];
+            for (int i = 0; i < height; i++)
+                for (int j = 0; j < width; j++)
+                    if (res[i, j] > 1)
+                    {
+                        outputPicture[i, j, 0] = VisionColors.NoWafer.R;
+                        outputPicture[i, j, 1] = VisionColors.NoWafer.G;
+                        outputPicture[i, j, 2] = VisionColors.NoWafer.B;
+                    }
+
+            return ByteToBitmapRgb(outputPicture);
+        }
+
         /// <summary>
         /// Преобразовывает изображение в формате bmp в массив
         /// </summary>
