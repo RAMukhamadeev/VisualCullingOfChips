@@ -864,11 +864,229 @@ namespace NIIPP.ComputerVision
     }
 
     /// <summary>
+    /// Класс подавляет шумы сегментированного изображения
+    /// </summary>
+    public class NoiseSuppression
+    {
+        private readonly byte[,,] _inputMas;
+        private readonly int _w;
+        private readonly int _h;
+        private readonly int[] _di = { -1, 1, 0, 0 };
+        private readonly int[] _dj = { 0, 0, 1, -1 };
+
+        public NoiseSuppression(byte[, ,] inputMas)
+        {
+            _inputMas = inputMas;
+            _h = inputMas.GetUpperBound(0) + 1;
+            _w = inputMas.GetUpperBound(1) + 1;
+        }
+
+        /// <summary>
+        /// Подавляет шумы сегментированного изображения
+        /// </summary>
+        public byte[,,] GetNoiseSuppressedMas()
+        {
+            RemoveLittleIslandsOfNoWafer();
+            FillExtremePixelsOfWafer();
+            RemoveExtremePixelsOfNoWafer();
+
+            return _inputMas;
+        }
+
+        private void RemoveExtremePixelsOfNoWafer()
+        {
+            List<Point> potentialPoints = new List<Point>();
+            for (int i = 0; i < _h; i++)
+                for (int j = 0; j < _w; j++)
+                {
+                    if (CheckNoWaferPixelForExtreme(i, j))
+                    {
+                        _inputMas[i, j, 0] = VisionColors.Wafer.R;
+                        _inputMas[i, j, 1] = VisionColors.Wafer.G;
+                        _inputMas[i, j, 2] = VisionColors.Wafer.B;
+
+                        potentialPoints.Add(new Point(j, i));
+                    }
+                }
+
+            int pos = 0;
+            while (pos < potentialPoints.Count)
+            {
+                int i = potentialPoints[pos].Y;
+                int j = potentialPoints[pos].X;
+                for (int k = 0; k < _di.Length; k++)
+                {
+                    int currI = i + _di[k];
+                    int currJ = j + _dj[k];
+
+                    if (CheckNoWaferPixelForExtreme(currI, currJ))
+                    {
+                        _inputMas[currI, currJ, 0] = VisionColors.Wafer.R;
+                        _inputMas[currI, currJ, 1] = VisionColors.Wafer.G;
+                        _inputMas[currI, currJ, 2] = VisionColors.Wafer.B;
+
+                        potentialPoints.Add(new Point(currJ, currI));
+                    }
+                }
+
+                pos++;
+            }
+        }
+
+        private void FillExtremePixelsOfWafer()
+        {
+            List<Point> potentialPoints = new List<Point>();
+            for (int i = 0; i < _h; i++)
+                for (int j = 0; j < _w; j++)
+                {
+                    if (CheckWaferPixelForExtreme(i, j))
+                    {
+                        _inputMas[i, j, 0] = VisionColors.NoWafer.R;
+                        _inputMas[i, j, 1] = VisionColors.NoWafer.G;
+                        _inputMas[i, j, 2] = VisionColors.NoWafer.B;
+
+                        potentialPoints.Add(new Point(j, i));
+                    }
+                }
+
+            int pos = 0;
+            while (pos < potentialPoints.Count)
+            {
+                int i = potentialPoints[pos].Y;
+                int j = potentialPoints[pos].X;
+                for (int k = 0; k < _di.Length; k++)
+                {
+                    int currI = i + _di[k];
+                    int currJ = j + _dj[k];
+
+                    if (CheckWaferPixelForExtreme(currI, currJ))
+                    {
+                        _inputMas[currI, currJ, 0] = VisionColors.NoWafer.R;
+                        _inputMas[currI, currJ, 1] = VisionColors.NoWafer.G;
+                        _inputMas[currI, currJ, 2] = VisionColors.NoWafer.B;
+
+                        potentialPoints.Add(new Point(currJ, currI));
+                    }
+                }
+
+                pos++;
+            }
+        }
+
+        private bool CheckNoWaferPixelForExtreme(int i, int j)
+        {
+            if (i < 0 || i >= _h || j < 0 || j >= _w)
+                return false;
+
+            if (_inputMas[i, j, 0] != VisionColors.NoWafer.R)
+                return false;
+            int count = 0;
+            for (int k = 0; k < _di.Length; k++)
+            {
+                int currI = i + _di[k];
+                int currJ = j + _dj[k];
+                if (currI < 0 || currI >= _h || currJ < 0 || currJ >= _w)
+                    continue;
+                if (_inputMas[currI, currJ, 0] == VisionColors.Wafer.R)
+                    count++;
+            }
+
+            return count >= 3;
+        }
+
+        private bool CheckWaferPixelForExtreme(int i, int j)
+        {
+            if (i < 0 || i >= _h || j < 0 || j >= _w)
+                return false;
+
+            if (_inputMas[i, j, 0] != VisionColors.Wafer.R)
+                return false;
+            int count = 0;
+            for (int k = 0; k < _di.Length; k++)
+            {
+                int currI = i + _di[k];
+                int currJ = j + _dj[k];
+                if (currI < 0 || currI >= _h || currJ < 0 || currJ >= _w)
+                    continue;
+                if (_inputMas[currI, currJ, 0] == VisionColors.NoWafer.R)
+                    count++;
+            }
+
+            return count >= 3;
+        }
+
+        private void RemoveLittleIslandsOfNoWafer()
+        {
+            bool[,] isAnalyzed = new bool[_h, _w];
+
+            for (int i = 0; i < _h; i++)
+            {
+                for (int j = 0; j < _w; j++)
+                {
+                    if (!isAnalyzed[i, j] && _inputMas[i, j, 0] == VisionColors.NoWafer.R)
+                    {
+                        List<Point> islandOfPixels = FindIsland(i, j, ref isAnalyzed);
+                        if (islandOfPixels.Count < 100)
+                            FillIsalnd(islandOfPixels);
+                    }
+                }
+            }
+        }
+
+        private void FillIsalnd(List<Point> mas)
+        {
+            foreach (Point point in mas)
+            {
+                _inputMas[point.Y, point.X, 0] = VisionColors.Wafer.R;
+                _inputMas[point.Y, point.X, 1] = VisionColors.Wafer.G;
+                _inputMas[point.Y, point.X, 2] = VisionColors.Wafer.B;
+            }
+        }
+
+        private List<Point> FindIsland(int startI, int startJ, ref bool[,] isAnalyzed)
+        {
+            List<Point> queue = new List<Point> { new Point(startJ, startI) };
+            isAnalyzed[startI, startJ] = true;
+
+            int pos = 0;
+            while (pos < queue.Count)
+            {
+                int currI = queue[pos].Y;
+                int currJ = queue[pos].X;
+
+                for (int k = 0; k < _di.Length; k++)
+                {
+                    int i = currI + _di[k];
+                    int j = currJ + _dj[k];
+                    if (i < 0 || i >= _h || j < 0 || j >= _w)
+                        continue;
+
+                    if (!isAnalyzed[i, j] && _inputMas[i, j, 0] == VisionColors.NoWafer.R)
+                    {
+                        queue.Add(new Point(j, i));
+                        isAnalyzed[i, j] = true;
+                    }
+                }
+
+                pos++;
+            }
+
+            return queue;
+        }
+    }
+
+    /// <summary>
     /// Вспомогательные методы
     /// </summary>
     static class Utils
     {
-
+        /// <summary>
+        /// Объединяет сегментированные изображения в одно сегментированное с подавлением шума
+        /// </summary>
+        /// <param name="backColor">Цвет подложки</param>
+        /// <param name="lim">Разброс цвета подложки по поверхности чипа</param>
+        /// <param name="images">Массив несегментированных изображений</param>
+        /// <returns>Объединенное (усредненное) сегментированное изображение с подавлением шума</returns>
         public static Bitmap UnionOfImages(Color backColor, int lim, List<Bitmap> images)
         {
             int width = images.First().Width;
@@ -896,6 +1114,9 @@ namespace NIIPP.ComputerVision
                         outputPicture[i, j, 1] = VisionColors.NoWafer.G;
                         outputPicture[i, j, 2] = VisionColors.NoWafer.B;
                     }
+
+            NoiseSuppression noiseSuppression = new NoiseSuppression(outputPicture);
+            outputPicture = noiseSuppression.GetNoiseSuppressedMas();
 
             return ByteToBitmapRgb(outputPicture);
         }
