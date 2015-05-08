@@ -49,26 +49,42 @@ namespace ViewCulling
 
         private void rGBКомпонентаОбразцаToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FormRgbAnalyze formRgbAnalyzeOfGoodChip = new FormRgbAnalyze();
+            FormRgbAnalyze formRgbAnalyzeOfGoodChip = new FormRgbAnalyze {TopLevel = false};
+            Controls.Add(formRgbAnalyzeOfGoodChip);
+
             formRgbAnalyzeOfGoodChip.Show();
         }
 
         private void запускАнализаToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FormStartAnalyze formStartAnalyze = new FormStartAnalyze();
+            FormStartAnalyze formStartAnalyze = new FormStartAnalyze {TopLevel = false};
+            Controls.Add(formStartAnalyze);
+
             formStartAnalyze.Show();
         }
 
         private void добавитьНовыToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FormAddNewProject formAddNewProject = new FormAddNewProject();
+            formAddNewProject.TopLevel = false;
+            this.Controls.Add(formAddNewProject);
             formAddNewProject.Show();
         }
 
         private void совмещениеToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FormTestOfImposition formTestOfImposition = new FormTestOfImposition();
+            FormTestOfImposition formTestOfImposition = new FormTestOfImposition {TopLevel = false};
+            Controls.Add(formTestOfImposition);
+
             formTestOfImposition.Show();
+        }
+
+        private void загрузкаToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FormLoading formLoading = new FormLoading {TopLevel = false};
+            Controls.Add(formLoading);
+
+            formLoading.Show();
         }
     }
 }

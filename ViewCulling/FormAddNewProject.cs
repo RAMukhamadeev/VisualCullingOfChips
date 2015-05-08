@@ -131,8 +131,22 @@ namespace ViewCulling
             pbBackgroundColor.BackColor = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
         }
 
+        private Color GetColorUnderCursor()
+        {
+            Bitmap printscreen = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
+            Graphics graphics = Graphics.FromImage(printscreen);
+            graphics.CopyFromScreen(0, 0, 0, 0, printscreen.Size);
+
+            Color res = printscreen.GetPixel(Cursor.Position.X, Cursor.Position.Y);
+
+            return res;
+        }
+
         private void FormAddNewProject_Load(object sender, EventArgs e)
         {
+            gbSamplesOfGoodChips.Width = this.Width - gbInterMainInfo.Width - 75;
+            gbSamplesOfGoodChips.Height = this.Height - pbLeftArrow.Height - 100;
+
             RefreshSegmentationLabels();
         }
 
@@ -141,7 +155,18 @@ namespace ViewCulling
             Color col = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
             Segmentation segmentation = new Segmentation(col, trbToleranceLimit.Value);
             pbGoodChipImage.Image = segmentation.GetSegmentedPicture(_currImage);
-            GC.Collect();
+        }
+
+        private void SegmentationWithEdgeDetection()
+        {
+            Color col = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
+
+            Segmentation segmentation = new Segmentation(col, trbToleranceLimit.Value);
+            Bitmap res = segmentation.GetSegmentedPicture(_currImage);
+            EdgeFinder edgeFinder = new EdgeFinder(res);
+            res = edgeFinder.GetEdgePic();
+
+            pbGoodChipImage.Image = res;
         }
 
         private void trbRComp_Scroll(object sender, EventArgs e)
@@ -249,24 +274,43 @@ namespace ViewCulling
             CurrResume = Resume.Cutting;
             pbGoodChipImage.Image = DrawFrames(_currImage, trbRightPosition.Value, trbLeftPosition.Value, trbUpPosition.Value, trbDownPosition.Value);
             GC.Collect();
+
+            SetTsmiChecked(sender);
         }
 
         private void сегментацияToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             CurrResume = Resume.Segmentation;
             SegmentationWithCurrentParameters();
+
+            SetTsmiChecked(sender);
+        }
+
+        private void SetTsmiChecked(object sender)
+        {
+            ToolStripMenuItem tsmi = (ToolStripMenuItem)sender;
+
+            foreach (var next in tsmi.GetCurrentParent().Items)
+            {
+                ((ToolStripMenuItem) next).Checked = false;
+            }
+            tsmi.Checked = true;
         }
 
         private void выборЦветаФонаToolStripMenuItem_Click(object sender, EventArgs e)
         {
             CurrResume = Resume.ChooseBackground;
             pbGoodChipImage.Image = _currImage;
+
+            SetTsmiChecked(sender);
         }
 
         private void нетToolStripMenuItem_Click(object sender, EventArgs e)
         {
             CurrResume = Resume.None;
             pbGoodChipImage.Image = _currImage;
+
+            SetTsmiChecked(sender);
         }
 
         private void показатьСегментациюToolStripMenuItem_Click(object sender, EventArgs e)
@@ -284,9 +328,24 @@ namespace ViewCulling
             Color col = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
             Bitmap res = Utils.UnionOfImages(col, trbToleranceLimit.Value, _images);
 
-            FormUnionOfPictures formUnionOfPictures = new FormUnionOfPictures();
-            formUnionOfPictures.Show();
-            formUnionOfPictures.SetImage(res);
+            FormShowPicture formShowPicture = new FormShowPicture {TopLevel = false};
+            FormMain.Instance.Controls.Add(formShowPicture);
+            formShowPicture.Show();
+            formShowPicture.SetImage(res);
+        }
+
+        private void CreateUnionAndEdge()
+        {
+            Color col = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
+            Bitmap res = Utils.UnionOfImages(col, trbToleranceLimit.Value, _images);
+
+            EdgeFinder edgeFinder = new EdgeFinder(res);
+            res = edgeFinder.GetEdgePic();
+
+            FormShowPicture formShowPicture = new FormShowPicture {TopLevel = false};
+            FormMain.Instance.Controls.Add(formShowPicture);
+            formShowPicture.Show();
+            formShowPicture.SetImage(res);
         }
 
         private void LoadGoodChipImage()
@@ -312,19 +371,17 @@ namespace ViewCulling
             _images.Add(_currImage);
         }
 
-        private void pbGoodChipImage_MouseClick(object sender, MouseEventArgs e)
+        private void ChooseBackground(MouseEventArgs e)
         {
-            if (CurrResume != Resume.ChooseBackground)
-                return;
+            //double xZoom = ((double)(e.X) / pbGoodChipImage.Width);
+            //double yZoom = ((double)(e.Y) / pbGoodChipImage.Height);
+            //int x = (int)(xZoom * _currImage.Width);
+            //int y = (int)(yZoom * _currImage.Height);
+            //y = (y >= _currImage.Height) ? _currImage.Height - 1 : y;
+            //x = (x >= _currImage.Width) ? _currImage.Width - 1 : x;
 
-            double xZoom = ( (double)(e.X) / pbGoodChipImage.Width);
-            double yZoom = ( (double)(e.Y) / pbGoodChipImage.Height);
-            int x = (int)(xZoom * _currImage.Width);
-            int y = (int)(yZoom * _currImage.Height);
-            y = (y >= _currImage.Height) ? _currImage.Height - 1 : y;
-            x = (x >= _currImage.Width) ? _currImage.Width - 1 : x;
-
-            _backgroundColors.Add(_currImage.GetPixel(x, y));
+            //_backgroundColors.Add(_currImage.GetPixel(x, y));
+            _backgroundColors.Add(GetColorUnderCursor());
 
 
             double r = 0, g = 0, b = 0;
@@ -338,20 +395,12 @@ namespace ViewCulling
             g /= _backgroundColors.Count;
             b /= _backgroundColors.Count;
 
-            trbRComp.Value = (int) r;
-            trbGComp.Value = (int) g;
-            trbBComp.Value = (int) b;
+            trbRComp.Value = (int)r;
+            trbGComp.Value = (int)g;
+            trbBComp.Value = (int)b;
 
             RefreshSegmentationLabels();
             FillColorIndicator();
-        }
-
-        private void pbGoodChipImage_Click(object sender, EventArgs e)
-        {
-            if (_currResume == Resume.None)
-            {
-                LoadGoodChipImage();
-            }
         }
 
         private void pbRightArrow_Click(object sender, EventArgs e)
@@ -405,6 +454,29 @@ namespace ViewCulling
         private void создатьОбъединениеToolStripMenuItem_Click(object sender, EventArgs e)
         {
             CreateUnion();
+        }
+
+        private void объединениеКраяToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateUnionAndEdge();
+        }
+
+        private void показатьКраяToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SegmentationWithEdgeDetection();
+        }
+
+        private void pbGoodChipImage_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (_currResume == Resume.None)
+            {
+                LoadGoodChipImage();
+            }
+
+            if (CurrResume == Resume.ChooseBackground)
+            {
+                ChooseBackground(e);
+            }
         }
 
     }

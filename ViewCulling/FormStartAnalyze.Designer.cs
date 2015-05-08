@@ -51,10 +51,10 @@
             this.gpTesting.Controls.Add(this.dgvTestingOfChips);
             this.gpTesting.Font = new System.Drawing.Font("Candara", 11.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.gpTesting.Location = new System.Drawing.Point(11, 28);
-            this.gpTesting.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.gpTesting.Margin = new System.Windows.Forms.Padding(2);
             this.gpTesting.Name = "gpTesting";
-            this.gpTesting.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.gpTesting.Size = new System.Drawing.Size(1085, 551);
+            this.gpTesting.Padding = new System.Windows.Forms.Padding(2);
+            this.gpTesting.Size = new System.Drawing.Size(1085, 526);
             this.gpTesting.TabIndex = 5;
             this.gpTesting.TabStop = false;
             this.gpTesting.Text = "Проверка чипов";
@@ -67,17 +67,18 @@
             this.dgvTestingOfChips.BackgroundColor = System.Drawing.SystemColors.Control;
             this.dgvTestingOfChips.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvTestingOfChips.Location = new System.Drawing.Point(13, 23);
-            this.dgvTestingOfChips.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.dgvTestingOfChips.Margin = new System.Windows.Forms.Padding(2);
             this.dgvTestingOfChips.Name = "dgvTestingOfChips";
             this.dgvTestingOfChips.RowTemplate.Height = 33;
-            this.dgvTestingOfChips.Size = new System.Drawing.Size(1059, 519);
+            this.dgvTestingOfChips.Size = new System.Drawing.Size(1059, 494);
             this.dgvTestingOfChips.TabIndex = 0;
             this.dgvTestingOfChips.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgvTestingOfChips_CellMouseDoubleClick);
             // 
             // btnStartTesting
             // 
-            this.btnStartTesting.Location = new System.Drawing.Point(441, 728);
-            this.btnStartTesting.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnStartTesting.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnStartTesting.Location = new System.Drawing.Point(11, 591);
+            this.btnStartTesting.Margin = new System.Windows.Forms.Padding(2);
             this.btnStartTesting.Name = "btnStartTesting";
             this.btnStartTesting.Size = new System.Drawing.Size(174, 29);
             this.btnStartTesting.TabIndex = 6;
@@ -121,8 +122,9 @@
             // 
             // lblPathToTestFolder
             // 
+            this.lblPathToTestFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblPathToTestFolder.AutoSize = true;
-            this.lblPathToTestFolder.Location = new System.Drawing.Point(11, 728);
+            this.lblPathToTestFolder.Location = new System.Drawing.Point(8, 566);
             this.lblPathToTestFolder.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblPathToTestFolder.Name = "lblPathToTestFolder";
             this.lblPathToTestFolder.Size = new System.Drawing.Size(66, 13);
@@ -134,7 +136,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(1107, 590);
+            this.ClientSize = new System.Drawing.Size(1107, 640);
             this.Controls.Add(this.lblPathToTestFolder);
             this.Controls.Add(this.btnStartTesting);
             this.Controls.Add(this.gpTesting);
@@ -143,6 +145,7 @@
             this.MainMenuStrip = this.msMain;
             this.Name = "FormStartAnalyze";
             this.Text = "FormStartAnalyze";
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.FormStartAnalyze_Load);
             this.gpTesting.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvTestingOfChips)).EndInit();

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
-using System.Windows.Forms;
 
 namespace NIIPP.ComputerVision
 {
@@ -23,11 +22,15 @@ namespace NIIPP.ComputerVision
         /// <summary>
         /// Цвет повреждения
         /// </summary>
-        public static readonly Color Damage = Color.FromArgb(255, 127, 80);
+        public static readonly Color Damage = Color.FromArgb(250, 127, 80);
         /// <summary>
         /// Цвет рамки вокруг повреждения
         /// </summary>
         public static readonly Color Frame = Color.FromArgb(172, 255, 47);
+        /// <summary>
+        /// Цвет краев сегментов
+        /// </summary>
+        public static readonly Color Edge = Color.FromArgb(250, 255, 0);
     }
 
     /// <summary>
@@ -864,6 +867,65 @@ namespace NIIPP.ComputerVision
     }
 
     /// <summary>
+    /// Класс определяет края сегментированного изображения
+    /// </summary>
+    public class EdgeFinder
+    {
+        private readonly byte[,,] _inputMas;
+        private readonly int _w;
+        private readonly int _h;
+        private readonly int[] _di = {-1, 1, 0, 0};
+        private readonly int[] _dj = {0, 0, 1, -1};
+
+        public EdgeFinder(byte[,,] inputMas)
+        {
+            _inputMas = inputMas;
+            _h = _inputMas.GetUpperBound(0) + 1;
+            _w = _inputMas.GetUpperBound(1) + 1;
+        }
+
+        public EdgeFinder(Bitmap inputBitmap)
+        {
+            _inputMas = Utils.BitmapToByteRgb(inputBitmap);
+            _h = _inputMas.GetUpperBound(0) + 1;
+            _w = _inputMas.GetUpperBound(1) + 1;
+        }
+
+        public Bitmap GetEdgePic()
+        {
+            byte[,,] edgeMas = new byte[_h, _w, 3];
+
+            for (int i = 0; i < _h; i++)
+                for (int j = 0; j < _w; j++)
+                {
+                    bool isEdgePixel = false;
+                    for (int k = 0; k < _di.Length; k++)
+                    {
+                        int currI = i + _di[k];
+                        int currJ = j + _dj[k];
+
+                        if (currI < 0 || currI >= _h || currJ < 0 || currJ >= _w)
+                            continue;
+
+                        if (_inputMas[i, j, 0] != _inputMas[currI, currJ, 0])
+                        {
+                            isEdgePixel = true;
+                            break;
+                        }
+                    }
+
+                    if (isEdgePixel)
+                    {
+                        edgeMas[i, j, 0] = VisionColors.Edge.R;
+                        edgeMas[i, j, 1] = VisionColors.Edge.G;
+                        edgeMas[i, j, 2] = VisionColors.Edge.B;
+                    }
+                }
+            return Utils.ByteToBitmapRgb(edgeMas);
+        }
+    }
+
+    /// <summary>
     /// Класс подавляет шумы сегментированного изображения
     /// </summary>
     public class NoiseSuppression
@@ -1108,7 +1170,7 @@ namespace NIIPP.ComputerVision
             byte[,,] outputPicture = new byte[height, width, 3];
             for (int i = 0; i < height; i++)
                 for (int j = 0; j < width; j++)
-                    if (res[i, j] > 1)
+                    if (res[i, j] > 2)
                     {
                         outputPicture[i, j, 0] = VisionColors.NoWafer.R;
                         outputPicture[i, j, 1] = VisionColors.NoWafer.G;

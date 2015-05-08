@@ -29,24 +29,26 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormAddNewProject));
-            this.gbSamples = new System.Windows.Forms.GroupBox();
+            this.gbSamplesOfGoodChips = new System.Windows.Forms.GroupBox();
             this.pbGoodChipImage = new System.Windows.Forms.PictureBox();
             this.msMain = new System.Windows.Forms.MenuStrip();
             this.файлToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.добавитьИзображениеГодногоЧипаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.закрытьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.режимыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.выборЦветаФонаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.сегментацияToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.выборОбластиToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.нетToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.выборОбластиToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.обрезатьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.режимыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.выборОбластиToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.сегментацияToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.выборЦветаФонаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.нетToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.видToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.показатьОригиналToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.показатьСегментациюToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.показатьКраяToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.объединениеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.создатьОбъединениеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.объединениеКраяToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gbInterMainInfo = new System.Windows.Forms.GroupBox();
             this.rtbDescription = new System.Windows.Forms.RichTextBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -87,7 +89,7 @@
             this.lblPosition = new System.Windows.Forms.Label();
             this.lblNameOfFile = new System.Windows.Forms.Label();
             this.label14 = new System.Windows.Forms.Label();
-            this.gbSamples.SuspendLayout();
+            this.gbSamplesOfGoodChips.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbGoodChipImage)).BeginInit();
             this.msMain.SuspendLayout();
             this.gbInterMainInfo.SuspendLayout();
@@ -106,28 +108,30 @@
             ((System.ComponentModel.ISupportInitialize)(this.pbLeftArrow)).BeginInit();
             this.SuspendLayout();
             // 
-            // gbSamples
+            // gbSamplesOfGoodChips
             // 
-            this.gbSamples.Controls.Add(this.pbGoodChipImage);
-            this.gbSamples.Font = new System.Drawing.Font("Candara", 11.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.gbSamples.Location = new System.Drawing.Point(12, 29);
-            this.gbSamples.Name = "gbSamples";
-            this.gbSamples.Size = new System.Drawing.Size(748, 562);
-            this.gbSamples.TabIndex = 0;
-            this.gbSamples.TabStop = false;
-            this.gbSamples.Text = "Образцы годных чипов";
+            this.gbSamplesOfGoodChips.Controls.Add(this.pbGoodChipImage);
+            this.gbSamplesOfGoodChips.Font = new System.Drawing.Font("Candara", 11.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.gbSamplesOfGoodChips.Location = new System.Drawing.Point(12, 29);
+            this.gbSamplesOfGoodChips.Name = "gbSamplesOfGoodChips";
+            this.gbSamplesOfGoodChips.Size = new System.Drawing.Size(748, 625);
+            this.gbSamplesOfGoodChips.TabIndex = 0;
+            this.gbSamplesOfGoodChips.TabStop = false;
+            this.gbSamplesOfGoodChips.Text = "Образцы годных чипов";
             // 
             // pbGoodChipImage
             // 
+            this.pbGoodChipImage.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.pbGoodChipImage.Cursor = System.Windows.Forms.Cursors.Default;
             this.pbGoodChipImage.Image = ((System.Drawing.Image)(resources.GetObject("pbGoodChipImage.Image")));
             this.pbGoodChipImage.Location = new System.Drawing.Point(8, 19);
             this.pbGoodChipImage.Name = "pbGoodChipImage";
-            this.pbGoodChipImage.Size = new System.Drawing.Size(734, 534);
+            this.pbGoodChipImage.Size = new System.Drawing.Size(734, 597);
             this.pbGoodChipImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pbGoodChipImage.TabIndex = 0;
             this.pbGoodChipImage.TabStop = false;
-            this.pbGoodChipImage.Click += new System.EventHandler(this.pbGoodChipImage_Click);
             this.pbGoodChipImage.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pbGoodChipImage_MouseClick);
             // 
             // msMain
@@ -136,8 +140,8 @@
             this.msMain.Font = new System.Drawing.Font("Candara", 10.875F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.msMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.файлToolStripMenuItem,
-            this.выборОбластиToolStripMenuItem,
             this.режимыToolStripMenuItem,
+            this.выборОбластиToolStripMenuItem,
             this.видToolStripMenuItem,
             this.объединениеToolStripMenuItem});
             this.msMain.Location = new System.Drawing.Point(0, 0);
@@ -169,6 +173,47 @@
             this.закрытьToolStripMenuItem.Text = "Закрыть";
             this.закрытьToolStripMenuItem.Click += new System.EventHandler(this.закрытьToolStripMenuItem_Click);
             // 
+            // режимыToolStripMenuItem
+            // 
+            this.режимыToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.выборЦветаФонаToolStripMenuItem,
+            this.сегментацияToolStripMenuItem1,
+            this.выборОбластиToolStripMenuItem1,
+            this.нетToolStripMenuItem});
+            this.режимыToolStripMenuItem.Name = "режимыToolStripMenuItem";
+            this.режимыToolStripMenuItem.Size = new System.Drawing.Size(75, 22);
+            this.режимыToolStripMenuItem.Text = "Режимы";
+            // 
+            // выборЦветаФонаToolStripMenuItem
+            // 
+            this.выборЦветаФонаToolStripMenuItem.Name = "выборЦветаФонаToolStripMenuItem";
+            this.выборЦветаФонаToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.выборЦветаФонаToolStripMenuItem.Text = "Выбор цвета фона";
+            this.выборЦветаФонаToolStripMenuItem.Click += new System.EventHandler(this.выборЦветаФонаToolStripMenuItem_Click);
+            // 
+            // сегментацияToolStripMenuItem1
+            // 
+            this.сегментацияToolStripMenuItem1.Name = "сегментацияToolStripMenuItem1";
+            this.сегментацияToolStripMenuItem1.Size = new System.Drawing.Size(195, 22);
+            this.сегментацияToolStripMenuItem1.Text = "Сегментация";
+            this.сегментацияToolStripMenuItem1.Click += new System.EventHandler(this.сегментацияToolStripMenuItem1_Click);
+            // 
+            // выборОбластиToolStripMenuItem1
+            // 
+            this.выборОбластиToolStripMenuItem1.Name = "выборОбластиToolStripMenuItem1";
+            this.выборОбластиToolStripMenuItem1.Size = new System.Drawing.Size(195, 22);
+            this.выборОбластиToolStripMenuItem1.Text = "Выбор области";
+            this.выборОбластиToolStripMenuItem1.Click += new System.EventHandler(this.выборОбластиToolStripMenuItem1_Click);
+            // 
+            // нетToolStripMenuItem
+            // 
+            this.нетToolStripMenuItem.Checked = true;
+            this.нетToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.нетToolStripMenuItem.Name = "нетToolStripMenuItem";
+            this.нетToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.нетToolStripMenuItem.Text = "Нет";
+            this.нетToolStripMenuItem.Click += new System.EventHandler(this.нетToolStripMenuItem_Click);
+            // 
             // выборОбластиToolStripMenuItem
             // 
             this.выборОбластиToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -180,60 +225,24 @@
             // обрезатьToolStripMenuItem
             // 
             this.обрезатьToolStripMenuItem.Name = "обрезатьToolStripMenuItem";
-            this.обрезатьToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+            this.обрезатьToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.обрезатьToolStripMenuItem.Text = "Обрезать";
             this.обрезатьToolStripMenuItem.Click += new System.EventHandler(this.обрезатьToolStripMenuItem_Click);
-            // 
-            // режимыToolStripMenuItem
-            // 
-            this.режимыToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.выборОбластиToolStripMenuItem1,
-            this.сегментацияToolStripMenuItem1,
-            this.выборЦветаФонаToolStripMenuItem,
-            this.нетToolStripMenuItem});
-            this.режимыToolStripMenuItem.Name = "режимыToolStripMenuItem";
-            this.режимыToolStripMenuItem.Size = new System.Drawing.Size(75, 22);
-            this.режимыToolStripMenuItem.Text = "Режимы";
-            // 
-            // выборОбластиToolStripMenuItem1
-            // 
-            this.выборОбластиToolStripMenuItem1.Name = "выборОбластиToolStripMenuItem1";
-            this.выборОбластиToolStripMenuItem1.Size = new System.Drawing.Size(195, 22);
-            this.выборОбластиToolStripMenuItem1.Text = "Выбор области";
-            this.выборОбластиToolStripMenuItem1.Click += new System.EventHandler(this.выборОбластиToolStripMenuItem1_Click);
-            // 
-            // сегментацияToolStripMenuItem1
-            // 
-            this.сегментацияToolStripMenuItem1.Name = "сегментацияToolStripMenuItem1";
-            this.сегментацияToolStripMenuItem1.Size = new System.Drawing.Size(195, 22);
-            this.сегментацияToolStripMenuItem1.Text = "Сегментация";
-            this.сегментацияToolStripMenuItem1.Click += new System.EventHandler(this.сегментацияToolStripMenuItem1_Click);
-            // 
-            // выборЦветаФонаToolStripMenuItem
-            // 
-            this.выборЦветаФонаToolStripMenuItem.Name = "выборЦветаФонаToolStripMenuItem";
-            this.выборЦветаФонаToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
-            this.выборЦветаФонаToolStripMenuItem.Text = "Выбор цвета фона";
-            this.выборЦветаФонаToolStripMenuItem.Click += new System.EventHandler(this.выборЦветаФонаToolStripMenuItem_Click);
-            // 
-            // нетToolStripMenuItem
-            // 
-            this.нетToolStripMenuItem.Name = "нетToolStripMenuItem";
-            this.нетToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
-            this.нетToolStripMenuItem.Text = "Нет";
-            this.нетToolStripMenuItem.Click += new System.EventHandler(this.нетToolStripMenuItem_Click);
             // 
             // видToolStripMenuItem
             // 
             this.видToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.показатьОригиналToolStripMenuItem,
-            this.показатьСегментациюToolStripMenuItem});
+            this.показатьСегментациюToolStripMenuItem,
+            this.показатьКраяToolStripMenuItem});
             this.видToolStripMenuItem.Name = "видToolStripMenuItem";
             this.видToolStripMenuItem.Size = new System.Drawing.Size(45, 22);
             this.видToolStripMenuItem.Text = "Вид";
             // 
             // показатьОригиналToolStripMenuItem
             // 
+            this.показатьОригиналToolStripMenuItem.Checked = true;
+            this.показатьОригиналToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.показатьОригиналToolStripMenuItem.Name = "показатьОригиналToolStripMenuItem";
             this.показатьОригиналToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
             this.показатьОригиналToolStripMenuItem.Text = "Показать оригинал";
@@ -246,10 +255,18 @@
             this.показатьСегментациюToolStripMenuItem.Text = "Показать сегментацию";
             this.показатьСегментациюToolStripMenuItem.Click += new System.EventHandler(this.показатьСегментациюToolStripMenuItem_Click);
             // 
+            // показатьКраяToolStripMenuItem
+            // 
+            this.показатьКраяToolStripMenuItem.Name = "показатьКраяToolStripMenuItem";
+            this.показатьКраяToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+            this.показатьКраяToolStripMenuItem.Text = "Показать края";
+            this.показатьКраяToolStripMenuItem.Click += new System.EventHandler(this.показатьКраяToolStripMenuItem_Click);
+            // 
             // объединениеToolStripMenuItem
             // 
             this.объединениеToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.создатьОбъединениеToolStripMenuItem});
+            this.создатьОбъединениеToolStripMenuItem,
+            this.объединениеКраяToolStripMenuItem});
             this.объединениеToolStripMenuItem.Name = "объединениеToolStripMenuItem";
             this.объединениеToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
             this.объединениеToolStripMenuItem.Text = "Объединение";
@@ -257,12 +274,20 @@
             // создатьОбъединениеToolStripMenuItem
             // 
             this.создатьОбъединениеToolStripMenuItem.Name = "создатьОбъединениеToolStripMenuItem";
-            this.создатьОбъединениеToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
-            this.создатьОбъединениеToolStripMenuItem.Text = "Создать объединение";
+            this.создатьОбъединениеToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
+            this.создатьОбъединениеToolStripMenuItem.Text = "Сегментация";
             this.создатьОбъединениеToolStripMenuItem.Click += new System.EventHandler(this.создатьОбъединениеToolStripMenuItem_Click);
+            // 
+            // объединениеКраяToolStripMenuItem
+            // 
+            this.объединениеКраяToolStripMenuItem.Name = "объединениеКраяToolStripMenuItem";
+            this.объединениеКраяToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
+            this.объединениеКраяToolStripMenuItem.Text = "Края";
+            this.объединениеКраяToolStripMenuItem.Click += new System.EventHandler(this.объединениеКраяToolStripMenuItem_Click);
             // 
             // gbInterMainInfo
             // 
+            this.gbInterMainInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.gbInterMainInfo.Controls.Add(this.rtbDescription);
             this.gbInterMainInfo.Controls.Add(this.label2);
             this.gbInterMainInfo.Controls.Add(this.label1);
@@ -314,6 +339,7 @@
             // 
             // gbChoosePosition
             // 
+            this.gbChoosePosition.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.gbChoosePosition.Controls.Add(this.lblDownOffset);
             this.gbChoosePosition.Controls.Add(this.lblUpOffset);
             this.gbChoosePosition.Controls.Add(this.lblRightOffset);
@@ -444,7 +470,7 @@
             this.trbRightPosition.Orientation = System.Windows.Forms.Orientation.Vertical;
             this.trbRightPosition.Size = new System.Drawing.Size(45, 160);
             this.trbRightPosition.TabIndex = 1;
-            this.trbRightPosition.Value = 94;
+            this.trbRightPosition.Value = 218;
             this.trbRightPosition.Scroll += new System.EventHandler(this.trbRightPosition_Scroll);
             // 
             // trbLeftPosition
@@ -460,6 +486,7 @@
             // 
             // gbSegmPar
             // 
+            this.gbSegmPar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.gbSegmPar.Controls.Add(this.pbBackgroundColor);
             this.gbSegmPar.Controls.Add(this.lblLimit);
             this.gbSegmPar.Controls.Add(this.lblBComp);
@@ -615,6 +642,7 @@
             // 
             // lblCurrentResume
             // 
+            this.lblCurrentResume.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblCurrentResume.AutoSize = true;
             this.lblCurrentResume.Font = new System.Drawing.Font("Candara", 14.25F, System.Drawing.FontStyle.Bold);
             this.lblCurrentResume.ForeColor = System.Drawing.Color.DarkGreen;
@@ -626,6 +654,7 @@
             // 
             // label11
             // 
+            this.label11.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label11.AutoSize = true;
             this.label11.Font = new System.Drawing.Font("Candara", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.label11.Location = new System.Drawing.Point(762, 692);
@@ -636,10 +665,11 @@
             // 
             // pbRightArrow
             // 
+            this.pbRightArrow.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.pbRightArrow.Cursor = System.Windows.Forms.Cursors.Hand;
             this.pbRightArrow.Image = ((System.Drawing.Image)(resources.GetObject("pbRightArrow.Image")));
-            this.pbRightArrow.Location = new System.Drawing.Point(414, 596);
-            this.pbRightArrow.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.pbRightArrow.Location = new System.Drawing.Point(194, 662);
+            this.pbRightArrow.Margin = new System.Windows.Forms.Padding(2);
             this.pbRightArrow.Name = "pbRightArrow";
             this.pbRightArrow.Size = new System.Drawing.Size(90, 50);
             this.pbRightArrow.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -649,10 +679,11 @@
             // 
             // pbLeftArrow
             // 
+            this.pbLeftArrow.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.pbLeftArrow.Cursor = System.Windows.Forms.Cursors.Hand;
             this.pbLeftArrow.Image = ((System.Drawing.Image)(resources.GetObject("pbLeftArrow.Image")));
-            this.pbLeftArrow.Location = new System.Drawing.Point(284, 596);
-            this.pbLeftArrow.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.pbLeftArrow.Location = new System.Drawing.Point(100, 662);
+            this.pbLeftArrow.Margin = new System.Windows.Forms.Padding(2);
             this.pbLeftArrow.Name = "pbLeftArrow";
             this.pbLeftArrow.Size = new System.Drawing.Size(90, 50);
             this.pbLeftArrow.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -662,9 +693,10 @@
             // 
             // label12
             // 
+            this.label12.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label12.AutoSize = true;
             this.label12.Font = new System.Drawing.Font("Candara", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label12.Location = new System.Drawing.Point(302, 662);
+            this.label12.Location = new System.Drawing.Point(305, 670);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(72, 19);
             this.label12.TabIndex = 8;
@@ -672,31 +704,34 @@
             // 
             // lblPosition
             // 
+            this.lblPosition.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblPosition.AutoSize = true;
-            this.lblPosition.Font = new System.Drawing.Font("Candara", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.lblPosition.Font = new System.Drawing.Font("Candara", 12.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.lblPosition.ForeColor = System.Drawing.SystemColors.HotTrack;
-            this.lblPosition.Location = new System.Drawing.Point(380, 659);
+            this.lblPosition.Location = new System.Drawing.Point(383, 669);
             this.lblPosition.Name = "lblPosition";
-            this.lblPosition.Size = new System.Drawing.Size(101, 23);
+            this.lblPosition.Size = new System.Drawing.Size(92, 21);
             this.lblPosition.TabIndex = 9;
             this.lblPosition.Text = "<undefine>";
             // 
             // lblNameOfFile
             // 
+            this.lblNameOfFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblNameOfFile.AutoSize = true;
-            this.lblNameOfFile.Font = new System.Drawing.Font("Candara", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.lblNameOfFile.Font = new System.Drawing.Font("Candara", 12.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.lblNameOfFile.ForeColor = System.Drawing.SystemColors.HotTrack;
-            this.lblNameOfFile.Location = new System.Drawing.Point(410, 685);
+            this.lblNameOfFile.Location = new System.Drawing.Point(435, 692);
             this.lblNameOfFile.Name = "lblNameOfFile";
-            this.lblNameOfFile.Size = new System.Drawing.Size(101, 23);
+            this.lblNameOfFile.Size = new System.Drawing.Size(92, 21);
             this.lblNameOfFile.TabIndex = 11;
             this.lblNameOfFile.Text = "<undefine>";
             // 
             // label14
             // 
+            this.label14.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label14.AutoSize = true;
             this.label14.Font = new System.Drawing.Font("Candara", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label14.Location = new System.Drawing.Point(280, 688);
+            this.label14.Location = new System.Drawing.Point(305, 693);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(124, 19);
             this.label14.TabIndex = 10;
@@ -719,15 +754,15 @@
             this.Controls.Add(this.gbSegmPar);
             this.Controls.Add(this.gbChoosePosition);
             this.Controls.Add(this.gbInterMainInfo);
-            this.Controls.Add(this.gbSamples);
+            this.Controls.Add(this.gbSamplesOfGoodChips);
             this.Controls.Add(this.msMain);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.msMain;
             this.Name = "FormAddNewProject";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Добавление нового проекта отбраковки";
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.FormAddNewProject_Load);
-            this.gbSamples.ResumeLayout(false);
+            this.gbSamplesOfGoodChips.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pbGoodChipImage)).EndInit();
             this.msMain.ResumeLayout(false);
             this.msMain.PerformLayout();
@@ -755,7 +790,7 @@
 
         #endregion
 
-        private System.Windows.Forms.GroupBox gbSamples;
+        private System.Windows.Forms.GroupBox gbSamplesOfGoodChips;
         private System.Windows.Forms.MenuStrip msMain;
         private System.Windows.Forms.ToolStripMenuItem файлToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem закрытьToolStripMenuItem;
@@ -813,5 +848,7 @@
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.ToolStripMenuItem объединениеToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem создатьОбъединениеToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem объединениеКраяToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem показатьКраяToolStripMenuItem;
     }
 }

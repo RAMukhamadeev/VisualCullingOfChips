@@ -40,6 +40,7 @@
             this.запускАнализаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.тестированиеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.совмещениеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.загрузкаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.msMain.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -49,9 +50,9 @@
             this.msMain.Font = new System.Drawing.Font("Candara", 10.875F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.msMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.файлToolStripMenuItem,
-            this.анализToolStripMenuItem,
             this.проектToolStripMenuItem,
             this.запускToolStripMenuItem,
+            this.анализToolStripMenuItem,
             this.тестированиеToolStripMenuItem});
             this.msMain.Location = new System.Drawing.Point(0, 0);
             this.msMain.Name = "msMain";
@@ -71,7 +72,7 @@
             // закрытьToolStripMenuItem
             // 
             this.закрытьToolStripMenuItem.Name = "закрытьToolStripMenuItem";
-            this.закрытьToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
+            this.закрытьToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.закрытьToolStripMenuItem.Text = "Закрыть";
             this.закрытьToolStripMenuItem.Click += new System.EventHandler(this.закрытьToolStripMenuItem_Click);
             // 
@@ -95,8 +96,8 @@
             this.проектToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.добавитьНовыToolStripMenuItem});
             this.проектToolStripMenuItem.Name = "проектToolStripMenuItem";
-            this.проектToolStripMenuItem.Size = new System.Drawing.Size(67, 22);
-            this.проектToolStripMenuItem.Text = "Проект";
+            this.проектToolStripMenuItem.Size = new System.Drawing.Size(77, 22);
+            this.проектToolStripMenuItem.Text = "Проекты";
             // 
             // добавитьНовыToolStripMenuItem
             // 
@@ -123,7 +124,8 @@
             // тестированиеToolStripMenuItem
             // 
             this.тестированиеToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.совмещениеToolStripMenuItem});
+            this.совмещениеToolStripMenuItem,
+            this.загрузкаToolStripMenuItem});
             this.тестированиеToolStripMenuItem.Name = "тестированиеToolStripMenuItem";
             this.тестированиеToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
             this.тестированиеToolStripMenuItem.Text = "Тестирование";
@@ -134,6 +136,13 @@
             this.совмещениеToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.совмещениеToolStripMenuItem.Text = "Совмещение";
             this.совмещениеToolStripMenuItem.Click += new System.EventHandler(this.совмещениеToolStripMenuItem_Click);
+            // 
+            // загрузкаToolStripMenuItem
+            // 
+            this.загрузкаToolStripMenuItem.Name = "загрузкаToolStripMenuItem";
+            this.загрузкаToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.загрузкаToolStripMenuItem.Text = "Загрузка";
+            this.загрузкаToolStripMenuItem.Click += new System.EventHandler(this.загрузкаToolStripMenuItem_Click);
             // 
             // FormMain
             // 
@@ -146,7 +155,8 @@
             this.MainMenuStrip = this.msMain;
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "FormMain";
-            this.Text = "ViewCulling";
+            this.Text = "Программный комплекс визуального контроля \"СVMICS\"";
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.msMain.ResumeLayout(false);
             this.msMain.PerformLayout();
@@ -168,6 +178,7 @@
         private System.Windows.Forms.ToolStripMenuItem добавитьНовыToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem тестированиеToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem совмещениеToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem загрузкаToolStripMenuItem;
 
     }
 }

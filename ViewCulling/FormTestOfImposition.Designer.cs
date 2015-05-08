@@ -56,13 +56,14 @@
             // 
             // menuStripMain
             // 
+            this.menuStripMain.Font = new System.Drawing.Font("Candara", 10.875F);
             this.menuStripMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.файлToolStripMenuItem,
             this.загрузкаToolStripMenuItem,
             this.стартToolStripMenuItem});
             this.menuStripMain.Location = new System.Drawing.Point(0, 0);
             this.menuStripMain.Name = "menuStripMain";
-            this.menuStripMain.Size = new System.Drawing.Size(949, 24);
+            this.menuStripMain.Size = new System.Drawing.Size(949, 26);
             this.menuStripMain.TabIndex = 1;
             this.menuStripMain.Text = "menuStrip1";
             // 
@@ -71,13 +72,13 @@
             this.файлToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.закрытьToolStripMenuItem});
             this.файлToolStripMenuItem.Name = "файлToolStripMenuItem";
-            this.файлToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
+            this.файлToolStripMenuItem.Size = new System.Drawing.Size(53, 22);
             this.файлToolStripMenuItem.Text = "Файл";
             // 
             // закрытьToolStripMenuItem
             // 
             this.закрытьToolStripMenuItem.Name = "закрытьToolStripMenuItem";
-            this.закрытьToolStripMenuItem.Size = new System.Drawing.Size(120, 22);
+            this.закрытьToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
             this.закрытьToolStripMenuItem.Text = "Закрыть";
             // 
             // загрузкаToolStripMenuItem
@@ -86,20 +87,20 @@
             this.тестируемыйФайлToolStripMenuItem,
             this.годныйФайлToolStripMenuItem});
             this.загрузкаToolStripMenuItem.Name = "загрузкаToolStripMenuItem";
-            this.загрузкаToolStripMenuItem.Size = new System.Drawing.Size(67, 20);
+            this.загрузкаToolStripMenuItem.Size = new System.Drawing.Size(77, 22);
             this.загрузкаToolStripMenuItem.Text = "Загрузка";
             // 
             // тестируемыйФайлToolStripMenuItem
             // 
             this.тестируемыйФайлToolStripMenuItem.Name = "тестируемыйФайлToolStripMenuItem";
-            this.тестируемыйФайлToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
+            this.тестируемыйФайлToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
             this.тестируемыйФайлToolStripMenuItem.Text = "Тестируемый чип";
             this.тестируемыйФайлToolStripMenuItem.Click += new System.EventHandler(this.тестируемыйФайлToolStripMenuItem_Click);
             // 
             // годныйФайлToolStripMenuItem
             // 
             this.годныйФайлToolStripMenuItem.Name = "годныйФайлToolStripMenuItem";
-            this.годныйФайлToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
+            this.годныйФайлToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
             this.годныйФайлToolStripMenuItem.Text = "Годный чип";
             this.годныйФайлToolStripMenuItem.Click += new System.EventHandler(this.годныйФайлToolStripMenuItem_Click);
             // 
@@ -108,13 +109,13 @@
             this.стартToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.показСовмещенияToolStripMenuItem});
             this.стартToolStripMenuItem.Name = "стартToolStripMenuItem";
-            this.стартToolStripMenuItem.Size = new System.Drawing.Size(92, 20);
+            this.стартToolStripMenuItem.Size = new System.Drawing.Size(105, 22);
             this.стартToolStripMenuItem.Text = "Совмещение";
             // 
             // показСовмещенияToolStripMenuItem
             // 
             this.показСовмещенияToolStripMenuItem.Name = "показСовмещенияToolStripMenuItem";
-            this.показСовмещенияToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.показСовмещенияToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
             this.показСовмещенияToolStripMenuItem.Text = "Показ совмещения";
             this.показСовмещенияToolStripMenuItem.Click += new System.EventHandler(this.показСовмещенияToolStripMenuItem_Click);
             // 
