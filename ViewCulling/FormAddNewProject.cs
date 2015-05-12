@@ -27,6 +27,8 @@ namespace ViewCulling
         private readonly List<Point> _colorPoints = new List<Point>();
         private Bitmap _currImage;
 
+        private Point _offset = new Point(0, 0);
+
         private const int WidthOfLine = 3;
 
         private struct Resume
@@ -135,7 +137,7 @@ namespace ViewCulling
         private void FormAddNewProject_Load(object sender, EventArgs e)
         {
             gbSamplesOfGoodChips.Width = (Width - gbInterMainInfo.Width) - Width / 23;
-            gbSamplesOfGoodChips.Height = (Height - pbLeftArrow.Height) - Height / 9;
+            gbSamplesOfGoodChips.Height = (Height - pbLeftArrow.Height) - Height / 8;
 
             RefreshSegmentationLabels();
             RefreshCuttingLabels();
@@ -144,13 +146,13 @@ namespace ViewCulling
 
         private void SegmentationWithCurrentParameters()
         {
-            Segmentation segmentation = new Segmentation(_colorPoints, trbToleranceLimit.Value);
+            Segmentation segmentation = new Segmentation(GetCorrectedPoints(), trbToleranceLimit.Value);
             pbGoodChipImage.Image = segmentation.GetSegmentedPicture(_currImage);
         }
 
         private void SegmentationWithEdgeDetection()
         {
-            Segmentation segmentation = new Segmentation(_colorPoints, trbToleranceLimit.Value);
+            Segmentation segmentation = new Segmentation(GetCorrectedPoints(), trbToleranceLimit.Value);
             Bitmap res = segmentation.GetSegmentedPicture(_currImage);
             EdgeFinder edgeFinder = new EdgeFinder(res);
             res = edgeFinder.GetEdgePic();
@@ -201,6 +203,11 @@ namespace ViewCulling
             return bmp.Clone(rect, bmp.PixelFormat);
         }
 
+        private List<Point> GetCorrectedPoints()
+        {
+            return _colorPoints.Select(point => new Point(point.X - _offset.X, point.Y - _offset.Y)).ToList();
+        }
+
         private void обрезатьToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (CurrResume != Resume.Cutting)
@@ -229,6 +236,11 @@ namespace ViewCulling
             _currImage = _images[pos];
             pbGoodChipImage.Image = _currImage;
 
+            // сохраняем отступ по которому было обрезание изображения
+            _offset.X += trbLeftPosition.Value; 
+            _offset.Y += trbUpPosition.Value;
+
+            // сбрасываем показания контролов
             trbRightPosition.Value = 0;
             trbLeftPosition.Value = 0;
             trbUpPosition.Value = 0;
@@ -253,6 +265,7 @@ namespace ViewCulling
         private void показатьОригиналToolStripMenuItem_Click(object sender, EventArgs e)
         {
             pbGoodChipImage.Image = _currImage;
+            SetTsmiChecked(sender);
         }
 
         private void выборОбластиToolStripMenuItem1_Click(object sender, EventArgs e)
@@ -302,6 +315,7 @@ namespace ViewCulling
         private void показатьСегментациюToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SegmentationWithCurrentParameters();
+            SetTsmiChecked(sender);
         }
 
         private void добавитьИзображениеГодногоЧипаToolStripMenuItem_Click(object sender, EventArgs e)
@@ -311,7 +325,7 @@ namespace ViewCulling
 
         private void CreateUnion()
         {
-            Bitmap res = Utils.UnionOfImages(_colorPoints, trbToleranceLimit.Value, _images);
+            Bitmap res = Utils.UnionOfImages(GetCorrectedPoints(), trbToleranceLimit.Value, _images);
 
             FormShowPicture formShowPicture = new FormShowPicture {TopLevel = false};
             FormMain.Instance.Controls.Add(formShowPicture);
@@ -321,7 +335,7 @@ namespace ViewCulling
 
         private void CreateUnionAndEdge()
         {
-            Bitmap res = Utils.UnionOfImages(_colorPoints, trbToleranceLimit.Value, _images);
+            Bitmap res = Utils.UnionOfImages(GetCorrectedPoints(), trbToleranceLimit.Value, _images);
 
             EdgeFinder edgeFinder = new EdgeFinder(res);
             res = edgeFinder.GetEdgePic();
@@ -448,6 +462,7 @@ namespace ViewCulling
         private void показатьКраяToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SegmentationWithEdgeDetection();
+            SetTsmiChecked(sender);
         }
 
         private void pbGoodChipImage_MouseClick(object sender, MouseEventArgs e)

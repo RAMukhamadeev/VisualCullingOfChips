@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -16,8 +15,11 @@ namespace ViewCulling
         private readonly string[] _nameOfColumns = {
                                      "Название файла",
                                      "Вердикт",
+                                     "Коэффициент",
                                      "Дата тестирования",
-                                     "Просмотр"
+                                     "Время обработки, c",
+                                     "Просмотр",
+                                     "Сегментация"
                                  };
 
         private CullingProject _cullingProject;
@@ -59,7 +61,7 @@ namespace ViewCulling
 
                 dgvTestingOfChips.Rows[currRow].Cells[0].Value = fileInfo.Name;
                 dgvTestingOfChips.Rows[currRow].Cells[1].Value = "В очереди...";
-                dgvTestingOfChips.Rows[currRow].Cells[2].Value = "<undefined>";
+                dgvTestingOfChips.Rows[currRow].Cells[3].Value = "<undefined>";
             }
         }
 
@@ -77,19 +79,26 @@ namespace ViewCulling
                 dgvTestingOfChips.Rows[currFile].Cells[1].Value = "Обрабатывается...";
                 dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.Yellow;
 
+                DateTime dtBefore = DateTime.Now;
                 Bitmap bmp = vi.CheckNextChip(fileInfo.FullName);
+                TimeSpan timeSpan = DateTime.Now - dtBefore;
+                double seconds = timeSpan.TotalMilliseconds / 1000.0;
+                dgvTestingOfChips.Rows[currFile].Cells[4].Value = String.Format("{0:0.00}", seconds);
+
                 bmp.Save("\\Storage\\results\\" + fileInfo.Name);
 
                 string curRes = "Годный";
                 dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.LawnGreen;
-                if (vi.CurrMark > 500)
+                dgvTestingOfChips.Rows[currFile].Cells[2].Value = vi.CurrMark.ToString();
+                if (vi.CurrMark > 300)
                 {
                     curRes = "Не годный";
                     dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.Red;
                 }
                 dgvTestingOfChips.Rows[currFile].Cells[1].Value = curRes;
-                dgvTestingOfChips.Rows[currFile].Cells[2].Value = DateTime.Now.ToString(CultureInfo.InvariantCulture);
-                dgvTestingOfChips.Rows[currFile].Cells[3].Value = "Открыть";
+                dgvTestingOfChips.Rows[currFile].Cells[3].Value = DateTime.Now.ToString(CultureInfo.CurrentCulture);
+                dgvTestingOfChips.Rows[currFile].Cells[5].Value = "Открыть";
+                dgvTestingOfChips.Rows[currFile].Cells[6].Value = "Открыть";
                 dgvTestingOfChips.Invalidate();
 
                 currFile++;
@@ -102,7 +111,7 @@ namespace ViewCulling
             if (fbd.ShowDialog() == DialogResult.OK)
             {
                 _pathToTestingChipsFolder = fbd.SelectedPath;
-                lblPathToTestFolder.Text = Path.GetFileName(fbd.SelectedPath);
+                lblPathToTestFolder.Text = fbd.SelectedPath;
                 LoadInfoAboutTestingSet();
             }
         }
@@ -114,10 +123,23 @@ namespace ViewCulling
 
         private void dgvTestingOfChips_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
         {
-            if (e.ColumnIndex == 3)
+            if (e.ColumnIndex == 5)
             {
                 string nameOfFile = dgvTestingOfChips.Rows[e.RowIndex].Cells[0].Value.ToString();
                 Process.Start("\\Storage\\results\\" + nameOfFile);
+            }
+
+            if (e.ColumnIndex == 6)
+            {
+                string nameOfFile = dgvTestingOfChips.Rows[e.RowIndex].Cells[0].Value.ToString();
+                Bitmap innerPic = new Bitmap(lblPathToTestFolder.Text + "\\" + nameOfFile);
+                Segmentation segmentation = new Segmentation(_cullingProject.PointsOfColors, _cullingProject.Lim);
+                Bitmap res = segmentation.GetSegmentedPicture(innerPic);
+
+                FormShowPicture formShowPicture = new FormShowPicture { TopLevel = false };
+                FormMain.Instance.Controls.Add(formShowPicture);
+                formShowPicture.Show();
+                formShowPicture.SetImage(res);
             }
         }
 
@@ -129,7 +151,8 @@ namespace ViewCulling
 
         private void открытьПроектОтбраковкиToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog {InitialDirectory = Settings.PathToSaveProjects};
+            string path = Environment.CurrentDirectory + "\\" + Settings.PathToSaveProjects;
+            OpenFileDialog ofd = new OpenFileDialog {InitialDirectory = path, Filter = "Culling Project (*.cpr)|*.cpr"};
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 _cullingProject = CullingProject.GetSavedProject(ofd.FileName);

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -561,7 +560,7 @@ namespace NIIPP.ComputerVision
                     if (leftDelta < acceptablePercent)
                         countOfAcceptable++;
 
-                    if (countOfAcceptable >= 4)
+                    if (countOfAcceptable >= 3)
                         probablePositions.Add(new Point(j - wOrigin, i));
                 }
             }
@@ -716,6 +715,16 @@ namespace NIIPP.ComputerVision
         /// </summary>
         private readonly byte[,,] _segmentedMassGoodChip;
         /// <summary>
+        /// Края образца годного чипа
+        /// </summary>
+        private readonly byte[,,] _edgeOfGood;
+
+        /// <summary>
+        /// Сдвиг соответствующий идеальному совмещению
+        /// </summary>
+        private Point _offset;
+
+        /// <summary>
         /// Ширина изображения годного чипа
         /// </summary>
         private readonly int _widthOfGood;
@@ -742,7 +751,7 @@ namespace NIIPP.ComputerVision
         /// <summary>
         /// Объект проекта отбраковки
         /// </summary>
-        private CullingProject _cullingProject;
+        private readonly CullingProject _cullingProject;
 
 
         /// <summary>
@@ -756,6 +765,10 @@ namespace NIIPP.ComputerVision
 
             // сохраняем сегментированное изображение годного чипа
             _segmentedMassGoodChip = cullingProject.UnitedImage;
+
+            // находим края изображения годного чипа
+            EdgeFinder edgeFinder = new EdgeFinder(_segmentedMassGoodChip);
+            _edgeOfGood = edgeFinder.GetEdgeMas();
 
             // фиксируем размеры массива
             _heightOfGood = _segmentedMassGoodChip.GetUpperBound(0) + 1;
@@ -774,17 +787,17 @@ namespace NIIPP.ComputerVision
         {
             // сегментируем очередной чип, который нужно проверить
             Bitmap bmp = new Bitmap(pathToChipFile);
-            Segmentation segm = new Segmentation(_cullingProject.PointsOfColors, _cullingProject.Lim); // TO DO: исправить
+            Segmentation segm = new Segmentation(_cullingProject.PointsOfColors, _cullingProject.Lim);
             byte[,,] segmentedMass = segm.GetSegmentedMass(bmp);
 
             // сохраняем изображение очередного чипа
             _currChipForTest = bmp;
 
             // находим наилучшее совмещение
-            Point offset = _superImposition.FindBestImposition(segmentedMass);
+            _offset = _superImposition.FindBestImposition(segmentedMass);
 
             // сравниваем хороший чип и очередной тестируемый
-            Bitmap picWithSprites = CheckChipForDamage(segmentedMass, offset);
+            Bitmap picWithSprites = CheckChipForDamage(segmentedMass);
 
             return picWithSprites;
         }
@@ -796,11 +809,64 @@ namespace NIIPP.ComputerVision
         /// <param name="mas2">Массив второго изображения</param>
         /// <param name="i">i-координата</param>
         /// <param name="j">j-координата</param>
-        /// <param name="offset">Относительный сдвиг</param>
         /// <returns>true-равны, false-не равны</returns>
-        private bool ColorsEqual(byte[,,] mas1, byte[,,] mas2, int i, int j, Point offset)
+        private bool ColorsEqual(byte[,,] mas1, byte[,,] mas2, int i, int j)
         {
-            return mas1[i, j, 0] == mas2[i + offset.Y, j + offset.X, 0];
+            return mas1[i, j, 0] == mas2[i + _offset.Y, j + _offset.X, 0];
+        }
+
+        /// <summary>
+        /// Возвращает true если указанная точка находится вблизи краев сегментов
+        /// </summary>
+        /// <param name="si">i-координата</param>
+        /// <param name="sj">j-координата</param>
+        /// <returns></returns>
+        private bool FarFromEdge(int si, int sj)
+        {
+            int i, j;
+            bool res = true;
+
+            i = si;
+            j = sj;
+            // вверх
+            while (i >= Math.Max(0, si - 5))
+            {
+                if (_edgeOfGood[i, j, 0] == VisionColors.Edge.R)
+                    res = false;
+                i--;
+            }
+
+            i = si;
+            j = sj;
+            // влево
+            while (j >= Math.Max(0, sj - 5))
+            {
+                if (_edgeOfGood[i, j, 0] == VisionColors.Edge.R)
+                    res = false;
+                j--;
+            }
+
+            i = si;
+            j = sj;
+            // вниз
+            while (i <= Math.Min(_heightOfGood - 1, si + 5))
+            {
+                if (_edgeOfGood[i, j, 0] == VisionColors.Edge.R)
+                    res = false;
+                i++;
+            }
+
+            i = si;
+            j = sj;
+            // вправо
+            while (j <= Math.Min(_widthOfGood - 1, sj + 5))
+            {
+                if (_edgeOfGood[i, j, 0] == VisionColors.Edge.R)
+                    res = false;
+                j++;
+            }
+
+            return res;
         }
 
         /// <summary>
@@ -808,12 +874,11 @@ namespace NIIPP.ComputerVision
         /// </summary>
         /// <param name="si"></param>
         /// <param name="sj"></param>
-        /// <param name="offset"></param>
         /// <param name="nextPicMass"></param>
         /// <param name="nextChipWithSprites"></param>
         /// <param name="isAnalyzed"></param>
         /// <returns></returns>
-        private int AnalyzeIslandOfPixels(int si, int sj, Point offset, byte[,,] nextPicMass, ref byte[,,] nextChipWithSprites, ref bool[,] isAnalyzed)
+        private int AnalyzeIslandOfPixels(int si, int sj, byte[,,] nextPicMass, ref byte[,,] nextChipWithSprites, ref bool[,] isAnalyzed)
         {
             int[] di = {-1, 1, 0, 0};
             int[] dj = {0, 0, 1, -1};
@@ -835,7 +900,7 @@ namespace NIIPP.ComputerVision
                     if (curri >= _heightOfGood || currj >= _widthOfGood || curri < 0 || currj < 0)
                         continue;
 
-                    if (!isAnalyzed[curri, currj] && !ColorsEqual(_segmentedMassGoodChip, nextPicMass, curri, currj, offset))
+                    if (!isAnalyzed[curri, currj] && !ColorsEqual(_segmentedMassGoodChip, nextPicMass, curri, currj) && FarFromEdge(curri, currj))
                     {
                         queue.Add(new Point(currj, curri));
                         isAnalyzed[curri, currj] = true;
@@ -857,19 +922,19 @@ namespace NIIPP.ComputerVision
                 minj = Math.Min(minj, j);
             }
 
-            bool isDamage = !(maxi - mini < 10 || maxj - minj < 10 || queue.Count < 100 || (maxi - mini)*(maxj - minj) > 5 * queue.Count);
+            bool isDamage = queue.Count > 75;
 
             if (isDamage)
             {
                 // закрашиваем остров - повреждение
-                foreach (Point nextPoint in queue)
-                {
-                    int curri = nextPoint.Y,
-                        currj = nextPoint.X;
-                    nextChipWithSprites[curri + offset.Y, currj + offset.X, 0] = VisionColors.Damage.R;
-                    nextChipWithSprites[curri + offset.Y, currj + offset.X, 1] = VisionColors.Damage.G;
-                    nextChipWithSprites[curri + offset.Y, currj + offset.X, 2] = VisionColors.Damage.B;
-                }
+                //foreach (Point nextPoint in queue)
+                //{
+                //    int curri = nextPoint.Y,
+                //        currj = nextPoint.X;
+                //    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 0] = VisionColors.Damage.R;
+                //    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 1] = VisionColors.Damage.G;
+                //    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 2] = VisionColors.Damage.B;
+                //}
 
                 // рисуем рамку
                 mini -= 4;
@@ -877,48 +942,48 @@ namespace NIIPP.ComputerVision
                 maxj += 4;
                 maxi += 4;
 
-                int limitForI = nextChipWithSprites.GetUpperBound(0) - 1 - offset.Y,
-                    limitForJ = nextChipWithSprites.GetUpperBound(1) - 1 - offset.X;
+                int limitForI = nextChipWithSprites.GetUpperBound(0) - 1 - _offset.Y,
+                    limitForJ = nextChipWithSprites.GetUpperBound(1) - 1 - _offset.X;
 
                 mini = Math.Max(mini, 1);
                 maxi = Math.Min(maxi, limitForI);
                 minj = Math.Max(minj, 1);
                 maxj = Math.Min(maxj, limitForJ);
 
-                for (int i = mini - 1; i <= mini + 1; i++)
+                for (int i = mini - 1; i < mini + 1; i++)
                 {
-                    for (int j = minj; j <= maxj; j++)
+                    for (int j = minj; j < maxj; j++)
                     {
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 0] = VisionColors.Frame.R;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 1] = VisionColors.Frame.G;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 2] = VisionColors.Frame.B;
+                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 0] = VisionColors.Frame.R;
+                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 1] = VisionColors.Frame.G;
+                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 2] = VisionColors.Frame.B;
                     }
                 }
-                for (int i = maxi - 1; i <= maxi + 1; i++)
+                for (int i = maxi - 1; i < maxi + 1; i++)
                 {
-                    for (int j = minj; j <= maxj; j++)
+                    for (int j = minj; j < maxj; j++)
                     {
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 0] = VisionColors.Frame.R;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 1] = VisionColors.Frame.G;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 2] = VisionColors.Frame.B;
+                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 0] = VisionColors.Frame.R;
+                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 1] = VisionColors.Frame.G;
+                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 2] = VisionColors.Frame.B;
                     }
                 }
-                for (int j = minj - 1; j <= minj + 1; j++)
+                for (int j = minj - 1; j < minj + 1; j++)
                 {
-                    for (int i = mini; i <= maxi; i++)
+                    for (int i = mini; i < maxi; i++)
                     {
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 0] = VisionColors.Frame.R;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 1] = VisionColors.Frame.G;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 2] = VisionColors.Frame.B;
+                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 0] = VisionColors.Frame.R;
+                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 1] = VisionColors.Frame.G;
+                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 2] = VisionColors.Frame.B;
                     }
                 }
-                for (int j = maxj - 1; j <= maxj + 1; j++)
+                for (int j = maxj - 1; j < maxj + 1; j++)
                 {
-                    for (int i = mini; i <= maxi; i++)
+                    for (int i = mini; i < maxi; i++)
                     {
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 0] = VisionColors.Frame.R;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 1] = VisionColors.Frame.G;
-                        nextChipWithSprites[i + offset.Y, j + offset.X, 2] = VisionColors.Frame.B;
+                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 0] = VisionColors.Frame.R;
+                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 1] = VisionColors.Frame.G;
+                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 2] = VisionColors.Frame.B;
                     }
                 }
             }
@@ -930,9 +995,8 @@ namespace NIIPP.ComputerVision
         /// Анализ изображения тестируемого чипа на предмет брака
         /// </summary>
         /// <param name="nextPicMass">Изображение тестируемого чипа в виде массива пикселей</param>
-        /// <param name="offset">Координаты относительного сдвига</param>
         /// <returns>Изображение с пометкой подозрительных областей</returns>
-        private Bitmap CheckChipForDamage(byte[,,] nextPicMass, Point offset)
+        private Bitmap CheckChipForDamage(byte[,,] nextPicMass)
         {
             bool[,] isAnalyzed = new bool[_heightOfGood, _widthOfGood];
 
@@ -941,9 +1005,9 @@ namespace NIIPP.ComputerVision
             for (int i = 0; i < _heightOfGood; i++)
                 for (int j = 0; j < _widthOfGood; j++)
                 {
-                    if (!isAnalyzed[i, j] && (!ColorsEqual(_segmentedMassGoodChip, nextPicMass, i, j, offset)))
+                    if (!isAnalyzed[i, j] && (!ColorsEqual(_segmentedMassGoodChip, nextPicMass, i, j)))
                     {
-                        diff += AnalyzeIslandOfPixels(i, j, offset, nextPicMass, ref nextChipWithSprites, ref isAnalyzed);
+                        diff += AnalyzeIslandOfPixels(i, j, nextPicMass, ref nextChipWithSprites, ref isAnalyzed);
                     }
                 }
 
@@ -977,9 +1041,9 @@ namespace NIIPP.ComputerVision
             _w = _inputMas.GetUpperBound(1) + 1;
         }
 
-        public Bitmap GetEdgePic()
+        private byte[,,] FindEdges()
         {
-            byte[,,] edgeMas = new byte[_h, _w, 3];
+            byte[, ,] edgeMas = new byte[_h, _w, 3];
 
             for (int i = 0; i < _h; i++)
                 for (int j = 0; j < _w; j++)
@@ -1007,7 +1071,17 @@ namespace NIIPP.ComputerVision
                         edgeMas[i, j, 2] = VisionColors.Edge.B;
                     }
                 }
-            return Utils.ByteToBitmapRgb(edgeMas);
+            return edgeMas;
+        }
+
+        public byte[,,] GetEdgeMas()
+        {
+            return FindEdges();
+        }
+
+        public Bitmap GetEdgePic()
+        {
+            return Utils.ByteToBitmapRgb(FindEdges());
         }
     }
 
@@ -1356,7 +1430,7 @@ namespace NIIPP.ComputerVision
         }
 
         /// <summary>
-        /// Преобразовывает трехмерный массив в изображение в формате bmp
+        /// Преобразовывает трехмерный массив в изображение в формате .bmp
         /// </summary>
         /// <param name="mas">Трехмерный массив (высота, ширина, цвет[0 - R, 1 - G, 2 - B])</param>
         /// <returns>Изображение в формате bmp</returns>
