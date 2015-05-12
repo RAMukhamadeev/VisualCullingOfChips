@@ -24,15 +24,16 @@ namespace ViewCulling
         private readonly List<string> _pathToGoodChips = new List<string>();
         private readonly List<Bitmap> _images = new List<Bitmap>();
         private readonly List<Color> _backgroundColors = new List<Color>();
+        private readonly List<Point> _backgroundPoints = new List<Point>(); 
         private Bitmap _currImage;
 
-        private const int WidthOfLine = 4;
+        private const int WidthOfLine = 3;
 
         private struct Resume
         {
             public const string Cutting = "Cutting";
             public const string Segmentation = "Segmentation";
-            public const string ChooseBackground = "ChooseBackground";
+            public const string ChooseColor = "ChooseColor";
             public const string None = "None";
         }
 
@@ -144,10 +145,12 @@ namespace ViewCulling
 
         private void FormAddNewProject_Load(object sender, EventArgs e)
         {
-            gbSamplesOfGoodChips.Width = this.Width - gbInterMainInfo.Width - 75;
-            gbSamplesOfGoodChips.Height = this.Height - pbLeftArrow.Height - 100;
+            gbSamplesOfGoodChips.Width = Width - gbInterMainInfo.Width - 100;
+            gbSamplesOfGoodChips.Height = Height - pbLeftArrow.Height - 150;
 
             RefreshSegmentationLabels();
+            RefreshCuttingLabels();
+            FillColorIndicator();
         }
 
         private void SegmentationWithCurrentParameters()
@@ -299,7 +302,7 @@ namespace ViewCulling
 
         private void выборЦветаФонаToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            CurrResume = Resume.ChooseBackground;
+            CurrResume = Resume.ChooseColor;
             pbGoodChipImage.Image = _currImage;
 
             SetTsmiChecked(sender);
@@ -373,16 +376,16 @@ namespace ViewCulling
 
         private void ChooseBackground(MouseEventArgs e)
         {
-            //double xZoom = ((double)(e.X) / pbGoodChipImage.Width);
-            //double yZoom = ((double)(e.Y) / pbGoodChipImage.Height);
-            //int x = (int)(xZoom * _currImage.Width);
-            //int y = (int)(yZoom * _currImage.Height);
-            //y = (y >= _currImage.Height) ? _currImage.Height - 1 : y;
-            //x = (x >= _currImage.Width) ? _currImage.Width - 1 : x;
+            double xZoom = ((double)(e.X) / pbGoodChipImage.Width);
+            double yZoom = ((double)(e.Y) / pbGoodChipImage.Height);
+            int x = (int)(xZoom * _currImage.Width);
+            int y = (int)(yZoom * _currImage.Height);
 
-            //_backgroundColors.Add(_currImage.GetPixel(x, y));
-            _backgroundColors.Add(GetColorUnderCursor());
+            y = (y >= _currImage.Height) ? _currImage.Height - 1 : y;
+            x = (x >= _currImage.Width) ? _currImage.Width - 1 : x;
 
+            _backgroundColors.Add(_currImage.GetPixel(x, y));
+            _backgroundPoints.Add(new Point(x, y));
 
             double r = 0, g = 0, b = 0;
             foreach (Color col in _backgroundColors)
@@ -473,10 +476,23 @@ namespace ViewCulling
                 LoadGoodChipImage();
             }
 
-            if (CurrResume == Resume.ChooseBackground)
+            if (CurrResume == Resume.ChooseColor)
             {
                 ChooseBackground(e);
             }
+        }
+
+        private void очиститьТекущийНаборToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _backgroundColors.Clear();
+            _backgroundPoints.Clear();
+
+            trbRComp.Value = 0;
+            trbGComp.Value = 0;
+            trbBComp.Value = 0;
+
+            RefreshSegmentationLabels();
+            FillColorIndicator();
         }
 
     }

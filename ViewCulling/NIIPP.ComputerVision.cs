@@ -33,6 +33,15 @@ namespace NIIPP.ComputerVision
         public static readonly Color Edge = Color.FromArgb(250, 255, 0);
     }
 
+    public class CullingProject
+    {
+        private string _nameOfProject;
+        private string _descriptionOfProject;
+        private byte [,,] _unitedImage;
+        private List<Point> _pointsOfColors;
+        private int _lim;
+    }
+
     /// <summary>
     /// Класс для сегментации изображений
     /// </summary>
