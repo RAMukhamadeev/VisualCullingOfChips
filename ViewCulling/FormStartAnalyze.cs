@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
@@ -10,15 +12,16 @@ namespace ViewCulling
 {
     public partial class FormStartAnalyze : Form
     {
-        private string PathToTestingChipsFolder { get; set; }
-        private FormStartAnalyze Instance { get; set; }
-
+        public FormStartAnalyze Instance { get; set; }
         private readonly string[] _nameOfColumns = {
                                      "Название файла",
                                      "Вердикт",
                                      "Дата тестирования",
                                      "Просмотр"
                                  };
+
+        private CullingProject _cullingProject;
+        private string _pathToTestingChipsFolder;
 
         public FormStartAnalyze()
         {
@@ -45,7 +48,7 @@ namespace ViewCulling
 
         private void LoadInfoAboutTestingSet()
         {
-            DirectoryInfo di = new DirectoryInfo(PathToTestingChipsFolder);
+            DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
             foreach (FileInfo fileInfo in di.GetFiles())
             {
                 if (Path.GetExtension(fileInfo.Name) != ".bmp")
@@ -62,8 +65,8 @@ namespace ViewCulling
 
         private void ReleaseTesting()
         {
-            VisualInspect vi = new VisualInspect(Globals.PathToGoodChipFile);
-            DirectoryInfo di = new DirectoryInfo(PathToTestingChipsFolder);
+            VisualInspect vi = new VisualInspect(_cullingProject);
+            DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
 
             int currFile = 0;
             foreach (FileInfo fileInfo in di.GetFiles())
@@ -85,7 +88,7 @@ namespace ViewCulling
                     dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.Red;
                 }
                 dgvTestingOfChips.Rows[currFile].Cells[1].Value = curRes;
-                dgvTestingOfChips.Rows[currFile].Cells[2].Value = DateTime.Now.ToString();
+                dgvTestingOfChips.Rows[currFile].Cells[2].Value = DateTime.Now.ToString(CultureInfo.InvariantCulture);
                 dgvTestingOfChips.Rows[currFile].Cells[3].Value = "Открыть";
                 dgvTestingOfChips.Invalidate();
 
@@ -93,18 +96,12 @@ namespace ViewCulling
             }
         }
 
-        private void btnStartTesting_Click(object sender, EventArgs e)
-        {
-            Thread workThread = new Thread(ReleaseTesting);
-            workThread.Start();
-        }
-
         private void открытьToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
             if (fbd.ShowDialog() == DialogResult.OK)
             {
-                PathToTestingChipsFolder = fbd.SelectedPath;
+                _pathToTestingChipsFolder = fbd.SelectedPath;
                 lblPathToTestFolder.Text = Path.GetFileName(fbd.SelectedPath);
                 LoadInfoAboutTestingSet();
             }
@@ -122,6 +119,23 @@ namespace ViewCulling
                 string nameOfFile = dgvTestingOfChips.Rows[e.RowIndex].Cells[0].Value.ToString();
                 Process.Start("\\Storage\\results\\" + nameOfFile);
             }
+        }
+
+        private void стартToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Thread workThread = new Thread(ReleaseTesting);
+            workThread.Start();
+        }
+
+        private void открытьПроектОтбраковкиToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog {InitialDirectory = Settings.PathToSaveProjects};
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                _cullingProject = CullingProject.GetSavedProject(ofd.FileName);
+                lblProjectOfCulling.Text = Path.GetFileName(ofd.FileName);
+            }
+
         }
     }
 }

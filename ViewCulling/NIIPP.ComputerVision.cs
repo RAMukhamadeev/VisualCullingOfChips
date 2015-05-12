@@ -2,10 +2,20 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Windows.Forms;
 
 namespace NIIPP.ComputerVision
 {
+    static class Settings
+    {
+        public static string PathToSaveProjects = "projects";
+    }
+
     /// <summary>
     /// Набор цветов используемых в библиотеке
     /// </summary>
@@ -33,13 +43,72 @@ namespace NIIPP.ComputerVision
         public static readonly Color Edge = Color.FromArgb(250, 255, 0);
     }
 
-    public class CullingProject
+    [Serializable]
+    public class CullingProject 
     {
-        private string _nameOfProject;
-        private string _descriptionOfProject;
-        private byte [,,] _unitedImage;
-        private List<Point> _pointsOfColors;
-        private int _lim;
+        public string NameOfProject;
+        public string DescriptionOfProject;
+        public byte [,,] UnitedImage;
+        public List<Point> PointsOfColors;
+        public int Lim;
+        public readonly string ObjectId;
+
+        public CullingProject(string nameOfProject, string descriptionOfProject, byte[,,] unitedImage, List<Point> pointOfColor, int lim)
+        {
+            NameOfProject = nameOfProject;
+            DescriptionOfProject = descriptionOfProject;
+            UnitedImage = unitedImage;
+            PointsOfColors = pointOfColor;
+            Lim = lim;
+
+            ObjectId = NameOfProject + String.Format(" ({0})", DateTime.Now.ToString("dd-MM-yyyy HH-mm-ss"));
+        }
+
+        public static CullingProject GetSavedProject(string pathToFile)
+        {
+            CullingProject res = null;
+
+            FileStream fs = new FileStream(pathToFile, FileMode.Open);
+            try
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+                res = (CullingProject) formatter.Deserialize(fs);
+            }
+            catch (SerializationException e)
+            {
+                MessageBox.Show("Failed to open object. Reason: " + e.Message);
+            }
+            finally
+            {
+                fs.Close();
+            }
+
+            return res;
+        }
+
+        public void SaveObject()
+        {
+            FileStream fs = new FileStream(Settings.PathToSaveProjects + "\\" + ObjectId + ".cpr", FileMode.Create);
+            BinaryFormatter formatter = new BinaryFormatter();
+            try
+            {
+                formatter.Serialize(fs, this);
+            }
+            catch (SerializationException e)
+            {
+                MessageBox.Show("Failed to save object. Reason: " + e.Message);
+            }
+            finally
+            {
+                fs.Close();
+            }
+        }
+
+        public static List<string> GetPathToProjects()
+        {
+            DirectoryInfo di = new DirectoryInfo(Settings.PathToSaveProjects);
+            return di.GetFiles().Select(fileInfo => fileInfo.FullName).ToList();
+        }
     }
 
     /// <summary>
@@ -65,10 +134,12 @@ namespace NIIPP.ComputerVision
         private int _width;
 
         // RGB-компоненты цвета фона
-        private readonly int 
+        private int 
             _backColR,
             _backColG,
             _backColB;
+
+        private readonly List<Point> _points;
         /// <summary>
         /// Допустимое отклонение фонового пикселя
         /// </summary>
@@ -77,15 +148,12 @@ namespace NIIPP.ComputerVision
         /// <summary>
         /// Конструктор
         /// </summary>
-        /// <param name="innerPic">Изображение, которое необходимо сегментировать в формате Bitmap</param>
-        /// <param name="backgroundColor">Цвет фона изображения</param>
+        /// <param name="points">Ключевые точки фона</param>
         /// <param name="delta">Допустимое отклонение фонового пикселя</param>
-        public Segmentation(Color backgroundColor, int delta)
+        public Segmentation(List<Point> points, int delta)
         {
-            _backColR = backgroundColor.R;
-            _backColG = backgroundColor.G;
-            _backColB = backgroundColor.B;
             _delta = delta;
+            _points = points;
 
             RadiusOfStartFilling = 15;
         }
@@ -138,6 +206,17 @@ namespace NIIPP.ComputerVision
                 }
         }
 
+        private void InitData(Bitmap innerPic)
+        {
+            Color col = Utils.FindColorByPoints(innerPic, _points);
+            _backColR = col.R;
+            _backColG = col.G;
+            _backColB = col.B;
+            _masRgb = Utils.BitmapToByteRgb(innerPic);
+            _height = _masRgb.GetUpperBound(0) + 1;
+            _width = _masRgb.GetUpperBound(1) + 1;
+        }
+
         /// <summary>
         /// Возвращает сегментированное изображение в формате Bitmap
         /// </summary>
@@ -145,10 +224,7 @@ namespace NIIPP.ComputerVision
         /// <returns>Сегментированное изображение в формате Bitmap</returns>
         public Bitmap GetSegmentedPicture(Bitmap innerPic)
         {
-            _masRgb = Utils.BitmapToByteRgb(innerPic);
-            _height = _masRgb.GetUpperBound(0) + 1;
-            _width = _masRgb.GetUpperBound(1) + 1;
-
+            InitData(innerPic);
             ReleaseSegmentation();
 
             Bitmap outerPic = Utils.ByteToBitmapRgb(_masRgb);
@@ -162,10 +238,7 @@ namespace NIIPP.ComputerVision
         /// <returns>Трехмерный массив, описывающий изображение, третье измерение (0 - R, 1 - G, 2 - B) RGB компоненты цвета</returns>
         public byte[, ,] GetSegmentedMass(Bitmap innerPic)
         {
-            _masRgb = Utils.BitmapToByteRgb(innerPic);
-            _height = _masRgb.GetUpperBound(0) + 1;
-            _width = _masRgb.GetUpperBound(1) + 1;
-
+            InitData(innerPic);
             ReleaseSegmentation();
 
             return _masRgb;
@@ -666,19 +739,23 @@ namespace NIIPP.ComputerVision
         /// Объект для нахождения лучшего совмещения
         /// </summary>
         private readonly SuperImposition _superImposition;
+        /// <summary>
+        /// Объект проекта отбраковки
+        /// </summary>
+        private CullingProject _cullingProject;
+
 
         /// <summary>
-        /// Конструктор принимает путь к изображению образца годного чипа
+        /// Конструктор принимает объект проекта отбраковки
         /// </summary>
-        /// <param name="pathToGoodChipFile">Путь к изображению образца годного чипа</param>
-        public VisualInspect(string pathToGoodChipFile)
+        /// <param name="cullingProject">Ссылка на объект проекта отбраковки</param>
+        public VisualInspect(CullingProject cullingProject)
         {
-            // сохраняем оригинальное изображение
-            Bitmap originGoodChip = new Bitmap(pathToGoodChipFile);
+            // сохраняем проект отбраковки
+            _cullingProject = cullingProject;
 
-            // сегментируем оригинал
-            Segmentation segm = new Segmentation(Color.Blue, 100); // TO DO: исправить
-            _segmentedMassGoodChip = segm.GetSegmentedMass(originGoodChip);
+            // сохраняем сегментированное изображение годного чипа
+            _segmentedMassGoodChip = cullingProject.UnitedImage;
 
             // фиксируем размеры массива
             _heightOfGood = _segmentedMassGoodChip.GetUpperBound(0) + 1;
@@ -697,7 +774,7 @@ namespace NIIPP.ComputerVision
         {
             // сегментируем очередной чип, который нужно проверить
             Bitmap bmp = new Bitmap(pathToChipFile);
-            Segmentation segm = new Segmentation(Color.Blue, 100); // TO DO: исправить
+            Segmentation segm = new Segmentation(_cullingProject.PointsOfColors, _cullingProject.Lim); // TO DO: исправить
             byte[,,] segmentedMass = segm.GetSegmentedMass(bmp);
 
             // сохраняем изображение очередного чипа
@@ -1152,20 +1229,69 @@ namespace NIIPP.ComputerVision
     static class Utils
     {
         /// <summary>
+        /// Определение цвета по ключевым точкам
+        /// </summary>
+        /// <param name="bmp"></param>
+        /// <param name="points"></param>
+        /// <returns></returns>
+        public static Color FindColorByPoints(Bitmap bmp, List<Point> points)
+        {
+            const int limOfOut = 100;
+
+            // безопасно извлекаем пиксели
+            int w = bmp.Width;
+            int h = bmp.Height;
+            List<Color> colors = (from point in points 
+                                  where point.X >= 0 && point.X < w && point.Y >= 0 && point.Y < h 
+                                  select bmp.GetPixel(point.X, point.Y)).ToList();
+
+            // находим средний цвет
+            int r = 0, g = 0, b = 0;
+            int count = colors.Count != 0 ? colors.Count : 1;
+            foreach (Color color in colors)
+            {
+                r += color.R;
+                g += color.G;
+                b += color.B;
+            }
+            int avgR = r / count;
+            int avgG = g / count;
+            int avgB = b / count;
+
+            // устраняем вылеты и находим среднее без точек вылета
+            r = 0;
+            g = 0;
+            b = 0;
+            int countOfPoints = 0;
+            foreach (Color color in colors.Where(color => Math.Abs(color.R - avgR) + Math.Abs(color.G - avgG) + Math.Abs(color.B - avgB) < limOfOut))
+            {
+                r += color.R;
+                g += color.G;
+                b += color.B;
+                countOfPoints++;
+            }
+            if (countOfPoints == 0)
+                countOfPoints = 1;
+
+            Color res = Color.FromArgb(r / countOfPoints, g / countOfPoints, b / countOfPoints);
+            return res;
+        }
+
+        /// <summary>
         /// Объединяет сегментированные изображения в одно сегментированное с подавлением шума
         /// </summary>
-        /// <param name="backColor">Цвет подложки</param>
+        /// <param name="points">Ключевые точки фона</param>
         /// <param name="lim">Разброс цвета подложки по поверхности чипа</param>
         /// <param name="images">Массив несегментированных изображений</param>
         /// <returns>Объединенное (усредненное) сегментированное изображение с подавлением шума</returns>
-        public static Bitmap UnionOfImages(Color backColor, int lim, List<Bitmap> images)
+        public static Bitmap UnionOfImages(List<Point> points, int lim, List<Bitmap> images)
         {
             int width = images.First().Width;
             int height = images.First().Height;
 
             int[,] res = new int[height, width];
 
-            Segmentation segmentation = new Segmentation(backColor, lim);
+            Segmentation segmentation = new Segmentation(points, lim);
             foreach (Bitmap image in images)
             {
                 byte[,,] currMas = segmentation.GetSegmentedMass(image);
@@ -1185,8 +1311,14 @@ namespace NIIPP.ComputerVision
                         outputPicture[i, j, 1] = VisionColors.NoWafer.G;
                         outputPicture[i, j, 2] = VisionColors.NoWafer.B;
                     }
+                    else
+                    {
+                        outputPicture[i, j, 0] = VisionColors.Wafer.R;
+                        outputPicture[i, j, 1] = VisionColors.Wafer.G;
+                        outputPicture[i, j, 2] = VisionColors.Wafer.B;
+                    }
 
-            NoiseSuppression noiseSuppression = new NoiseSuppression(outputPicture);
+            var noiseSuppression = new NoiseSuppression(outputPicture);
             outputPicture = noiseSuppression.GetNoiseSuppressedMas();
 
             return ByteToBitmapRgb(outputPicture);

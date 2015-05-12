@@ -19,7 +19,7 @@ namespace ViewCulling
             byte[, ,] currMas = Utils.BitmapToByteRgb(bmp);
 
             Font currFont = chartRgbAnalyzeOfGoodChip.ChartAreas[0].AxisX.TitleFont;
-            System.Drawing.Font font = new Font(currFont.Name, 14, currFont.Style, currFont.Unit);
+            Font font = new Font(currFont.Name, 14, currFont.Style, currFont.Unit);
 
             chartRgbAnalyzeOfGoodChip.Series.Clear();
             chartRgbAnalyzeOfGoodChip.Titles.Clear();

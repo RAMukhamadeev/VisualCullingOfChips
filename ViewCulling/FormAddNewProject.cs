@@ -24,7 +24,7 @@ namespace ViewCulling
         private readonly List<string> _pathToGoodChips = new List<string>();
         private readonly List<Bitmap> _images = new List<Bitmap>();
         private readonly List<Color> _backgroundColors = new List<Color>();
-        private readonly List<Point> _backgroundPoints = new List<Point>(); 
+        private readonly List<Point> _colorPoints = new List<Point>();
         private Bitmap _currImage;
 
         private const int WidthOfLine = 3;
@@ -33,7 +33,7 @@ namespace ViewCulling
         {
             public const string Cutting = "Cutting";
             public const string Segmentation = "Segmentation";
-            public const string ChooseColor = "ChooseColor";
+            public const string ChooseKeyPoints = "ChooseKeyPoints";
             public const string None = "None";
         }
 
@@ -132,21 +132,10 @@ namespace ViewCulling
             pbBackgroundColor.BackColor = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
         }
 
-        private Color GetColorUnderCursor()
-        {
-            Bitmap printscreen = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
-            Graphics graphics = Graphics.FromImage(printscreen);
-            graphics.CopyFromScreen(0, 0, 0, 0, printscreen.Size);
-
-            Color res = printscreen.GetPixel(Cursor.Position.X, Cursor.Position.Y);
-
-            return res;
-        }
-
         private void FormAddNewProject_Load(object sender, EventArgs e)
         {
-            gbSamplesOfGoodChips.Width = Width - gbInterMainInfo.Width - 100;
-            gbSamplesOfGoodChips.Height = Height - pbLeftArrow.Height - 150;
+            gbSamplesOfGoodChips.Width = (Width - gbInterMainInfo.Width) - Width / 23;
+            gbSamplesOfGoodChips.Height = (Height - pbLeftArrow.Height) - Height / 9;
 
             RefreshSegmentationLabels();
             RefreshCuttingLabels();
@@ -155,16 +144,13 @@ namespace ViewCulling
 
         private void SegmentationWithCurrentParameters()
         {
-            Color col = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
-            Segmentation segmentation = new Segmentation(col, trbToleranceLimit.Value);
+            Segmentation segmentation = new Segmentation(_colorPoints, trbToleranceLimit.Value);
             pbGoodChipImage.Image = segmentation.GetSegmentedPicture(_currImage);
         }
 
         private void SegmentationWithEdgeDetection()
         {
-            Color col = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
-
-            Segmentation segmentation = new Segmentation(col, trbToleranceLimit.Value);
+            Segmentation segmentation = new Segmentation(_colorPoints, trbToleranceLimit.Value);
             Bitmap res = segmentation.GetSegmentedPicture(_currImage);
             EdgeFinder edgeFinder = new EdgeFinder(res);
             res = edgeFinder.GetEdgePic();
@@ -226,10 +212,7 @@ namespace ViewCulling
             // обрезаем изображение на форме
             _images[pos] = CutBitmapImage(_images[pos], trbLeftPosition.Value, trbRightPosition.Value, trbUpPosition.Value, trbDownPosition.Value);
 
-
-            Color col = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
-
-            Segmentation segmentation = new Segmentation(col, trbToleranceLimit.Value);
+            Segmentation segmentation = new Segmentation(_colorPoints, trbToleranceLimit.Value);
             byte[,,] originMas = segmentation.GetSegmentedMass(_images[pos]);
 
             SuperImposition superImposition = new SuperImposition(originMas);
@@ -302,7 +285,7 @@ namespace ViewCulling
 
         private void выборЦветаФонаToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            CurrResume = Resume.ChooseColor;
+            CurrResume = Resume.ChooseKeyPoints;
             pbGoodChipImage.Image = _currImage;
 
             SetTsmiChecked(sender);
@@ -328,8 +311,7 @@ namespace ViewCulling
 
         private void CreateUnion()
         {
-            Color col = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
-            Bitmap res = Utils.UnionOfImages(col, trbToleranceLimit.Value, _images);
+            Bitmap res = Utils.UnionOfImages(_colorPoints, trbToleranceLimit.Value, _images);
 
             FormShowPicture formShowPicture = new FormShowPicture {TopLevel = false};
             FormMain.Instance.Controls.Add(formShowPicture);
@@ -339,8 +321,7 @@ namespace ViewCulling
 
         private void CreateUnionAndEdge()
         {
-            Color col = Color.FromArgb(trbRComp.Value, trbGComp.Value, trbBComp.Value);
-            Bitmap res = Utils.UnionOfImages(col, trbToleranceLimit.Value, _images);
+            Bitmap res = Utils.UnionOfImages(_colorPoints, trbToleranceLimit.Value, _images);
 
             EdgeFinder edgeFinder = new EdgeFinder(res);
             res = edgeFinder.GetEdgePic();
@@ -385,7 +366,7 @@ namespace ViewCulling
             x = (x >= _currImage.Width) ? _currImage.Width - 1 : x;
 
             _backgroundColors.Add(_currImage.GetPixel(x, y));
-            _backgroundPoints.Add(new Point(x, y));
+            _colorPoints.Add(new Point(x, y));
 
             double r = 0, g = 0, b = 0;
             foreach (Color col in _backgroundColors)
@@ -476,7 +457,7 @@ namespace ViewCulling
                 LoadGoodChipImage();
             }
 
-            if (CurrResume == Resume.ChooseColor)
+            if (CurrResume == Resume.ChooseKeyPoints)
             {
                 ChooseBackground(e);
             }
@@ -485,7 +466,7 @@ namespace ViewCulling
         private void очиститьТекущийНаборToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _backgroundColors.Clear();
-            _backgroundPoints.Clear();
+            _colorPoints.Clear();
 
             trbRComp.Value = 0;
             trbGComp.Value = 0;
@@ -493,6 +474,15 @@ namespace ViewCulling
 
             RefreshSegmentationLabels();
             FillColorIndicator();
+        }
+
+        private void сохранитьПроектToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Bitmap res = Utils.UnionOfImages(_colorPoints, trbToleranceLimit.Value, _images);
+            byte[,,] union = Utils.BitmapToByteRgb(res);
+
+            CullingProject cullingProject = new CullingProject(tbNameOfProject.Text, rtbDescription.Text, union, _colorPoints, trbToleranceLimit.Value);
+            cullingProject.SaveObject();
         }
 
     }

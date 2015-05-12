@@ -47,32 +47,32 @@ namespace ViewCulling
 
         private void показСовмещенияToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Bitmap bmpOriginal = new Bitmap(_pathToOriginFile);
-            Bitmap bmpTested = new Bitmap(_pathToTestedFile);
+            //Bitmap bmpOriginal = new Bitmap(_pathToOriginFile);
+            //Bitmap bmpTested = new Bitmap(_pathToTestedFile);
 
-            Color backColor = Color.FromArgb(96, 109, 235);
-            int lim = 115;
+            //Color backColor = Color.FromArgb(96, 109, 235);
+            //int lim = 115;
 
-            //Color backColor = Color.FromArgb(55, 46, 105);
-            //int lim = 40;
+            ////Color backColor = Color.FromArgb(55, 46, 105);
+            ////int lim = 40;
 
-            Segmentation segmentation1 = new Segmentation(backColor, lim);
-            var masTested = segmentation1.GetSegmentedMass(bmpTested);
+            //Segmentation segmentation1 = new Segmentation(backColor, lim);
+            //var masTested = segmentation1.GetSegmentedMass(bmpTested);
 
-            Segmentation segmentation2 = new Segmentation(backColor, lim);
-            var masOrigin = segmentation2.GetSegmentedMass(bmpOriginal);
+            //Segmentation segmentation2 = new Segmentation(backColor, lim);
+            //var masOrigin = segmentation2.GetSegmentedMass(bmpOriginal);
 
-            SuperImposition superImposition = new SuperImposition(masOrigin);
+            //SuperImposition superImposition = new SuperImposition(masOrigin);
 
-            DateTime timeBefore = DateTime.Now;
-            Point offset = superImposition.FindBestImposition(masTested);
-            DateTime timeAfter = DateTime.Now;
+            //DateTime timeBefore = DateTime.Now;
+            //Point offset = superImposition.FindBestImposition(masTested);
+            //DateTime timeAfter = DateTime.Now;
 
-            TimeSpan timeSpan = timeAfter - timeBefore;
+            //TimeSpan timeSpan = timeAfter - timeBefore;
 
-            pbImage.Image = OverlapTwoImage(masTested, masOrigin, offset);
+            //pbImage.Image = OverlapTwoImage(masTested, masOrigin, offset);
 
-            MessageBox.Show(timeSpan.TotalMilliseconds.ToString());
+            //MessageBox.Show(timeSpan.TotalMilliseconds.ToString());
         }
 
         private void тестируемыйФайлToolStripMenuItem_Click(object sender, EventArgs e)
