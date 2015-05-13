@@ -32,12 +32,12 @@
             this.msMain = new System.Windows.Forms.MenuStrip();
             this.файлToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.закрытьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.анализToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.rGBКомпонентаОбразцаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.проектToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.добавитьНовыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.запускToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.запускАнализаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.анализToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.rGBКомпонентаОбразцаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.тестированиеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.совмещениеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.загрузкаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -50,8 +50,8 @@
             this.msMain.Font = new System.Drawing.Font("Candara", 10.875F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.msMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.файлToolStripMenuItem,
-            this.проектToolStripMenuItem,
             this.запускToolStripMenuItem,
+            this.проектToolStripMenuItem,
             this.анализToolStripMenuItem,
             this.тестированиеToolStripMenuItem});
             this.msMain.Location = new System.Drawing.Point(0, 0);
@@ -76,6 +76,36 @@
             this.закрытьToolStripMenuItem.Text = "Закрыть";
             this.закрытьToolStripMenuItem.Click += new System.EventHandler(this.закрытьToolStripMenuItem_Click);
             // 
+            // проектToolStripMenuItem
+            // 
+            this.проектToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.добавитьНовыToolStripMenuItem});
+            this.проектToolStripMenuItem.Name = "проектToolStripMenuItem";
+            this.проектToolStripMenuItem.Size = new System.Drawing.Size(77, 22);
+            this.проектToolStripMenuItem.Text = "Проекты";
+            // 
+            // добавитьНовыToolStripMenuItem
+            // 
+            this.добавитьНовыToolStripMenuItem.Name = "добавитьНовыToolStripMenuItem";
+            this.добавитьНовыToolStripMenuItem.Size = new System.Drawing.Size(320, 22);
+            this.добавитьНовыToolStripMenuItem.Text = " Новый проект визуального контроля";
+            this.добавитьНовыToolStripMenuItem.Click += new System.EventHandler(this.добавитьНовыToolStripMenuItem_Click);
+            // 
+            // запускToolStripMenuItem
+            // 
+            this.запускToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.запускАнализаToolStripMenuItem});
+            this.запускToolStripMenuItem.Name = "запускToolStripMenuItem";
+            this.запускToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
+            this.запускToolStripMenuItem.Text = "Визуальный контроль";
+            // 
+            // запускАнализаToolStripMenuItem
+            // 
+            this.запускАнализаToolStripMenuItem.Name = "запускАнализаToolStripMenuItem";
+            this.запускАнализаToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.запускАнализаToolStripMenuItem.Text = "Открыть панель";
+            this.запускАнализаToolStripMenuItem.Click += new System.EventHandler(this.запускАнализаToolStripMenuItem_Click);
+            // 
             // анализToolStripMenuItem
             // 
             this.анализToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -90,36 +120,6 @@
             this.rGBКомпонентаОбразцаToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
             this.rGBКомпонентаОбразцаToolStripMenuItem.Text = "RGB компонента образца";
             this.rGBКомпонентаОбразцаToolStripMenuItem.Click += new System.EventHandler(this.rGBКомпонентаОбразцаToolStripMenuItem_Click);
-            // 
-            // проектToolStripMenuItem
-            // 
-            this.проектToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.добавитьНовыToolStripMenuItem});
-            this.проектToolStripMenuItem.Name = "проектToolStripMenuItem";
-            this.проектToolStripMenuItem.Size = new System.Drawing.Size(77, 22);
-            this.проектToolStripMenuItem.Text = "Проекты";
-            // 
-            // добавитьНовыToolStripMenuItem
-            // 
-            this.добавитьНовыToolStripMenuItem.Name = "добавитьНовыToolStripMenuItem";
-            this.добавитьНовыToolStripMenuItem.Size = new System.Drawing.Size(380, 22);
-            this.добавитьНовыToolStripMenuItem.Text = "Добавить новый проект визуального контроля";
-            this.добавитьНовыToolStripMenuItem.Click += new System.EventHandler(this.добавитьНовыToolStripMenuItem_Click);
-            // 
-            // запускToolStripMenuItem
-            // 
-            this.запускToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.запускАнализаToolStripMenuItem});
-            this.запускToolStripMenuItem.Name = "запускToolStripMenuItem";
-            this.запускToolStripMenuItem.Size = new System.Drawing.Size(64, 22);
-            this.запускToolStripMenuItem.Text = "Запуск";
-            // 
-            // запускАнализаToolStripMenuItem
-            // 
-            this.запускАнализаToolStripMenuItem.Name = "запускАнализаToolStripMenuItem";
-            this.запускАнализаToolStripMenuItem.Size = new System.Drawing.Size(269, 22);
-            this.запускАнализаToolStripMenuItem.Text = "Запуск визуального контроля";
-            this.запускАнализаToolStripMenuItem.Click += new System.EventHandler(this.запускАнализаToolStripMenuItem_Click);
             // 
             // тестированиеToolStripMenuItem
             // 

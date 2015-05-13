@@ -49,11 +49,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FormAddNewProject.cs">
+    <Compile Include="FormCullingProject.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FormAddNewProject.Designer.cs">
-      <DependentUpon>FormAddNewProject.cs</DependentUpon>
+    <Compile Include="FormCullingProject.Designer.cs">
+      <DependentUpon>FormCullingProject.cs</DependentUpon>
     </Compile>
     <Compile Include="FormLoading.cs">
       <SubType>Form</SubType>
@@ -95,8 +95,8 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="FormAddNewProject.resx">
-      <DependentUpon>FormAddNewProject.cs</DependentUpon>
+    <EmbeddedResource Include="FormCullingProject.resx">
+      <DependentUpon>FormCullingProject.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormLoading.resx">
       <DependentUpon>FormLoading.cs</DependentUpon>

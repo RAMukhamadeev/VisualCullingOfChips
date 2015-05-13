@@ -8,7 +8,7 @@ using NIIPP.ComputerVision;
 
 namespace ViewCulling
 {
-    public partial class FormAddNewProject : Form
+    public partial class FormCullingProject : Form
     {
         private string _currResume = Resume.None;
         private string CurrResume
@@ -39,7 +39,7 @@ namespace ViewCulling
             public const string None = "None";
         }
 
-        public FormAddNewProject()
+        public FormCullingProject()
         {
             InitializeComponent();
         }
@@ -136,8 +136,8 @@ namespace ViewCulling
 
         private void FormAddNewProject_Load(object sender, EventArgs e)
         {
-            gbSamplesOfGoodChips.Width = (Width - gbInterMainInfo.Width) - Width / 23;
-            gbSamplesOfGoodChips.Height = (Height - pbLeftArrow.Height) - Height / 8;
+            gbSamplesOfGoodChips.Width = (Width - panelRightSide.Width) - Width / 25;
+            gbSamplesOfGoodChips.Height = (Height - panelDownSide.Height) - Height / 10;
 
             RefreshSegmentationLabels();
             RefreshCuttingLabels();
@@ -213,16 +213,21 @@ namespace ViewCulling
             if (CurrResume != Resume.Cutting)
                 return;
 
+            // сохраняем отступ по которому будет обрезание изображения
+            _offset.X += trbLeftPosition.Value;
+            _offset.Y += trbUpPosition.Value;
+
             // определяем позицию текущего изображения на форме
             int pos = _images.IndexOf(_currImage);
 
             // обрезаем изображение на форме
             _images[pos] = CutBitmapImage(_images[pos], trbLeftPosition.Value, trbRightPosition.Value, trbUpPosition.Value, trbDownPosition.Value);
 
-            Segmentation segmentation = new Segmentation(_colorPoints, trbToleranceLimit.Value);
-            byte[,,] originMas = segmentation.GetSegmentedMass(_images[pos]);
+            Segmentation segmentationOrigin = new Segmentation(GetCorrectedPoints(), trbToleranceLimit.Value);
+            byte[,,] originMas = segmentationOrigin.GetSegmentedMass(_images[pos]);
 
             SuperImposition superImposition = new SuperImposition(originMas);
+            Segmentation segmentation = new Segmentation(_colorPoints, trbToleranceLimit.Value);
             for (int i = 0; i < _images.Count; i++)
             {
                 if (i == pos)
@@ -235,10 +240,6 @@ namespace ViewCulling
 
             _currImage = _images[pos];
             pbGoodChipImage.Image = _currImage;
-
-            // сохраняем отступ по которому было обрезание изображения
-            _offset.X += trbLeftPosition.Value; 
-            _offset.Y += trbUpPosition.Value;
 
             // сбрасываем показания контролов
             trbRightPosition.Value = 0;

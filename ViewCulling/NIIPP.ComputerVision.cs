@@ -154,7 +154,7 @@ namespace NIIPP.ComputerVision
             _delta = delta;
             _points = points;
 
-            RadiusOfStartFilling = 15;
+            RadiusOfStartFilling = 8;
         }
 
         /// <summary>
@@ -253,8 +253,8 @@ namespace NIIPP.ComputerVision
             int height = _masRgb.GetUpperBound(0) + 1,
                 width = _masRgb.GetUpperBound(1) + 1;
 
-            int[] di = { 0, 0, 1, -1, -1, 1, -1, 1 };
-            int[] dj = { 1, -1, 0, 0, -1, 1, 1, -1 };
+            int[] di = { 0, 0, 1, -1 };
+            int[] dj = { 1, -1, 0, 0 };
 
             List<Point> st = new List<Point> {new Point(ist, jst)};
             _masRgb[ist, jst, 0] = 0;
@@ -671,7 +671,7 @@ namespace NIIPP.ComputerVision
 
             Point res = FindBestStripePoint(probablePositions);
 
-            res = FindPreciseImposition(res);
+            //res = FindPreciseImposition(res);
 
             return res;
         }
@@ -715,9 +715,9 @@ namespace NIIPP.ComputerVision
         /// </summary>
         private readonly byte[,,] _segmentedMassGoodChip;
         /// <summary>
-        /// Края образца годного чипа
+        /// Область вблизи краев образца годного чипа
         /// </summary>
-        private readonly byte[,,] _edgeOfGood;
+        private readonly byte[,,] _edgeNearAreaMas;
 
         /// <summary>
         /// Сдвиг соответствующий идеальному совмещению
@@ -768,7 +768,7 @@ namespace NIIPP.ComputerVision
 
             // находим края изображения годного чипа
             EdgeFinder edgeFinder = new EdgeFinder(_segmentedMassGoodChip);
-            _edgeOfGood = edgeFinder.GetEdgeMas();
+            _edgeNearAreaMas = edgeFinder.GetEdgeNearArea();
 
             // фиксируем размеры массива
             _heightOfGood = _segmentedMassGoodChip.GetUpperBound(0) + 1;
@@ -816,60 +816,6 @@ namespace NIIPP.ComputerVision
         }
 
         /// <summary>
-        /// Возвращает true если указанная точка находится вблизи краев сегментов
-        /// </summary>
-        /// <param name="si">i-координата</param>
-        /// <param name="sj">j-координата</param>
-        /// <returns></returns>
-        private bool FarFromEdge(int si, int sj)
-        {
-            int i, j;
-            bool res = true;
-
-            i = si;
-            j = sj;
-            // вверх
-            while (i >= Math.Max(0, si - 5))
-            {
-                if (_edgeOfGood[i, j, 0] == VisionColors.Edge.R)
-                    res = false;
-                i--;
-            }
-
-            i = si;
-            j = sj;
-            // влево
-            while (j >= Math.Max(0, sj - 5))
-            {
-                if (_edgeOfGood[i, j, 0] == VisionColors.Edge.R)
-                    res = false;
-                j--;
-            }
-
-            i = si;
-            j = sj;
-            // вниз
-            while (i <= Math.Min(_heightOfGood - 1, si + 5))
-            {
-                if (_edgeOfGood[i, j, 0] == VisionColors.Edge.R)
-                    res = false;
-                i++;
-            }
-
-            i = si;
-            j = sj;
-            // вправо
-            while (j <= Math.Min(_widthOfGood - 1, sj + 5))
-            {
-                if (_edgeOfGood[i, j, 0] == VisionColors.Edge.R)
-                    res = false;
-                j++;
-            }
-
-            return res;
-        }
-
-        /// <summary>
         /// Проверка острова связанных отличающихся пикселей
         /// </summary>
         /// <param name="si"></param>
@@ -900,7 +846,7 @@ namespace NIIPP.ComputerVision
                     if (curri >= _heightOfGood || currj >= _widthOfGood || curri < 0 || currj < 0)
                         continue;
 
-                    if (!isAnalyzed[curri, currj] && !ColorsEqual(_segmentedMassGoodChip, nextPicMass, curri, currj) && FarFromEdge(curri, currj))
+                    if (!isAnalyzed[curri, currj] && !ColorsEqual(_segmentedMassGoodChip, nextPicMass, curri, currj) && _edgeNearAreaMas[curri, currj, 0] == VisionColors.Wafer.R)
                     {
                         queue.Add(new Point(currj, curri));
                         isAnalyzed[curri, currj] = true;
@@ -922,19 +868,19 @@ namespace NIIPP.ComputerVision
                 minj = Math.Min(minj, j);
             }
 
-            bool isDamage = queue.Count > 75;
+            bool isDamage = queue.Count > 80;
 
             if (isDamage)
             {
                 // закрашиваем остров - повреждение
-                //foreach (Point nextPoint in queue)
-                //{
-                //    int curri = nextPoint.Y,
-                //        currj = nextPoint.X;
-                //    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 0] = VisionColors.Damage.R;
-                //    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 1] = VisionColors.Damage.G;
-                //    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 2] = VisionColors.Damage.B;
-                //}
+                foreach (Point nextPoint in queue)
+                {
+                    int curri = nextPoint.Y,
+                        currj = nextPoint.X;
+                    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 0] = VisionColors.Damage.R;
+                    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 1] = VisionColors.Damage.G;
+                    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 2] = VisionColors.Damage.B;
+                }
 
                 // рисуем рамку
                 mini -= 4;
@@ -1074,9 +1020,90 @@ namespace NIIPP.ComputerVision
             return edgeMas;
         }
 
-        public byte[,,] GetEdgeMas()
+        private byte[,,] GetEdgeMas()
         {
             return FindEdges();
+        }
+
+        /// <summary>
+        /// Возвращает true если указанная точка находится вблизи краев сегментов иначе false
+        /// </summary>
+        /// <param name="si">i-координата</param>
+        /// <param name="sj">j-координата</param>
+        /// <param name="edgeOfGood">Массив с краями сегментов</param>
+        /// <returns></returns>
+        private bool FarFromEdge(int si, int sj, byte[,,] edgeOfGood)
+        {
+            const int radius = 4;
+            int i, j;
+            bool res = true;
+
+            i = si;
+            j = sj;
+            // вверх
+            while (i >= Math.Max(0, si - radius))
+            {
+                if (edgeOfGood[i, j, 0] == VisionColors.Edge.R)
+                    res = false;
+                i--;
+            }
+
+            i = si;
+            j = sj;
+            // влево
+            while (j >= Math.Max(0, sj - radius))
+            {
+                if (edgeOfGood[i, j, 0] == VisionColors.Edge.R)
+                    res = false;
+                j--;
+            }
+
+            i = si;
+            j = sj;
+            // вниз
+            while (i <= Math.Min(_h - 1, si + radius))
+            {
+                if (edgeOfGood[i, j, 0] == VisionColors.Edge.R)
+                    res = false;
+                i++;
+            }
+
+            i = si;
+            j = sj;
+            // вправо
+            while (j <= Math.Min(_w - 1, sj + radius))
+            {
+                if (edgeOfGood[i, j, 0] == VisionColors.Edge.R)
+                    res = false;
+                j++;
+            }
+
+            return res;
+        }
+
+        public byte[,,] GetEdgeNearArea()
+        {
+            byte[,,] edgeMas = GetEdgeMas();
+
+            byte[,,] edgeNearAreaMas = new byte[_h, _w, 3];
+            for (int i = 0; i < _h; i++)
+                for (int j = 0; j < _w; j++)
+                {
+                    if (!FarFromEdge(i, j, edgeMas))
+                    {
+                        edgeNearAreaMas[i, j, 0] = VisionColors.Edge.R;
+                        edgeNearAreaMas[i, j, 1] = VisionColors.Edge.G;
+                        edgeNearAreaMas[i, j, 2] = VisionColors.Edge.B;
+                    }
+                    else
+                    {
+                        edgeNearAreaMas[i, j, 0] = VisionColors.Wafer.R;
+                        edgeNearAreaMas[i, j, 1] = VisionColors.Wafer.G;
+                        edgeNearAreaMas[i, j, 2] = VisionColors.Wafer.B;
+                    }
+                }
+
+            return edgeNearAreaMas;
         }
 
         public Bitmap GetEdgePic()

@@ -90,7 +90,7 @@ namespace ViewCulling
                 string curRes = "Годный";
                 dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.LawnGreen;
                 dgvTestingOfChips.Rows[currFile].Cells[2].Value = vi.CurrMark.ToString();
-                if (vi.CurrMark > 300)
+                if (vi.CurrMark >= 500)
                 {
                     curRes = "Не годный";
                     dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.Red;
@@ -158,6 +158,17 @@ namespace ViewCulling
                 _cullingProject = CullingProject.GetSavedProject(ofd.FileName);
                 lblProjectOfCulling.Text = Path.GetFileName(ofd.FileName);
             }
+
+        }
+
+        private void закрытьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        private void открытьШаблонФайлаОтбраковкиToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
 
         }
     }

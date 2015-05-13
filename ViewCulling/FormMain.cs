@@ -65,7 +65,7 @@ namespace ViewCulling
 
         private void добавитьНовыToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FormAddNewProject formAddNewProject = new FormAddNewProject();
+            FormCullingProject formAddNewProject = new FormCullingProject();
             formAddNewProject.TopLevel = false;
             this.Controls.Add(formAddNewProject);
             formAddNewProject.Show();
