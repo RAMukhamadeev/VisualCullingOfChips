@@ -86,5 +86,16 @@ namespace ViewCulling
 
             formLoading.Show();
         }
+
+        private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (MessageBox.Show("Вы действительно хотите выйти?", "Question", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+            }
+            else
+            {
+                e.Cancel = true;
+            }
+        }
     }
 }

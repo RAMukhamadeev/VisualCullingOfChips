@@ -48,16 +48,18 @@ namespace NIIPP.ComputerVision
         public string NameOfProject;
         public string DescriptionOfProject;
         public byte [,,] UnitedImage;
-        public List<Point> PointsOfColors;
+        public List<Point> KeyPoints;
         public int Lim;
         public readonly string ObjectId;
+        public Point OriginOffset;
 
-        public CullingProject(string nameOfProject, string descriptionOfProject, byte[,,] unitedImage, List<Point> pointOfColor, int lim)
+        public CullingProject(string nameOfProject, string descriptionOfProject, byte[,,] unitedImage, List<Point> keyPoints, Point originOffset, int lim)
         {
             NameOfProject = nameOfProject;
             DescriptionOfProject = descriptionOfProject;
             UnitedImage = unitedImage;
-            PointsOfColors = pointOfColor;
+            KeyPoints = keyPoints;
+            OriginOffset = originOffset;
             Lim = lim;
 
             ObjectId = NameOfProject + String.Format(" ({0})", DateTime.Now.ToString("dd-MM-yyyy HH-mm-ss"));
@@ -511,7 +513,7 @@ namespace NIIPP.ComputerVision
         /// <returns>Множество возможных точек совмещения</returns>
         private List<Point> FindProbablePositions()
         {
-            const double acceptablePercent = 0.2;
+            const double acceptablePercent = 0.15;
 
             List<Point> probablePositions = new List<Point>();
 
@@ -671,6 +673,7 @@ namespace NIIPP.ComputerVision
 
             Point res = FindBestStripePoint(probablePositions);
 
+            // для дополнительной корректировки
             //res = FindPreciseImposition(res);
 
             return res;
@@ -787,7 +790,7 @@ namespace NIIPP.ComputerVision
         {
             // сегментируем очередной чип, который нужно проверить
             Bitmap bmp = new Bitmap(pathToChipFile);
-            Segmentation segm = new Segmentation(_cullingProject.PointsOfColors, _cullingProject.Lim);
+            Segmentation segm = new Segmentation(_cullingProject.KeyPoints, _cullingProject.Lim);
             byte[,,] segmentedMass = segm.GetSegmentedMass(bmp);
 
             // сохраняем изображение очередного чипа
@@ -868,7 +871,7 @@ namespace NIIPP.ComputerVision
                 minj = Math.Min(minj, j);
             }
 
-            bool isDamage = queue.Count > 80;
+            bool isDamage = queue.Count > 75;
 
             if (isDamage)
             {
@@ -1034,7 +1037,13 @@ namespace NIIPP.ComputerVision
         /// <returns></returns>
         private bool FarFromEdge(int si, int sj, byte[,,] edgeOfGood)
         {
-            const int radius = 4;
+            // рамка у края ни сильно важна, поэтому для нее радиус больше
+            int radius;
+            if (si <= 25 || sj <= 25 || _h - si <= 25 || _w - sj <= 25)
+                radius = 3;
+            else
+                radius = 1;
+
             int i, j;
             bool res = true;
 

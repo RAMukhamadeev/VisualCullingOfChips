@@ -24,12 +24,12 @@ namespace ViewCulling
         private readonly List<string> _pathToGoodChips = new List<string>();
         private readonly List<Bitmap> _images = new List<Bitmap>();
         private readonly List<Color> _backgroundColors = new List<Color>();
-        private readonly List<Point> _colorPoints = new List<Point>();
+        private readonly List<Point> _keyPoints = new List<Point>();
         private Bitmap _currImage;
 
         private Point _offset = new Point(0, 0);
 
-        private const int WidthOfLine = 3;
+        private const int WidthOfLine = 2;
 
         private struct Resume
         {
@@ -205,7 +205,7 @@ namespace ViewCulling
 
         private List<Point> GetCorrectedPoints()
         {
-            return _colorPoints.Select(point => new Point(point.X - _offset.X, point.Y - _offset.Y)).ToList();
+            return _keyPoints.Select(point => new Point(point.X - _offset.X, point.Y - _offset.Y)).ToList();
         }
 
         private void обрезатьToolStripMenuItem_Click(object sender, EventArgs e)
@@ -227,7 +227,7 @@ namespace ViewCulling
             byte[,,] originMas = segmentationOrigin.GetSegmentedMass(_images[pos]);
 
             SuperImposition superImposition = new SuperImposition(originMas);
-            Segmentation segmentation = new Segmentation(_colorPoints, trbToleranceLimit.Value);
+            Segmentation segmentation = new Segmentation(_keyPoints, trbToleranceLimit.Value);
             for (int i = 0; i < _images.Count; i++)
             {
                 if (i == pos)
@@ -381,7 +381,7 @@ namespace ViewCulling
             x = (x >= _currImage.Width) ? _currImage.Width - 1 : x;
 
             _backgroundColors.Add(_currImage.GetPixel(x, y));
-            _colorPoints.Add(new Point(x, y));
+            _keyPoints.Add(new Point(x, y));
 
             double r = 0, g = 0, b = 0;
             foreach (Color col in _backgroundColors)
@@ -482,7 +482,7 @@ namespace ViewCulling
         private void очиститьТекущийНаборToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _backgroundColors.Clear();
-            _colorPoints.Clear();
+            _keyPoints.Clear();
 
             trbRComp.Value = 0;
             trbGComp.Value = 0;
@@ -494,10 +494,10 @@ namespace ViewCulling
 
         private void сохранитьПроектToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Bitmap res = Utils.UnionOfImages(_colorPoints, trbToleranceLimit.Value, _images);
+            Bitmap res = Utils.UnionOfImages(_keyPoints, trbToleranceLimit.Value, _images);
             byte[,,] union = Utils.BitmapToByteRgb(res);
 
-            CullingProject cullingProject = new CullingProject(tbNameOfProject.Text, rtbDescription.Text, union, _colorPoints, trbToleranceLimit.Value);
+            CullingProject cullingProject = new CullingProject(tbNameOfProject.Text, rtbDescription.Text, union, _keyPoints, _offset, trbToleranceLimit.Value);
             cullingProject.SaveObject();
         }
 

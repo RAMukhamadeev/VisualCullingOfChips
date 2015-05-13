@@ -25,6 +25,8 @@ namespace ViewCulling
         private CullingProject _cullingProject;
         private string _pathToTestingChipsFolder;
 
+        private Thread _workThread;
+
         public FormStartAnalyze()
         {
             Instance = this;
@@ -69,6 +71,9 @@ namespace ViewCulling
         {
             VisualInspect vi = new VisualInspect(_cullingProject);
             DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
+            int s = (_cullingProject.UnitedImage.GetUpperBound(0) + 1)*
+                       (_cullingProject.UnitedImage.GetUpperBound(1) + 1);
+            int countOfAcceptableBadPix = s / 1000;
 
             int currFile = 0;
             foreach (FileInfo fileInfo in di.GetFiles())
@@ -79,22 +84,39 @@ namespace ViewCulling
                 dgvTestingOfChips.Rows[currFile].Cells[1].Value = "Обрабатывается...";
                 dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.Yellow;
 
+                bool isError = false;
                 DateTime dtBefore = DateTime.Now;
-                Bitmap bmp = vi.CheckNextChip(fileInfo.FullName);
+                try
+                {
+                    Bitmap bmp = vi.CheckNextChip(fileInfo.FullName);
+                    bmp.Save("\\Storage\\results\\" + fileInfo.Name);
+                }
+                catch (Exception ex)
+                {
+                    isError = true;
+                    //MessageBox.Show(String.Format("Произошла ошибка при обработке: {0}", ex.Message));
+                }
+                
                 TimeSpan timeSpan = DateTime.Now - dtBefore;
                 double seconds = timeSpan.TotalMilliseconds / 1000.0;
                 dgvTestingOfChips.Rows[currFile].Cells[4].Value = String.Format("{0:0.00}", seconds);
 
-                bmp.Save("\\Storage\\results\\" + fileInfo.Name);
-
                 string curRes = "Годный";
                 dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.LawnGreen;
                 dgvTestingOfChips.Rows[currFile].Cells[2].Value = vi.CurrMark.ToString();
-                if (vi.CurrMark >= 500)
+
+                if (vi.CurrMark >= countOfAcceptableBadPix)
                 {
                     curRes = "Не годный";
                     dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.Red;
                 }
+
+                if (isError)
+                {
+                    curRes = "Ошибка при обработке";
+                    dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.DarkTurquoise;
+                }
+
                 dgvTestingOfChips.Rows[currFile].Cells[1].Value = curRes;
                 dgvTestingOfChips.Rows[currFile].Cells[3].Value = DateTime.Now.ToString(CultureInfo.CurrentCulture);
                 dgvTestingOfChips.Rows[currFile].Cells[5].Value = "Открыть";
@@ -108,6 +130,8 @@ namespace ViewCulling
         private void открытьToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.SelectedPath = Environment.CurrentDirectory.Substring(0, 2) + "\\Storage";
+
             if (fbd.ShowDialog() == DialogResult.OK)
             {
                 _pathToTestingChipsFolder = fbd.SelectedPath;
@@ -133,7 +157,7 @@ namespace ViewCulling
             {
                 string nameOfFile = dgvTestingOfChips.Rows[e.RowIndex].Cells[0].Value.ToString();
                 Bitmap innerPic = new Bitmap(lblPathToTestFolder.Text + "\\" + nameOfFile);
-                Segmentation segmentation = new Segmentation(_cullingProject.PointsOfColors, _cullingProject.Lim);
+                Segmentation segmentation = new Segmentation(_cullingProject.KeyPoints, _cullingProject.Lim);
                 Bitmap res = segmentation.GetSegmentedPicture(innerPic);
 
                 FormShowPicture formShowPicture = new FormShowPicture { TopLevel = false };
@@ -145,8 +169,8 @@ namespace ViewCulling
 
         private void стартToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Thread workThread = new Thread(ReleaseTesting);
-            workThread.Start();
+            _workThread = new Thread(ReleaseTesting);
+            _workThread.Start();
         }
 
         private void открытьПроектОтбраковкиToolStripMenuItem_Click(object sender, EventArgs e)
@@ -169,7 +193,23 @@ namespace ViewCulling
         private void открытьШаблонФайлаОтбраковкиToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                
+            }
+        }
 
+        private void FormStartAnalyze_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (MessageBox.Show("Вы действительно хотите выйти?", "Question", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                if (_workThread != null)
+                    _workThread.Abort();
+            }
+            else
+            {
+                e.Cancel = true;
+            }
         }
     }
 }
