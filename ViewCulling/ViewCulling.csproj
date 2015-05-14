@@ -67,11 +67,11 @@
     <Compile Include="FormRgbAnalyze.Designer.cs">
       <DependentUpon>FormRgbAnalyze.cs</DependentUpon>
     </Compile>
-    <Compile Include="FormStartAnalyze.cs">
+    <Compile Include="FormAnalyze.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FormStartAnalyze.Designer.cs">
-      <DependentUpon>FormStartAnalyze.cs</DependentUpon>
+    <Compile Include="FormAnalyze.Designer.cs">
+      <DependentUpon>FormAnalyze.cs</DependentUpon>
     </Compile>
     <Compile Include="FormTestOfImposition.cs">
       <SubType>Form</SubType>
@@ -84,6 +84,12 @@
     </Compile>
     <Compile Include="FormShowPicture.Designer.cs">
       <DependentUpon>FormShowPicture.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormAnalyzeView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormAnalyzeView.Designer.cs">
+      <DependentUpon>FormAnalyzeView.cs</DependentUpon>
     </Compile>
     <Compile Include="Globals.cs" />
     <Compile Include="NIIPP.ComputerVision.cs" />
@@ -107,14 +113,17 @@
     <EmbeddedResource Include="FormRgbAnalyze.resx">
       <DependentUpon>FormRgbAnalyze.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FormStartAnalyze.resx">
-      <DependentUpon>FormStartAnalyze.cs</DependentUpon>
+    <EmbeddedResource Include="FormAnalyze.resx">
+      <DependentUpon>FormAnalyze.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormTestOfImposition.resx">
       <DependentUpon>FormTestOfImposition.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormShowPicture.resx">
       <DependentUpon>FormShowPicture.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormAnalyzeView.resx">
+      <DependentUpon>FormAnalyzeView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

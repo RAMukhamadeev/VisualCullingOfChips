@@ -300,7 +300,7 @@ namespace ViewCulling
         private void выборЦветаФонаToolStripMenuItem_Click(object sender, EventArgs e)
         {
             CurrResume = Resume.ChooseKeyPoints;
-            pbGoodChipImage.Image = _currImage;
+            pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage(_currImage, GetCorrectedPoints());
 
             SetTsmiChecked(sender);
         }
@@ -413,7 +413,7 @@ namespace ViewCulling
             {
                 pos = 0;
             }
-
+            
             _currImage = _images[pos];
             pbGoodChipImage.Image = _currImage;
 
@@ -424,6 +424,8 @@ namespace ViewCulling
                 SegmentationWithCurrentParameters();
             if (CurrResume == Resume.Cutting)
                 DrawFrame();
+            if (CurrResume == Resume.ChooseKeyPoints)
+                pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage((Bitmap) pbGoodChipImage.Image, GetCorrectedPoints());
         }
 
         private void pbLeftArrow_Click(object sender, EventArgs e)
@@ -476,6 +478,7 @@ namespace ViewCulling
             if (CurrResume == Resume.ChooseKeyPoints)
             {
                 ChooseBackground(e);
+                pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage( (Bitmap) pbGoodChipImage.Image, GetCorrectedPoints());
             }
         }
 

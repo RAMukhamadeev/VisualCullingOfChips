@@ -9,28 +9,60 @@ using NIIPP.ComputerVision;
 
 namespace ViewCulling
 {
-    public partial class FormStartAnalyze : Form
+    public partial class FormAnalyze : Form
     {
-        public FormStartAnalyze Instance { get; set; }
+        public static FormAnalyze Instance { get; set; }
         private readonly string[] _nameOfColumns = {
                                      "Название файла",
                                      "Вердикт",
                                      "Коэффициент",
                                      "Дата тестирования",
                                      "Время обработки, c",
-                                     "Просмотр",
-                                     "Сегментация"
+                                     "Просмотр"
                                  };
 
         private CullingProject _cullingProject;
         private string _pathToTestingChipsFolder;
+        private string _pathToCullingPattern;
 
         private Thread _workThread;
 
-        public FormStartAnalyze()
+        public FormAnalyze()
         {
             Instance = this;
             InitializeComponent();
+        }
+
+        public void SetUserCorrectedStatus(string nameOfChip, bool isGood)
+        {
+            for (int i = 0; i < dgvTestingOfChips.Rows.Count - 1; i++)
+            {
+                if (dgvTestingOfChips.Rows[i].Cells[0].Value.ToString() == nameOfChip)
+                {
+                    if (isGood)
+                    {
+                        dgvTestingOfChips.Rows[i].Cells[1].Value = "Годный";
+                        dgvTestingOfChips.Rows[i].Cells[1].Style.BackColor = Color.LawnGreen;
+                    }
+                    else
+                    {
+                        dgvTestingOfChips.Rows[i].Cells[1].Value = "Не годный";
+                        dgvTestingOfChips.Rows[i].Cells[1].Style.BackColor = Color.OrangeRed;
+                    }
+                }
+            }
+        }
+
+        private int GetIndexOfColumn(string nameOfColumn)
+        {
+            int res = -1;
+            for (int i = 0; i < _nameOfColumns.Length; i++)
+                if (_nameOfColumns[i] == nameOfColumn)
+                {
+                    res = i;
+                    break;
+                }
+            return res;
         }
 
         private void InitDgvTestingOfChips()
@@ -40,7 +72,7 @@ namespace ViewCulling
                 dgvTestingOfChips.Columns[i].Name = _nameOfColumns[i];
 
             dgvTestingOfChips.ReadOnly = true;
-            dgvTestingOfChips.Font = new Font("Microsoft Sans Serif", 9);
+            dgvTestingOfChips.Font = new Font("Microsoft Sans Serif", 9, FontStyle.Bold);
             dgvTestingOfChips.ColumnHeadersDefaultCellStyle.Font = new Font("Microsoft Sans Serif", 9, FontStyle.Bold);
             dgvTestingOfChips.BackgroundColor = SystemColors.Control;
             dgvTestingOfChips.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -71,9 +103,10 @@ namespace ViewCulling
         {
             VisualInspect vi = new VisualInspect(_cullingProject);
             DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
-            int s = (_cullingProject.UnitedImage.GetUpperBound(0) + 1)*
+            int s = (_cullingProject.UnitedImage.GetUpperBound(0) + 1) *
                        (_cullingProject.UnitedImage.GetUpperBound(1) + 1);
-            int countOfAcceptableBadPix = s / 1000;
+            //int countOfAcceptableBadPix = s / 1000;
+            int countOfAcceptableBadPix = 300;
 
             int currFile = 0;
             foreach (FileInfo fileInfo in di.GetFiles())
@@ -108,7 +141,7 @@ namespace ViewCulling
                 if (vi.CurrMark >= countOfAcceptableBadPix)
                 {
                     curRes = "Не годный";
-                    dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.Red;
+                    dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.OrangeRed;
                 }
 
                 if (isError)
@@ -120,8 +153,6 @@ namespace ViewCulling
                 dgvTestingOfChips.Rows[currFile].Cells[1].Value = curRes;
                 dgvTestingOfChips.Rows[currFile].Cells[3].Value = DateTime.Now.ToString(CultureInfo.CurrentCulture);
                 dgvTestingOfChips.Rows[currFile].Cells[5].Value = "Открыть";
-                dgvTestingOfChips.Rows[currFile].Cells[6].Value = "Открыть";
-                dgvTestingOfChips.Invalidate();
 
                 currFile++;
             }
@@ -149,21 +180,19 @@ namespace ViewCulling
         {
             if (e.ColumnIndex == 5)
             {
-                string nameOfFile = dgvTestingOfChips.Rows[e.RowIndex].Cells[0].Value.ToString();
-                Process.Start("\\Storage\\results\\" + nameOfFile);
-            }
+                
 
-            if (e.ColumnIndex == 6)
-            {
-                string nameOfFile = dgvTestingOfChips.Rows[e.RowIndex].Cells[0].Value.ToString();
-                Bitmap innerPic = new Bitmap(lblPathToTestFolder.Text + "\\" + nameOfFile);
-                Segmentation segmentation = new Segmentation(_cullingProject.KeyPoints, _cullingProject.Lim);
-                Bitmap res = segmentation.GetSegmentedPicture(innerPic);
+                FormAnalyzeView formAnalyzeView = new FormAnalyzeView {TopLevel = false};
+                Controls.Add(formAnalyzeView);
 
-                FormShowPicture formShowPicture = new FormShowPicture { TopLevel = false };
-                FormMain.Instance.Controls.Add(formShowPicture);
-                formShowPicture.Show();
-                formShowPicture.SetImage(res);
+                string nameOfFile = dgvTestingOfChips.Rows[e.RowIndex].Cells[0].Value.ToString();
+                string spritePicPath = "\\Storage\\results\\" + nameOfFile;
+                string originalPicPath = lblPathToTestFolder.Text + "\\" + nameOfFile;
+
+                formAnalyzeView.LoadData(nameOfFile, spritePicPath, originalPicPath, _cullingProject);
+                formAnalyzeView.SetStatus(dgvTestingOfChips.Rows[e.RowIndex].Cells[1].Value.ToString());
+
+                formAnalyzeView.Show();
             }
         }
 
@@ -182,21 +211,11 @@ namespace ViewCulling
                 _cullingProject = CullingProject.GetSavedProject(ofd.FileName);
                 lblProjectOfCulling.Text = Path.GetFileName(ofd.FileName);
             }
-
         }
 
         private void закрытьToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close();
-        }
-
-        private void открытьШаблонФайлаОтбраковкиToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog ofd = new OpenFileDialog();
-            if (ofd.ShowDialog() == DialogResult.OK)
-            {
-                
-            }
         }
 
         private void FormStartAnalyze_FormClosing(object sender, FormClosingEventArgs e)
@@ -209,6 +228,43 @@ namespace ViewCulling
             else
             {
                 e.Cancel = true;
+            }
+        }
+
+        private void открытьToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog { Filter = "Map files (*.map)|*.*" };
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                lblCullingPattern.Text = Path.GetFileName(ofd.FileName);
+                _pathToCullingPattern = ofd.FileName;
+            }
+        }
+
+        private void SaveCullingMap(string pathToSave)
+        {
+            WaferMap waferMap = new WaferMap(_pathToCullingPattern);
+
+            int indexOfVerdict = GetIndexOfColumn("Вердикт");
+            int indexOfNameOfFile = GetIndexOfColumn("Название файла");
+            for (int i = 0; i < dgvTestingOfChips.Rows.Count - 1; i++)
+            {
+                string verdict = dgvTestingOfChips.Rows[i].Cells[indexOfVerdict].Value.ToString();
+                string nameOfFile = dgvTestingOfChips.Rows[i].Cells[indexOfNameOfFile].Value.ToString();
+                if (verdict == "Не годный")
+                    waferMap.SetChipAsCulled(nameOfFile);
+            }
+
+            waferMap.SaveCullingPatternFile(pathToSave);
+        }
+
+        private void сохранитьТекущуюКартуРаскрояToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog sfd = new SaveFileDialog {Filter = "Map file (*.map)|*.map"};
+            sfd.FileName = String.Format("{0}_after_visual_culling.map", Path.GetFileNameWithoutExtension(lblCullingPattern.Text));
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                SaveCullingMap(sfd.FileName);
             }
         }
     }

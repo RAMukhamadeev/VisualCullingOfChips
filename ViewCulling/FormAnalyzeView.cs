@@ -1,0 +1,111 @@
+﻿using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.Windows.Forms;
+using NIIPP.ComputerVision;
+
+namespace ViewCulling
+{
+    public partial class FormAnalyzeView : Form
+    {
+        private string _pathToSpritePic;
+        private string _pathToOriginalPic;
+        private CullingProject _cullingProject;
+        private string _nameOfFile;
+        private string _status;
+
+        public FormAnalyzeView()
+        {
+            InitializeComponent();
+        }
+
+        private void закрытьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        public void LoadData(string nameOfFile, string pathSpritePic, string pathToOriginalPic, CullingProject cullingProject)
+        {
+            _nameOfFile = nameOfFile;
+            _pathToOriginalPic = pathToOriginalPic;
+            _pathToSpritePic = pathSpritePic;
+            _cullingProject = cullingProject;
+
+            pbViewPicture.Image = new Bitmap(_pathToSpritePic);
+        }
+
+        public void SetStatus(string status)
+        {
+            _status = status;
+            if (_status == "Годный")
+                rbGood.Checked = true;
+            if (_status == "Не годный")
+                rbBad.Checked = true;
+
+        }
+
+        private void FormViewPicture_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pbViewPicture_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            pbViewPicture.Image.Save("\\tempPic.bmp");
+            Process.Start("\\tempPic.bmp");
+        }
+
+        private void сегментацияToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Bitmap innerPic = new Bitmap(_pathToOriginalPic);
+            Segmentation segmentation = new Segmentation(_cullingProject.KeyPoints, _cullingProject.Lim);
+            Bitmap res = segmentation.GetSegmentedPicture(innerPic);
+
+            pbViewPicture.Image = res;
+        }
+
+        private void оригиналToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            pbViewPicture.Image = new Bitmap(_pathToOriginalPic);
+        }
+
+        private void спрайтыToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            pbViewPicture.Image = new Bitmap(_pathToSpritePic);
+        }
+
+        private void SetPictureStatus()
+        {
+            if (rbGood.Checked)
+                pbStatus.Image = new Bitmap("assets\\good.png");
+            if (rbBad.Checked)
+                pbStatus.Image = new Bitmap("assets\\bad.png");
+        }
+
+        private void rbGood_CheckedChanged(object sender, EventArgs e)
+        {
+            SetPictureStatus();
+            FormAnalyze.Instance.SetUserCorrectedStatus(_nameOfFile, true);
+        }
+
+        private void rbBad_CheckedChanged(object sender, EventArgs e)
+        {
+            SetPictureStatus();
+            FormAnalyze.Instance.SetUserCorrectedStatus(_nameOfFile, false);
+        }
+
+        private void ключевыеТочкиToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            pbViewPicture.Image = Utils.DrawKeyPointsOnImage(new Bitmap(_pathToOriginalPic), _cullingProject.KeyPoints);
+        }
+
+        private void краяToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Bitmap innerPic = new Bitmap(_pathToOriginalPic);
+            Segmentation segmentation = new Segmentation(_cullingProject.KeyPoints, _cullingProject.Lim);
+            Bitmap res = segmentation.GetSegmentedPicture(innerPic);
+            EdgeFinder edgeFinder = new EdgeFinder(res);
+            pbViewPicture.Image = edgeFinder.GetEdgePic();
+        }
+    }
+}

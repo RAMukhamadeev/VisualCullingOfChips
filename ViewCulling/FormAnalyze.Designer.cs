@@ -1,6 +1,6 @@
 ﻿namespace ViewCulling
 {
-    partial class FormStartAnalyze
+    partial class FormAnalyze
     {
         /// <summary>
         /// Required designer variable.
@@ -28,13 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormStartAnalyze));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormAnalyze));
             this.gpTesting = new System.Windows.Forms.GroupBox();
             this.dgvTestingOfChips = new System.Windows.Forms.DataGridView();
             this.msMain = new System.Windows.Forms.MenuStrip();
             this.файлToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.открытьПроектОтбраковкиToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.открытьШаблонФайлаОтбраковкиToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.открытьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.закрытьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.запускАнализаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -48,6 +47,7 @@
             this.lblProjectOfCulling = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.lblCullingPattern = new System.Windows.Forms.Label();
+            this.сохранитьТекущуюКартуРаскрояToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gpTesting.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTestingOfChips)).BeginInit();
             this.msMain.SuspendLayout();
@@ -107,7 +107,6 @@
             this.файлToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.открытьПроектОтбраковкиToolStripMenuItem,
             this.открытьToolStripMenuItem,
-            this.открытьШаблонФайлаОтбраковкиToolStripMenuItem,
             this.закрытьToolStripMenuItem});
             this.файлToolStripMenuItem.Name = "файлToolStripMenuItem";
             this.файлToolStripMenuItem.Size = new System.Drawing.Size(90, 40);
@@ -116,28 +115,21 @@
             // открытьПроектОтбраковкиToolStripMenuItem
             // 
             this.открытьПроектОтбраковкиToolStripMenuItem.Name = "открытьПроектОтбраковкиToolStripMenuItem";
-            this.открытьПроектОтбраковкиToolStripMenuItem.Size = new System.Drawing.Size(538, 40);
+            this.открытьПроектОтбраковкиToolStripMenuItem.Size = new System.Drawing.Size(448, 40);
             this.открытьПроектОтбраковкиToolStripMenuItem.Text = "Открыть проект отбраковки";
             this.открытьПроектОтбраковкиToolStripMenuItem.Click += new System.EventHandler(this.открытьПроектОтбраковкиToolStripMenuItem_Click);
-            // 
-            // открытьШаблонФайлаОтбраковкиToolStripMenuItem
-            // 
-            this.открытьШаблонФайлаОтбраковкиToolStripMenuItem.Name = "открытьШаблонФайлаОтбраковкиToolStripMenuItem";
-            this.открытьШаблонФайлаОтбраковкиToolStripMenuItem.Size = new System.Drawing.Size(538, 40);
-            this.открытьШаблонФайлаОтбраковкиToolStripMenuItem.Text = "Открыть шаблон файла отбраковки";
-            this.открытьШаблонФайлаОтбраковкиToolStripMenuItem.Click += new System.EventHandler(this.открытьШаблонФайлаОтбраковкиToolStripMenuItem_Click);
             // 
             // открытьToolStripMenuItem
             // 
             this.открытьToolStripMenuItem.Name = "открытьToolStripMenuItem";
-            this.открытьToolStripMenuItem.Size = new System.Drawing.Size(538, 40);
+            this.открытьToolStripMenuItem.Size = new System.Drawing.Size(448, 40);
             this.открытьToolStripMenuItem.Text = "Открыть файлы для анализа";
             this.открытьToolStripMenuItem.Click += new System.EventHandler(this.открытьToolStripMenuItem_Click);
             // 
             // закрытьToolStripMenuItem
             // 
             this.закрытьToolStripMenuItem.Name = "закрытьToolStripMenuItem";
-            this.закрытьToolStripMenuItem.Size = new System.Drawing.Size(538, 40);
+            this.закрытьToolStripMenuItem.Size = new System.Drawing.Size(448, 40);
             this.закрытьToolStripMenuItem.Text = "Закрыть";
             this.закрытьToolStripMenuItem.Click += new System.EventHandler(this.закрытьToolStripMenuItem_Click);
             // 
@@ -153,20 +145,21 @@
             // стартToolStripMenuItem
             // 
             this.стартToolStripMenuItem.Name = "стартToolStripMenuItem";
-            this.стартToolStripMenuItem.Size = new System.Drawing.Size(244, 40);
+            this.стартToolStripMenuItem.Size = new System.Drawing.Size(223, 40);
             this.стартToolStripMenuItem.Text = "Запуск";
             this.стартToolStripMenuItem.Click += new System.EventHandler(this.стартToolStripMenuItem_Click);
             // 
             // остановкаToolStripMenuItem
             // 
             this.остановкаToolStripMenuItem.Name = "остановкаToolStripMenuItem";
-            this.остановкаToolStripMenuItem.Size = new System.Drawing.Size(244, 40);
+            this.остановкаToolStripMenuItem.Size = new System.Drawing.Size(223, 40);
             this.остановкаToolStripMenuItem.Text = "Остановка";
             // 
             // картаРаскрояToolStripMenuItem
             // 
             this.картаРаскрояToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.открытьToolStripMenuItem1});
+            this.открытьToolStripMenuItem1,
+            this.сохранитьТекущуюКартуРаскрояToolStripMenuItem});
             this.картаРаскрояToolStripMenuItem.Name = "картаРаскрояToolStripMenuItem";
             this.картаРаскрояToolStripMenuItem.Size = new System.Drawing.Size(211, 40);
             this.картаРаскрояToolStripMenuItem.Text = "Карта раскроя";
@@ -174,8 +167,9 @@
             // открытьToolStripMenuItem1
             // 
             this.открытьToolStripMenuItem1.Name = "открытьToolStripMenuItem1";
-            this.открытьToolStripMenuItem1.Size = new System.Drawing.Size(199, 40);
-            this.открытьToolStripMenuItem1.Text = "Открыть";
+            this.открытьToolStripMenuItem1.Size = new System.Drawing.Size(529, 40);
+            this.открытьToolStripMenuItem1.Text = "Открыть шаблон карты раскроя";
+            this.открытьToolStripMenuItem1.Click += new System.EventHandler(this.открытьToolStripMenuItem1_Click);
             // 
             // lblPathToTestFolder
             // 
@@ -249,7 +243,14 @@
             this.lblCullingPattern.TabIndex = 12;
             this.lblCullingPattern.Text = "<undefined>";
             // 
-            // FormStartAnalyze
+            // сохранитьТекущуюКартуРаскрояToolStripMenuItem
+            // 
+            this.сохранитьТекущуюКартуРаскрояToolStripMenuItem.Name = "сохранитьТекущуюКартуРаскрояToolStripMenuItem";
+            this.сохранитьТекущуюКартуРаскрояToolStripMenuItem.Size = new System.Drawing.Size(529, 40);
+            this.сохранитьТекущуюКартуРаскрояToolStripMenuItem.Text = "Сохранить текущую карту раскроя";
+            this.сохранитьТекущуюКартуРаскрояToolStripMenuItem.Click += new System.EventHandler(this.сохранитьТекущуюКартуРаскрояToolStripMenuItem_Click);
+            // 
+            // FormAnalyze
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(192F, 192F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
@@ -266,7 +267,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.msMain;
             this.Margin = new System.Windows.Forms.Padding(6);
-            this.Name = "FormStartAnalyze";
+            this.Name = "FormAnalyze";
             this.Text = "Визуальный контроль";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormStartAnalyze_FormClosing);
@@ -295,11 +296,11 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label lblProjectOfCulling;
-        private System.Windows.Forms.ToolStripMenuItem открытьШаблонФайлаОтбраковкиToolStripMenuItem;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label lblCullingPattern;
         private System.Windows.Forms.ToolStripMenuItem картаРаскрояToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem открытьToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem остановкаToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem сохранитьТекущуюКартуРаскрояToolStripMenuItem;
     }
 }

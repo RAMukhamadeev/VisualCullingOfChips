@@ -57,7 +57,7 @@ namespace ViewCulling
 
         private void запускАнализаToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FormStartAnalyze formStartAnalyze = new FormStartAnalyze {TopLevel = false};
+            FormAnalyze formStartAnalyze = new FormAnalyze {TopLevel = false};
             Controls.Add(formStartAnalyze);
 
             formStartAnalyze.Show();

@@ -871,19 +871,19 @@ namespace NIIPP.ComputerVision
                 minj = Math.Min(minj, j);
             }
 
-            bool isDamage = queue.Count > 75;
+            bool isDamage = queue.Count > 80;
 
             if (isDamage)
             {
                 // закрашиваем остров - повреждение
-                foreach (Point nextPoint in queue)
-                {
-                    int curri = nextPoint.Y,
-                        currj = nextPoint.X;
-                    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 0] = VisionColors.Damage.R;
-                    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 1] = VisionColors.Damage.G;
-                    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 2] = VisionColors.Damage.B;
-                }
+                //foreach (Point nextPoint in queue)
+                //{
+                //    int curri = nextPoint.Y,
+                //        currj = nextPoint.X;
+                //    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 0] = VisionColors.Damage.R;
+                //    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 1] = VisionColors.Damage.G;
+                //    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 2] = VisionColors.Damage.B;
+                //}
 
                 // рисуем рамку
                 mini -= 4;
@@ -1040,7 +1040,7 @@ namespace NIIPP.ComputerVision
             // рамка у края ни сильно важна, поэтому для нее радиус больше
             int radius;
             if (si <= 25 || sj <= 25 || _h - si <= 25 || _w - sj <= 25)
-                radius = 3;
+                radius = 4;
             else
                 radius = 1;
 
@@ -1334,16 +1334,109 @@ namespace NIIPP.ComputerVision
     }
 
     /// <summary>
+    /// Класс для работы с картой раскроя пластины
+    /// </summary>
+    public class WaferMap
+    {
+        private const int XLim = 400;
+        private const int YLim = 400;
+
+        private readonly int _width;
+        private readonly int _height;
+        private readonly int[,] _culledMas = new int[XLim, YLim];
+
+        /// <summary>
+        /// Конструктор с загрузкой информации из шаблона файла с картой раскроя
+        /// </summary>
+        /// <param name="pathToTemplateFile">Путь к файлу с картой раскроя</param>
+        public WaferMap(string pathToTemplateFile)
+        {
+            FileStream inStream = new FileStream(pathToTemplateFile, FileMode.Open);
+            BinaryReader inFile = new BinaryReader(inStream);
+            _width = inFile.ReadInt32();
+            _height = inFile.ReadInt32();
+            for (int i = 0; i < YLim; i++)
+                for (int j = 0; j < XLim; j++)
+                {
+                    _culledMas[i, j] = inFile.ReadInt32();
+                }
+            inFile.Close();
+            inStream.Close();
+        }
+
+        public void SetChipAsCulled(string nameOfFile)
+        {
+            try
+            {
+                int x = Int32.Parse(nameOfFile.Substring(0, 3));
+                int y = Int32.Parse(nameOfFile.Substring(3, 3));
+                _culledMas[x, y] = 2;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Произошла ошибка при попытке установки статуса чипа.\n" + ex.Message);
+            }
+        }
+        
+        /// <summary>
+        /// Сохранение файла с картой раскроя пластины
+        /// </summary>
+        /// <param name="pathToSave">Путь к сохраняемому файлу</param>
+        public void SaveCullingPatternFile(string pathToSave)
+        {
+            FileStream outStream = new FileStream(pathToSave, FileMode.Create);
+            BinaryWriter outFile = new BinaryWriter(outStream);
+            outFile.Write(_width);
+            outFile.Write(_height);
+            for (int i = 0; i < YLim; i++)
+                for (int j = 0; j < XLim; j++)
+                {
+                    outFile.Write(_culledMas[i, j]);
+                }
+            outFile.Flush();
+            outFile.Close();
+            outStream.Close();
+        }
+    }
+
+    /// <summary>
     /// Вспомогательные методы
     /// </summary>
     static class Utils
     {
         /// <summary>
-        /// Определение цвета по ключевым точкам
+        /// Отображает ключевые точки на изображении
         /// </summary>
-        /// <param name="bmp"></param>
-        /// <param name="points"></param>
-        /// <returns></returns>
+        /// <param name="bmp">Входное изображение, на котором необходимо нарисовать точки</param>
+        /// <param name="points">Массив точек</param>
+        /// <returns>Изображение с точками</returns>
+        public static Bitmap DrawKeyPointsOnImage(Bitmap bmp, List<Point> points)
+        {
+            const int outRad = 10;
+            const int inRad = 4;
+
+            Bitmap newBitmap = (Bitmap) bmp.Clone();
+            Graphics g = Graphics.FromImage(newBitmap);
+
+            Font drawFont = new Font("Arial", 25);
+            for (int i = 0; i < points.Count; i++)
+            {
+                Rectangle outRect = new Rectangle(points[i].X - outRad / 2, points[i].Y - outRad / 2, outRad, outRad);
+                Rectangle inRect = new Rectangle(points[i].X - inRad / 2, points[i].Y - inRad / 2, inRad, inRad);
+                g.FillEllipse(Brushes.YellowGreen, outRect);
+                g.FillEllipse(Brushes.White, inRect);
+                g.DrawString((i + 1).ToString(), drawFont, Brushes.White, new Point(points[i].X + 5, points[i].Y + 5));
+            }
+
+            return newBitmap;
+        }
+
+        /// <summary>
+        /// Определение цвета по ключевым точкам на изображении
+        /// </summary>
+        /// <param name="bmp">Заданное изображение</param>
+        /// <param name="points">Лист точек на изображении</param>
+        /// <returns>Усредненный (без выпадающих точек) цвет</returns>
         public static Color FindColorByPoints(Bitmap bmp, List<Point> points)
         {
             const int limOfOut = 100;
