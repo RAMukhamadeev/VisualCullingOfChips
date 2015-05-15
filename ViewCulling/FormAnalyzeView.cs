@@ -9,16 +9,20 @@ namespace ViewCulling
 {
     public partial class FormAnalyzeView : Form
     {
+        public static FormAnalyzeView Instance { get; private set; }
+
         private string _pathToSpritePic;
         private string _pathToOriginalPic;
         private CullingProject _cullingProject;
         private string _nameOfFile;
         private string _status;
         private int _pos;
+        private int _countOfRows;
 
         public FormAnalyzeView()
         {
             InitializeComponent();
+            Instance = this;
         }
 
         private void закрытьToolStripMenuItem_Click(object sender, EventArgs e)
@@ -26,13 +30,14 @@ namespace ViewCulling
             Close();
         }
 
-        public void LoadData(string nameOfFile, string pathSpritePic, string pathToOriginalPic, CullingProject cullingProject, int pos)
+        public void LoadData(string nameOfFile, string pathSpritePic, string pathToOriginalPic, CullingProject cullingProject, int pos, int countOfRows)
         {
             _nameOfFile = nameOfFile;
             _pathToOriginalPic = pathToOriginalPic;
             _pathToSpritePic = pathSpritePic;
             _cullingProject = cullingProject;
             _pos = pos;
+            _countOfRows = countOfRows;
 
             pbViewPicture.Image = new Bitmap(_pathToSpritePic);
             lblNameOfChip.Text = Path.GetFileNameWithoutExtension(_nameOfFile);
@@ -128,7 +133,14 @@ namespace ViewCulling
 
         private void pbLeftArrow_Click(object sender, EventArgs e)
         {
+            if (_pos > 0)
+                FormAnalyze.Instance.SendDataToShow(_pos - 1);
+        }
 
+        private void pbRightArrow_Click(object sender, EventArgs e)
+        {
+            if (_pos < _countOfRows - 1)
+                FormAnalyze.Instance.SendDataToShow(_pos + 1);
         }
     }
 }

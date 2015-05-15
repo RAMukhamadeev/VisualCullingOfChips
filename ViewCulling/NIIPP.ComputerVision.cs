@@ -1415,6 +1415,16 @@ namespace NIIPP.ComputerVision
     /// </summary>
     static class Utils
     {
+        public static bool FormIsOpen(string nameOfForm)
+        {
+            return Application.OpenForms.Cast<Form>().Any(form => form.Name == nameOfForm);
+        }
+
+        public static Form GetFormByName(string nameOfForm)
+        {
+            return Application.OpenForms.Cast<Form>().FirstOrDefault(form => form.Name == nameOfForm);
+        }
+
         /// <summary>
         /// Отображает ключевые точки на изображении
         /// </summary>

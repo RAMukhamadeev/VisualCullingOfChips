@@ -49,6 +49,7 @@
             this.pbLeftArrow = new System.Windows.Forms.PictureBox();
             this.pbRightArrow = new System.Windows.Forms.PictureBox();
             this.lblNameOfChip = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.msMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbViewPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbStatus)).BeginInit();
@@ -152,7 +153,7 @@
             // 
             // pbStatus
             // 
-            this.pbStatus.Location = new System.Drawing.Point(34, 56);
+            this.pbStatus.Location = new System.Drawing.Point(34, 79);
             this.pbStatus.Margin = new System.Windows.Forms.Padding(2);
             this.pbStatus.Name = "pbStatus";
             this.pbStatus.Size = new System.Drawing.Size(100, 100);
@@ -164,7 +165,7 @@
             // 
             this.rbGood.AutoSize = true;
             this.rbGood.Font = new System.Drawing.Font("Candara", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.rbGood.Location = new System.Drawing.Point(13, 160);
+            this.rbGood.Location = new System.Drawing.Point(13, 183);
             this.rbGood.Margin = new System.Windows.Forms.Padding(2);
             this.rbGood.Name = "rbGood";
             this.rbGood.Size = new System.Drawing.Size(65, 22);
@@ -178,7 +179,7 @@
             // 
             this.rbBad.AutoSize = true;
             this.rbBad.Font = new System.Drawing.Font("Candara", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.rbBad.Location = new System.Drawing.Point(82, 160);
+            this.rbBad.Location = new System.Drawing.Point(82, 183);
             this.rbBad.Margin = new System.Windows.Forms.Padding(2);
             this.rbBad.Name = "rbBad";
             this.rbBad.Size = new System.Drawing.Size(85, 22);
@@ -208,6 +209,7 @@
             // 
             this.gbInstruments.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbInstruments.Controls.Add(this.label1);
             this.gbInstruments.Controls.Add(this.lblNameOfChip);
             this.gbInstruments.Controls.Add(this.pbRightArrow);
             this.gbInstruments.Controls.Add(this.pbLeftArrow);
@@ -240,8 +242,9 @@
             // 
             // pbLeftArrow
             // 
+            this.pbLeftArrow.Cursor = System.Windows.Forms.Cursors.Hand;
             this.pbLeftArrow.Image = ((System.Drawing.Image)(resources.GetObject("pbLeftArrow.Image")));
-            this.pbLeftArrow.Location = new System.Drawing.Point(34, 200);
+            this.pbLeftArrow.Location = new System.Drawing.Point(34, 223);
             this.pbLeftArrow.Name = "pbLeftArrow";
             this.pbLeftArrow.Size = new System.Drawing.Size(50, 50);
             this.pbLeftArrow.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -251,23 +254,35 @@
             // 
             // pbRightArrow
             // 
+            this.pbRightArrow.Cursor = System.Windows.Forms.Cursors.Hand;
             this.pbRightArrow.Image = ((System.Drawing.Image)(resources.GetObject("pbRightArrow.Image")));
-            this.pbRightArrow.Location = new System.Drawing.Point(94, 200);
+            this.pbRightArrow.Location = new System.Drawing.Point(94, 223);
             this.pbRightArrow.Name = "pbRightArrow";
             this.pbRightArrow.Size = new System.Drawing.Size(50, 50);
             this.pbRightArrow.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pbRightArrow.TabIndex = 6;
             this.pbRightArrow.TabStop = false;
+            this.pbRightArrow.Click += new System.EventHandler(this.pbRightArrow_Click);
             // 
             // lblNameOfChip
             // 
             this.lblNameOfChip.AutoSize = true;
-            this.lblNameOfChip.Font = new System.Drawing.Font("Candara", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblNameOfChip.Location = new System.Drawing.Point(12, 25);
+            this.lblNameOfChip.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.lblNameOfChip.Location = new System.Drawing.Point(23, 39);
             this.lblNameOfChip.Name = "lblNameOfChip";
-            this.lblNameOfChip.Size = new System.Drawing.Size(101, 18);
+            this.lblNameOfChip.Size = new System.Drawing.Size(121, 18);
             this.lblNameOfChip.TabIndex = 7;
             this.lblNameOfChip.Text = "<nameOfChip>";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Candara", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label1.Location = new System.Drawing.Point(23, 21);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(107, 18);
+            this.label1.TabIndex = 8;
+            this.label1.Text = "Название чипа:";
             // 
             // FormAnalyzeView
             // 
@@ -321,5 +336,6 @@
         private System.Windows.Forms.PictureBox pbRightArrow;
         private System.Windows.Forms.PictureBox pbLeftArrow;
         private System.Windows.Forms.Label lblNameOfChip;
+        private System.Windows.Forms.Label label1;
     }
 }

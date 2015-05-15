@@ -11,14 +11,12 @@ namespace ViewCulling
 {
     public partial class FormAnalyze : Form
     {
-        public static FormAnalyze Instance { get; set; }
+        public static FormAnalyze Instance { get; private set; }
         private readonly string[] _nameOfColumns = {
                                      "Название файла",
                                      "Вердикт",
                                      "Коэффициент",
-                                     "Дата тестирования",
-                                     "Время обработки, c",
-                                     "Просмотр"
+                                     "Время обработки, c"
                                  };
 
         private CullingProject _cullingProject;
@@ -29,8 +27,8 @@ namespace ViewCulling
 
         public FormAnalyze()
         {
-            Instance = this;
             InitializeComponent();
+            Instance = this;
         }
 
         public void SetUserCorrectedStatus(string nameOfChip, bool isGood)
@@ -52,8 +50,6 @@ namespace ViewCulling
                 }
             }
         }
-
-       // private 
 
         private int GetIndexOfColumn(string nameOfColumn)
         {
@@ -82,10 +78,13 @@ namespace ViewCulling
             dgvTestingOfChips.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             dgvTestingOfChips.AutoResizeColumns();
+            dgvTestingOfChips.Visible = false;
         }
 
         private void LoadInfoAboutTestingSet()
         {
+            dgvTestingOfChips.Visible = true;
+
             DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
             foreach (FileInfo fileInfo in di.GetFiles())
             {
@@ -99,6 +98,7 @@ namespace ViewCulling
                 dgvTestingOfChips.Rows[currRow].Cells[1].Value = "В очереди...";
                 dgvTestingOfChips.Rows[currRow].Cells[3].Value = "<undefined>";
             }
+            dgvTestingOfChips.ClearSelection();
         }
 
         private void ReleaseTesting()
@@ -134,7 +134,7 @@ namespace ViewCulling
                 
                 TimeSpan timeSpan = DateTime.Now - dtBefore;
                 double seconds = timeSpan.TotalMilliseconds / 1000.0;
-                dgvTestingOfChips.Rows[currFile].Cells[4].Value = String.Format("{0:0.00}", seconds);
+                dgvTestingOfChips.Rows[currFile].Cells[3].Value = String.Format("{0:0.000}", seconds);
 
                 string curRes = "Годный";
                 dgvTestingOfChips.Rows[currFile].Cells[1].Style.BackColor = Color.LawnGreen;
@@ -153,8 +153,6 @@ namespace ViewCulling
                 }
 
                 dgvTestingOfChips.Rows[currFile].Cells[1].Value = curRes;
-                dgvTestingOfChips.Rows[currFile].Cells[3].Value = DateTime.Now.ToString(CultureInfo.CurrentCulture);
-                dgvTestingOfChips.Rows[currFile].Cells[5].Value = "Открыть";
 
                 currFile++;
             }
@@ -162,8 +160,10 @@ namespace ViewCulling
 
         private void открытьToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-            fbd.SelectedPath = Environment.CurrentDirectory.Substring(0, 2) + "\\Storage";
+            FolderBrowserDialog fbd = new FolderBrowserDialog
+            {
+                SelectedPath = Environment.CurrentDirectory.Substring(0, 2) + "\\Storage"
+            };
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
@@ -178,22 +178,26 @@ namespace ViewCulling
             InitDgvTestingOfChips();
         }
 
-        private void dgvTestingOfChips_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
+        public void SendDataToShow(int rowNumber)
         {
-            if (e.ColumnIndex == 5)
+            FormAnalyzeView formAnalyzeView;
+            if (!Utils.FormIsOpen("FormAnalyzeView"))
             {
-                FormAnalyzeView formAnalyzeView = new FormAnalyzeView {TopLevel = false};
+                formAnalyzeView = new FormAnalyzeView {TopLevel = false};
                 Controls.Add(formAnalyzeView);
-
-                string nameOfFile = dgvTestingOfChips.Rows[e.RowIndex].Cells[0].Value.ToString();
-                string spritePicPath = "\\Storage\\results\\" + nameOfFile;
-                string originalPicPath = lblPathToTestFolder.Text + "\\" + nameOfFile;
-
-                formAnalyzeView.LoadData(nameOfFile, spritePicPath, originalPicPath, _cullingProject, e.RowIndex);
-                formAnalyzeView.SetStatus(dgvTestingOfChips.Rows[e.RowIndex].Cells[1].Value.ToString());
-
                 formAnalyzeView.Show();
             }
+            else
+            {
+                formAnalyzeView = FormAnalyzeView.Instance;
+            }
+
+
+            string nameOfFile = dgvTestingOfChips.Rows[rowNumber].Cells[0].Value.ToString();
+            string spritePicPath = "\\Storage\\results\\" + nameOfFile;
+            string originalPicPath = lblPathToTestFolder.Text + "\\" + nameOfFile;
+            formAnalyzeView.LoadData(nameOfFile, spritePicPath, originalPicPath, _cullingProject, rowNumber, dgvTestingOfChips.Rows.Count - 1);
+            formAnalyzeView.SetStatus(dgvTestingOfChips.Rows[rowNumber].Cells[1].Value.ToString());
         }
 
         private void SetLoadingImage()
@@ -271,11 +275,24 @@ namespace ViewCulling
 
         private void сохранитьТекущуюКартуРаскрояToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SaveFileDialog sfd = new SaveFileDialog {Filter = "Map file (*.map)|*.map"};
-            sfd.FileName = String.Format("{0}_after_visual_culling.map", Path.GetFileNameWithoutExtension(lblCullingPattern.Text));
+            SaveFileDialog sfd = new SaveFileDialog
+            {
+                Filter = "Map file (*.map)|*.map",
+                FileName =
+                    String.Format("{0}_after_visual_culling.map",
+                        Path.GetFileNameWithoutExtension(lblCullingPattern.Text))
+            };
             if (sfd.ShowDialog() == DialogResult.OK)
             {
                 SaveCullingMap(sfd.FileName);
+            }
+        }
+
+        private void dgvTestingOfChips_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex == GetIndexOfColumn("Название файла"))
+            {
+                SendDataToShow(e.RowIndex);
             }
         }
     }

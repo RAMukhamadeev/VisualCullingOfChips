@@ -450,6 +450,8 @@ namespace ViewCulling
                 SegmentationWithCurrentParameters();
             if (CurrResume == Resume.Cutting)
                 DrawFrame();
+            if (CurrResume == Resume.ChooseKeyPoints)
+                pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage((Bitmap)pbGoodChipImage.Image, GetCorrectedPoints());
         }
 
         private void создатьОбъединениеToolStripMenuItem_Click(object sender, EventArgs e)

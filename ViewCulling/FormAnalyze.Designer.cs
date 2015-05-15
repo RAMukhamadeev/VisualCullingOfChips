@@ -69,7 +69,7 @@
             this.gpTesting.Margin = new System.Windows.Forms.Padding(2);
             this.gpTesting.Name = "gpTesting";
             this.gpTesting.Padding = new System.Windows.Forms.Padding(2);
-            this.gpTesting.Size = new System.Drawing.Size(942, 488);
+            this.gpTesting.Size = new System.Drawing.Size(942, 490);
             this.gpTesting.TabIndex = 5;
             this.gpTesting.TabStop = false;
             this.gpTesting.Text = "Проверка чипов";
@@ -87,9 +87,9 @@
             this.dgvTestingOfChips.Name = "dgvTestingOfChips";
             this.dgvTestingOfChips.ReadOnly = true;
             this.dgvTestingOfChips.RowTemplate.Height = 33;
-            this.dgvTestingOfChips.Size = new System.Drawing.Size(916, 456);
+            this.dgvTestingOfChips.Size = new System.Drawing.Size(916, 458);
             this.dgvTestingOfChips.TabIndex = 0;
-            this.dgvTestingOfChips.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgvTestingOfChips_CellMouseDoubleClick);
+            this.dgvTestingOfChips.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvTestingOfChips_CellClick);
             // 
             // msMain
             // 
@@ -186,7 +186,7 @@
             this.lblPathToTestFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblPathToTestFolder.AutoSize = true;
             this.lblPathToTestFolder.Font = new System.Drawing.Font("Candara", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblPathToTestFolder.Location = new System.Drawing.Point(238, 28);
+            this.lblPathToTestFolder.Location = new System.Drawing.Point(238, 47);
             this.lblPathToTestFolder.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblPathToTestFolder.Name = "lblPathToTestFolder";
             this.lblPathToTestFolder.Size = new System.Drawing.Size(89, 18);
@@ -198,7 +198,7 @@
             this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Candara", 11.25F, System.Drawing.FontStyle.Italic);
-            this.label5.Location = new System.Drawing.Point(10, 28);
+            this.label5.Location = new System.Drawing.Point(10, 47);
             this.label5.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(224, 18);
@@ -210,7 +210,7 @@
             this.lblProjectOfCulling.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblProjectOfCulling.AutoSize = true;
             this.lblProjectOfCulling.Font = new System.Drawing.Font("Candara", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblProjectOfCulling.Location = new System.Drawing.Point(238, 51);
+            this.lblProjectOfCulling.Location = new System.Drawing.Point(238, 23);
             this.lblProjectOfCulling.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblProjectOfCulling.Name = "lblProjectOfCulling";
             this.lblProjectOfCulling.Size = new System.Drawing.Size(89, 18);
@@ -222,7 +222,7 @@
             this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label7.AutoSize = true;
             this.label7.Font = new System.Drawing.Font("Candara", 11.25F, System.Drawing.FontStyle.Italic);
-            this.label7.Location = new System.Drawing.Point(10, 51);
+            this.label7.Location = new System.Drawing.Point(10, 23);
             this.label7.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(149, 18);
@@ -234,7 +234,7 @@
             this.lblCullingPattern.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblCullingPattern.AutoSize = true;
             this.lblCullingPattern.Font = new System.Drawing.Font("Candara", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblCullingPattern.Location = new System.Drawing.Point(238, 74);
+            this.lblCullingPattern.Location = new System.Drawing.Point(238, 70);
             this.lblCullingPattern.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblCullingPattern.Name = "lblCullingPattern";
             this.lblCullingPattern.Size = new System.Drawing.Size(89, 18);
@@ -246,7 +246,7 @@
             this.label9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label9.AutoSize = true;
             this.label9.Font = new System.Drawing.Font("Candara", 11.25F, System.Drawing.FontStyle.Italic);
-            this.label9.Location = new System.Drawing.Point(10, 74);
+            this.label9.Location = new System.Drawing.Point(10, 70);
             this.label9.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(191, 18);
@@ -263,9 +263,9 @@
             this.gbInfo.Controls.Add(this.lblProjectOfCulling);
             this.gbInfo.Controls.Add(this.label7);
             this.gbInfo.Font = new System.Drawing.Font("Candara", 11.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))));
-            this.gbInfo.Location = new System.Drawing.Point(11, 521);
+            this.gbInfo.Location = new System.Drawing.Point(11, 526);
             this.gbInfo.Name = "gbInfo";
-            this.gbInfo.Size = new System.Drawing.Size(463, 130);
+            this.gbInfo.Size = new System.Drawing.Size(436, 98);
             this.gbInfo.TabIndex = 14;
             this.gbInfo.TabStop = false;
             this.gbInfo.Text = "Информация";
@@ -273,7 +273,7 @@
             // pbLoading
             // 
             this.pbLoading.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.pbLoading.Location = new System.Drawing.Point(822, 521);
+            this.pbLoading.Location = new System.Drawing.Point(822, 526);
             this.pbLoading.Name = "pbLoading";
             this.pbLoading.Size = new System.Drawing.Size(130, 130);
             this.pbLoading.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -285,7 +285,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(964, 663);
+            this.ClientSize = new System.Drawing.Size(964, 678);
             this.Controls.Add(this.pbLoading);
             this.Controls.Add(this.gbInfo);
             this.Controls.Add(this.gpTesting);
