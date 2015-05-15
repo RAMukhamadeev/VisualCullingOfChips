@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using NIIPP.ComputerVision;
 
@@ -13,6 +14,7 @@ namespace ViewCulling
         private CullingProject _cullingProject;
         private string _nameOfFile;
         private string _status;
+        private int _pos;
 
         public FormAnalyzeView()
         {
@@ -24,14 +26,16 @@ namespace ViewCulling
             Close();
         }
 
-        public void LoadData(string nameOfFile, string pathSpritePic, string pathToOriginalPic, CullingProject cullingProject)
+        public void LoadData(string nameOfFile, string pathSpritePic, string pathToOriginalPic, CullingProject cullingProject, int pos)
         {
             _nameOfFile = nameOfFile;
             _pathToOriginalPic = pathToOriginalPic;
             _pathToSpritePic = pathSpritePic;
             _cullingProject = cullingProject;
+            _pos = pos;
 
             pbViewPicture.Image = new Bitmap(_pathToSpritePic);
+            lblNameOfChip.Text = Path.GetFileNameWithoutExtension(_nameOfFile);
         }
 
         public void SetStatus(string status)
@@ -106,6 +110,25 @@ namespace ViewCulling
             Bitmap res = segmentation.GetSegmentedPicture(innerPic);
             EdgeFinder edgeFinder = new EdgeFinder(res);
             pbViewPicture.Image = edgeFinder.GetEdgePic();
+        }
+
+        private void сохранитьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog sfd = new SaveFileDialog {FileName = "save.bmp", Filter = "Image (*.bmp)|*.bmp"};
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                pbViewPicture.Image.Save(sfd.FileName);
+            }
+        }
+
+        private void шаблонToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            pbViewPicture.Image = Utils.ByteToBitmapRgb(_cullingProject.UnitedImage);
+        }
+
+        private void pbLeftArrow_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

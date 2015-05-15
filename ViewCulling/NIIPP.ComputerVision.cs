@@ -156,7 +156,7 @@ namespace NIIPP.ComputerVision
             _delta = delta;
             _points = points;
 
-            RadiusOfStartFilling = 8;
+            RadiusOfStartFilling = 5;
         }
 
         /// <summary>
@@ -461,10 +461,21 @@ namespace NIIPP.ComputerVision
         /// <returns>Коэффициент совпадения (количество отличающихся пикселей)</returns>
         private int CheckStripePositions(Point point)
         {
+            int hOrigin = _originMas.GetUpperBound(0) + 1;
             int wOrigin = _originMas.GetUpperBound(1) + 1;
 
             int res = 0;
-            for (int i = _top; i < _top + Bandwidth; i++)
+
+            //for (int i = _top; i < _top + Bandwidth; i++)
+            //{
+            //    for (int j = 0; j < wOrigin; j++)
+            //    {
+            //        if (_originMas[i, j, 0] != _currMas[i + point.Y, j + point.X, 0])
+            //            res++;
+            //    }
+            //}
+
+            for (int i = _bottom - Bandwidth; i < _bottom; i++)
             {
                 for (int j = 0; j < wOrigin; j++)
                 {
@@ -473,9 +484,9 @@ namespace NIIPP.ComputerVision
                 }
             }
 
-            for (int i = _bottom - Bandwidth; i < _bottom; i++)
+            for (int j = _right - Bandwidth; j < _right; j++)
             {
-                for (int j = 0; j < wOrigin; j++)
+                for (int i = 0; i < hOrigin; i++)
                 {
                     if (_originMas[i, j, 0] != _currMas[i + point.Y, j + point.X, 0])
                         res++;
@@ -513,7 +524,7 @@ namespace NIIPP.ComputerVision
         /// <returns>Множество возможных точек совмещения</returns>
         private List<Point> FindProbablePositions()
         {
-            const double acceptablePercent = 0.15;
+            const double acceptablePercent = 0.1;
 
             List<Point> probablePositions = new List<Point>();
 
@@ -551,7 +562,7 @@ namespace NIIPP.ComputerVision
                     double downDelta = (double)(Math.Abs(countOfPixelsDown - currCountOfPixelsDown)) / countOfPixelsDown;
                     double rightDelta = (double)(Math.Abs(countOfPixelsRight - currCountOfPixelsRight)) / countOfPixelsRight;
                     double leftDelta = (double)(Math.Abs(countOfPixelsLeft - currCountOfPixelsLeft)) / countOfPixelsLeft;
-
+                    
                     int countOfAcceptable = 0;
                     if (upDelta < acceptablePercent)
                         countOfAcceptable++;

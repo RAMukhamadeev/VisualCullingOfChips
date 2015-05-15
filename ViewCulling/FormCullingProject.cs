@@ -497,7 +497,7 @@ namespace ViewCulling
 
         private void сохранитьПроектToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Bitmap res = Utils.UnionOfImages(_keyPoints, trbToleranceLimit.Value, _images);
+            Bitmap res = Utils.UnionOfImages(GetCorrectedPoints(), trbToleranceLimit.Value, _images);
             byte[,,] union = Utils.BitmapToByteRgb(res);
 
             CullingProject cullingProject = new CullingProject(tbNameOfProject.Text, rtbDescription.Text, union, _keyPoints, _offset, trbToleranceLimit.Value);

@@ -53,6 +53,8 @@ namespace ViewCulling
             }
         }
 
+       // private 
+
         private int GetIndexOfColumn(string nameOfColumn)
         {
             int res = -1;
@@ -72,7 +74,7 @@ namespace ViewCulling
                 dgvTestingOfChips.Columns[i].Name = _nameOfColumns[i];
 
             dgvTestingOfChips.ReadOnly = true;
-            dgvTestingOfChips.Font = new Font("Microsoft Sans Serif", 9, FontStyle.Bold);
+            dgvTestingOfChips.Font = new Font("Microsoft Sans Serif", 9);
             dgvTestingOfChips.ColumnHeadersDefaultCellStyle.Font = new Font("Microsoft Sans Serif", 9, FontStyle.Bold);
             dgvTestingOfChips.BackgroundColor = SystemColors.Control;
             dgvTestingOfChips.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -180,8 +182,6 @@ namespace ViewCulling
         {
             if (e.ColumnIndex == 5)
             {
-                
-
                 FormAnalyzeView formAnalyzeView = new FormAnalyzeView {TopLevel = false};
                 Controls.Add(formAnalyzeView);
 
@@ -189,17 +189,28 @@ namespace ViewCulling
                 string spritePicPath = "\\Storage\\results\\" + nameOfFile;
                 string originalPicPath = lblPathToTestFolder.Text + "\\" + nameOfFile;
 
-                formAnalyzeView.LoadData(nameOfFile, spritePicPath, originalPicPath, _cullingProject);
+                formAnalyzeView.LoadData(nameOfFile, spritePicPath, originalPicPath, _cullingProject, e.RowIndex);
                 formAnalyzeView.SetStatus(dgvTestingOfChips.Rows[e.RowIndex].Cells[1].Value.ToString());
 
                 formAnalyzeView.Show();
             }
         }
 
+        private void SetLoadingImage()
+        {
+            Random rnd = new Random();
+            int num = rnd.Next(8) + 1;
+            string path = String.Format("assets\\loading{0}.gif", num);
+            Image image = new Bitmap(path);
+            pbLoading.Image = image;
+        }
+
         private void стартToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _workThread = new Thread(ReleaseTesting);
             _workThread.Start();
+
+            SetLoadingImage();
         }
 
         private void открытьПроектОтбраковкиToolStripMenuItem_Click(object sender, EventArgs e)
