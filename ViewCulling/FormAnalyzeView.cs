@@ -15,7 +15,6 @@ namespace ViewCulling
         private string _pathToOriginalPic;
         private CullingProject _cullingProject;
         private string _nameOfFile;
-        private string _status;
         private int _pos;
         private int _countOfRows;
 
@@ -43,14 +42,13 @@ namespace ViewCulling
             lblNameOfChip.Text = Path.GetFileNameWithoutExtension(_nameOfFile);
         }
 
-        public void SetStatus(string status)
+        public void SetStatus(string verdict)
         {
-            _status = status;
-            if (_status == "Годный")
+            if (verdict == Verdict.Good.Name)
                 rbGood.Checked = true;
-            if (_status == "Не годный")
-                rbBad.Checked = true;
-
+            else
+                if (verdict == Verdict.Bad.Name)
+                    rbBad.Checked = true;
         }
 
         private void FormViewPicture_Load(object sender, EventArgs e)
@@ -83,24 +81,23 @@ namespace ViewCulling
             pbViewPicture.Image = new Bitmap(_pathToSpritePic);
         }
 
-        private void SetPictureStatus()
+        private void SetVerdictStatus()
         {
             if (rbGood.Checked)
                 pbStatus.Image = new Bitmap("assets\\good.png");
             if (rbBad.Checked)
                 pbStatus.Image = new Bitmap("assets\\bad.png");
+            FormAnalyze.Instance.SetUserCorrectedStatus(_nameOfFile, rbGood.Checked ? Verdict.Good : Verdict.Bad);
         }
 
         private void rbGood_CheckedChanged(object sender, EventArgs e)
         {
-            SetPictureStatus();
-            FormAnalyze.Instance.SetUserCorrectedStatus(_nameOfFile, true);
+            SetVerdictStatus();
         }
 
         private void rbBad_CheckedChanged(object sender, EventArgs e)
         {
-            SetPictureStatus();
-            FormAnalyze.Instance.SetUserCorrectedStatus(_nameOfFile, false);
+            SetVerdictStatus();
         }
 
         private void ключевыеТочкиToolStripMenuItem_Click(object sender, EventArgs e)

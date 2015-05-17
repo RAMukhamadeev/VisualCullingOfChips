@@ -10,15 +10,52 @@ using System.Windows.Forms;
 
 namespace NIIPP.ComputerVision
 {
-    static class Settings
+    /// <summary>
+    /// Класс хранит данные с настройками
+    /// </summary>
+    public static class Settings
     {
         public static string PathToSaveProjects = "projects";
     }
 
     /// <summary>
-    /// Набор цветов используемых в библиотеке
+    /// Список вердиктов проверки изобрадения чипа с ассоциированными цветами
     /// </summary>
-    static class VisionColors
+    public struct Verdict
+    {
+        public struct VerdictStructure
+        {
+            public string Name;
+            public Color Color;
+            public VerdictStructure(string name, Color color)
+            {
+                Name = name;
+                Color = color;
+            }
+        }
+
+        public static readonly VerdictStructure Good = new VerdictStructure("Годный", Color.LawnGreen);
+        public static readonly VerdictStructure Bad = new VerdictStructure("Не годный", Color.OrangeRed);
+        public static readonly VerdictStructure Error = new VerdictStructure("Ошибка", Color.DarkTurquoise);
+        public static readonly VerdictStructure Queue = new VerdictStructure("В очереди", Color.White);
+        public static readonly VerdictStructure Processing = new VerdictStructure("Обрабатывается...", Color.Yellow);
+
+        /// <summary>
+        /// Устанавливает в ячейке строку статуса проверки и соответствующий цвет
+        /// </summary>
+        /// <param name="dgvc">Ячейка, которую необходимо заполнить</param>
+        /// <param name="verdict">Объект вердикта проверки чипа</param>
+        public static void SetVerdictCell(DataGridViewCell dgvc, VerdictStructure verdict)
+        {
+            dgvc.Value = verdict.Name;
+            dgvc.Style.BackColor = verdict.Color;
+        }
+    }
+
+    /// <summary>
+    /// Набор цветов используемых в библиотеке (ProjectColors)
+    /// </summary>
+    static class ProColors
     {
         /// <summary>
         /// Цвет слоя отличного от подложки
@@ -40,6 +77,23 @@ namespace NIIPP.ComputerVision
         /// Цвет краев сегментов
         /// </summary>
         public static readonly Color Edge = Color.FromArgb(250, 255, 0);
+
+        public static void SetColor(byte[,,] mas, int i, int j, Color color)
+        {
+            mas[i, j, 0] = color.R;
+            mas[i, j, 1] = color.G;
+            mas[i, j, 2] = color.B;
+        }
+
+        public static bool IsEqual(byte[, ,] mas1, byte[,,] mas2, int i, int j, Point offset)
+        {
+            return mas1[i, j, 0] == mas2[i + offset.Y, j + offset.X, 0];
+        }
+
+        public static bool IsEqual(byte[, ,] mas, int i, int j, Color color)
+        {
+            return mas[i, j, 0] == color.R;
+        }
     }
 
     [Serializable]
@@ -198,11 +252,9 @@ namespace NIIPP.ComputerVision
             for (int i = 0; i < _height; i++)
                 for (int j = 0; j < _width; j++)
                 {
-                    if (_masRgb[i, j, 0] != VisionColors.Wafer.R)
+                    if (_masRgb[i, j, 0] != ProColors.Wafer.R)
                     {
-                        _masRgb[i, j, 0] = VisionColors.NoWafer.R;
-                        _masRgb[i, j, 1] = VisionColors.NoWafer.G;
-                        _masRgb[i, j, 2] = VisionColors.NoWafer.B;
+                        ProColors.SetColor(_masRgb, i, j, ProColors.NoWafer);
                     }
                 }
         }
@@ -259,9 +311,7 @@ namespace NIIPP.ComputerVision
             int[] dj = { 1, -1, 0, 0 };
 
             List<Point> st = new List<Point> {new Point(ist, jst)};
-            _masRgb[ist, jst, 0] = 0;
-            _masRgb[ist, jst, 1] = 0;
-            _masRgb[ist, jst, 2] = 0;
+            ProColors.SetColor(_masRgb, ist, jst, ProColors.Wafer);
 
             int currPos = 0;
             while (st.Count > currPos)
@@ -273,16 +323,13 @@ namespace NIIPP.ComputerVision
                         j = currPoint.Y + dj[k];
                     if (i < 0 || i >= height || j < 0 || j >= width)
                         continue;
-                    if (_masRgb[i, j, 0] == 0 && _masRgb[i, j, 1] == 0 && _masRgb[i, j, 2] == 0)
+                    if (ProColors.IsEqual(_masRgb, i, j, ProColors.Wafer))
                         continue;
 
                     if (IsBackground(_masRgb[i, j, 0], _masRgb[i, j, 1], _masRgb[i, j, 2]))
                     {
                         st.Add(new Point(i, j));
-
-                        _masRgb[i, j, 0] = VisionColors.Wafer.R;
-                        _masRgb[i, j, 1] = VisionColors.Wafer.G;
-                        _masRgb[i, j, 2] = VisionColors.Wafer.B;
+                        ProColors.SetColor(_masRgb, i, j, ProColors.Wafer);
                     }
                 }
             }
@@ -817,19 +864,6 @@ namespace NIIPP.ComputerVision
         }
 
         /// <summary>
-        /// Проверка равенства цветов с учетом относительного сдвига
-        /// </summary>
-        /// <param name="mas1">Массив первого изображения</param>
-        /// <param name="mas2">Массив второго изображения</param>
-        /// <param name="i">i-координата</param>
-        /// <param name="j">j-координата</param>
-        /// <returns>true-равны, false-не равны</returns>
-        private bool ColorsEqual(byte[,,] mas1, byte[,,] mas2, int i, int j)
-        {
-            return mas1[i, j, 0] == mas2[i + _offset.Y, j + _offset.X, 0];
-        }
-
-        /// <summary>
         /// Проверка острова связанных отличающихся пикселей
         /// </summary>
         /// <param name="si"></param>
@@ -860,7 +894,9 @@ namespace NIIPP.ComputerVision
                     if (curri >= _heightOfGood || currj >= _widthOfGood || curri < 0 || currj < 0)
                         continue;
 
-                    if (!isAnalyzed[curri, currj] && !ColorsEqual(_segmentedMassGoodChip, nextPicMass, curri, currj) && _edgeNearAreaMas[curri, currj, 0] == VisionColors.Wafer.R)
+                    if (!isAnalyzed[curri, currj] && 
+                        !ProColors.IsEqual(_segmentedMassGoodChip, nextPicMass, curri, currj, _offset) && 
+                        ProColors.IsEqual(_edgeNearAreaMas, curri, currj, ProColors.Wafer))
                     {
                         queue.Add(new Point(currj, curri));
                         isAnalyzed[curri, currj] = true;
@@ -914,36 +950,28 @@ namespace NIIPP.ComputerVision
                 {
                     for (int j = minj; j < maxj; j++)
                     {
-                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 0] = VisionColors.Frame.R;
-                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 1] = VisionColors.Frame.G;
-                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 2] = VisionColors.Frame.B;
+                        ProColors.SetColor(nextChipWithSprites, i + _offset.Y, j + _offset.X, ProColors.Frame);
                     }
                 }
                 for (int i = maxi - 1; i < maxi + 1; i++)
                 {
                     for (int j = minj; j < maxj; j++)
                     {
-                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 0] = VisionColors.Frame.R;
-                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 1] = VisionColors.Frame.G;
-                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 2] = VisionColors.Frame.B;
+                        ProColors.SetColor(nextChipWithSprites, i + _offset.Y, j + _offset.X, ProColors.Frame);
                     }
                 }
                 for (int j = minj - 1; j < minj + 1; j++)
                 {
                     for (int i = mini; i < maxi; i++)
                     {
-                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 0] = VisionColors.Frame.R;
-                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 1] = VisionColors.Frame.G;
-                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 2] = VisionColors.Frame.B;
+                        ProColors.SetColor(nextChipWithSprites, i + _offset.Y, j + _offset.X, ProColors.Frame);
                     }
                 }
                 for (int j = maxj - 1; j < maxj + 1; j++)
                 {
                     for (int i = mini; i < maxi; i++)
                     {
-                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 0] = VisionColors.Frame.R;
-                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 1] = VisionColors.Frame.G;
-                        nextChipWithSprites[i + _offset.Y, j + _offset.X, 2] = VisionColors.Frame.B;
+                        ProColors.SetColor(nextChipWithSprites, i + _offset.Y, j + _offset.X, ProColors.Frame);
                     }
                 }
             }
@@ -965,7 +993,7 @@ namespace NIIPP.ComputerVision
             for (int i = 0; i < _heightOfGood; i++)
                 for (int j = 0; j < _widthOfGood; j++)
                 {
-                    if (!isAnalyzed[i, j] && (!ColorsEqual(_segmentedMassGoodChip, nextPicMass, i, j)))
+                    if (!isAnalyzed[i, j] && (!ProColors.IsEqual(_segmentedMassGoodChip, nextPicMass, i, j, _offset)))
                     {
                         diff += AnalyzeIslandOfPixels(i, j, nextPicMass, ref nextChipWithSprites, ref isAnalyzed);
                     }
@@ -1025,11 +1053,7 @@ namespace NIIPP.ComputerVision
                     }
 
                     if (isEdgePixel)
-                    {
-                        edgeMas[i, j, 0] = VisionColors.Edge.R;
-                        edgeMas[i, j, 1] = VisionColors.Edge.G;
-                        edgeMas[i, j, 2] = VisionColors.Edge.B;
-                    }
+                        ProColors.SetColor(edgeMas, i, j, ProColors.Edge);
                 }
             return edgeMas;
         }
@@ -1063,7 +1087,7 @@ namespace NIIPP.ComputerVision
             // вверх
             while (i >= Math.Max(0, si - radius))
             {
-                if (edgeOfGood[i, j, 0] == VisionColors.Edge.R)
+                if (ProColors.IsEqual(edgeOfGood, i, j, ProColors.Edge))
                     res = false;
                 i--;
             }
@@ -1073,7 +1097,7 @@ namespace NIIPP.ComputerVision
             // влево
             while (j >= Math.Max(0, sj - radius))
             {
-                if (edgeOfGood[i, j, 0] == VisionColors.Edge.R)
+                if (ProColors.IsEqual(edgeOfGood, i, j, ProColors.Edge))
                     res = false;
                 j--;
             }
@@ -1083,7 +1107,7 @@ namespace NIIPP.ComputerVision
             // вниз
             while (i <= Math.Min(_h - 1, si + radius))
             {
-                if (edgeOfGood[i, j, 0] == VisionColors.Edge.R)
+                if (ProColors.IsEqual(edgeOfGood, i, j, ProColors.Edge))
                     res = false;
                 i++;
             }
@@ -1093,7 +1117,7 @@ namespace NIIPP.ComputerVision
             // вправо
             while (j <= Math.Min(_w - 1, sj + radius))
             {
-                if (edgeOfGood[i, j, 0] == VisionColors.Edge.R)
+                if (ProColors.IsEqual(edgeOfGood, i, j, ProColors.Edge))
                     res = false;
                 j++;
             }
@@ -1108,20 +1132,7 @@ namespace NIIPP.ComputerVision
             byte[,,] edgeNearAreaMas = new byte[_h, _w, 3];
             for (int i = 0; i < _h; i++)
                 for (int j = 0; j < _w; j++)
-                {
-                    if (!FarFromEdge(i, j, edgeMas))
-                    {
-                        edgeNearAreaMas[i, j, 0] = VisionColors.Edge.R;
-                        edgeNearAreaMas[i, j, 1] = VisionColors.Edge.G;
-                        edgeNearAreaMas[i, j, 2] = VisionColors.Edge.B;
-                    }
-                    else
-                    {
-                        edgeNearAreaMas[i, j, 0] = VisionColors.Wafer.R;
-                        edgeNearAreaMas[i, j, 1] = VisionColors.Wafer.G;
-                        edgeNearAreaMas[i, j, 2] = VisionColors.Wafer.B;
-                    }
-                }
+                    ProColors.SetColor(edgeNearAreaMas, i, j, !FarFromEdge(i, j, edgeMas) ? ProColors.Edge : ProColors.Wafer);
 
             return edgeNearAreaMas;
         }
@@ -1170,10 +1181,7 @@ namespace NIIPP.ComputerVision
                 {
                     if (CheckNoWaferPixelForExtreme(i, j))
                     {
-                        _inputMas[i, j, 0] = VisionColors.Wafer.R;
-                        _inputMas[i, j, 1] = VisionColors.Wafer.G;
-                        _inputMas[i, j, 2] = VisionColors.Wafer.B;
-
+                        ProColors.SetColor(_inputMas, i, j, ProColors.Wafer);
                         potentialPoints.Add(new Point(j, i));
                     }
                 }
@@ -1190,10 +1198,7 @@ namespace NIIPP.ComputerVision
 
                     if (CheckNoWaferPixelForExtreme(currI, currJ))
                     {
-                        _inputMas[currI, currJ, 0] = VisionColors.Wafer.R;
-                        _inputMas[currI, currJ, 1] = VisionColors.Wafer.G;
-                        _inputMas[currI, currJ, 2] = VisionColors.Wafer.B;
-
+                        ProColors.SetColor(_inputMas, currI, currJ, ProColors.Wafer);
                         potentialPoints.Add(new Point(currJ, currI));
                     }
                 }
@@ -1210,10 +1215,7 @@ namespace NIIPP.ComputerVision
                 {
                     if (CheckWaferPixelForExtreme(i, j))
                     {
-                        _inputMas[i, j, 0] = VisionColors.NoWafer.R;
-                        _inputMas[i, j, 1] = VisionColors.NoWafer.G;
-                        _inputMas[i, j, 2] = VisionColors.NoWafer.B;
-
+                        ProColors.SetColor(_inputMas, i, j, ProColors.NoWafer);
                         potentialPoints.Add(new Point(j, i));
                     }
                 }
@@ -1230,10 +1232,7 @@ namespace NIIPP.ComputerVision
 
                     if (CheckWaferPixelForExtreme(currI, currJ))
                     {
-                        _inputMas[currI, currJ, 0] = VisionColors.NoWafer.R;
-                        _inputMas[currI, currJ, 1] = VisionColors.NoWafer.G;
-                        _inputMas[currI, currJ, 2] = VisionColors.NoWafer.B;
-
+                        ProColors.SetColor(_inputMas, currI, currJ, ProColors.NoWafer);
                         potentialPoints.Add(new Point(currJ, currI));
                     }
                 }
@@ -1247,7 +1246,7 @@ namespace NIIPP.ComputerVision
             if (i < 0 || i >= _h || j < 0 || j >= _w)
                 return false;
 
-            if (_inputMas[i, j, 0] != VisionColors.NoWafer.R)
+            if (_inputMas[i, j, 0] != ProColors.NoWafer.R)
                 return false;
             int count = 0;
             for (int k = 0; k < _di.Length; k++)
@@ -1256,7 +1255,7 @@ namespace NIIPP.ComputerVision
                 int currJ = j + _dj[k];
                 if (currI < 0 || currI >= _h || currJ < 0 || currJ >= _w)
                     continue;
-                if (_inputMas[currI, currJ, 0] == VisionColors.Wafer.R)
+                if (ProColors.IsEqual(_inputMas, currI, currJ, ProColors.Wafer))
                     count++;
             }
 
@@ -1268,7 +1267,7 @@ namespace NIIPP.ComputerVision
             if (i < 0 || i >= _h || j < 0 || j >= _w)
                 return false;
 
-            if (_inputMas[i, j, 0] != VisionColors.Wafer.R)
+            if (!ProColors.IsEqual(_inputMas, i, j, ProColors.Wafer))
                 return false;
             int count = 0;
             for (int k = 0; k < _di.Length; k++)
@@ -1277,7 +1276,7 @@ namespace NIIPP.ComputerVision
                 int currJ = j + _dj[k];
                 if (currI < 0 || currI >= _h || currJ < 0 || currJ >= _w)
                     continue;
-                if (_inputMas[currI, currJ, 0] == VisionColors.NoWafer.R)
+                if (ProColors.IsEqual(_inputMas, currI, currJ, ProColors.NoWafer))
                     count++;
             }
 
@@ -1292,7 +1291,7 @@ namespace NIIPP.ComputerVision
             {
                 for (int j = 0; j < _w; j++)
                 {
-                    if (!isAnalyzed[i, j] && _inputMas[i, j, 0] == VisionColors.NoWafer.R)
+                    if (!isAnalyzed[i, j] && ProColors.IsEqual(_inputMas, i, j, ProColors.NoWafer))
                     {
                         List<Point> islandOfPixels = FindIsland(i, j, ref isAnalyzed);
                         if (islandOfPixels.Count < 100)
@@ -1305,11 +1304,7 @@ namespace NIIPP.ComputerVision
         private void FillIsalnd(List<Point> mas)
         {
             foreach (Point point in mas)
-            {
-                _inputMas[point.Y, point.X, 0] = VisionColors.Wafer.R;
-                _inputMas[point.Y, point.X, 1] = VisionColors.Wafer.G;
-                _inputMas[point.Y, point.X, 2] = VisionColors.Wafer.B;
-            }
+                ProColors.SetColor(_inputMas, point.Y, point.X, ProColors.Wafer);
         }
 
         private List<Point> FindIsland(int startI, int startJ, ref bool[,] isAnalyzed)
@@ -1330,7 +1325,7 @@ namespace NIIPP.ComputerVision
                     if (i < 0 || i >= _h || j < 0 || j >= _w)
                         continue;
 
-                    if (!isAnalyzed[i, j] && _inputMas[i, j, 0] == VisionColors.NoWafer.R)
+                    if (!isAnalyzed[i, j] && ProColors.IsEqual(_inputMas, i, j, ProColors.NoWafer))
                     {
                         queue.Add(new Point(j, i));
                         isAnalyzed[i, j] = true;
@@ -1529,18 +1524,7 @@ namespace NIIPP.ComputerVision
             byte[,,] outputPicture = new byte[height, width, 3];
             for (int i = 0; i < height; i++)
                 for (int j = 0; j < width; j++)
-                    if (res[i, j] > 2)
-                    {
-                        outputPicture[i, j, 0] = VisionColors.NoWafer.R;
-                        outputPicture[i, j, 1] = VisionColors.NoWafer.G;
-                        outputPicture[i, j, 2] = VisionColors.NoWafer.B;
-                    }
-                    else
-                    {
-                        outputPicture[i, j, 0] = VisionColors.Wafer.R;
-                        outputPicture[i, j, 1] = VisionColors.Wafer.G;
-                        outputPicture[i, j, 2] = VisionColors.Wafer.B;
-                    }
+                    ProColors.SetColor(outputPicture, i, j, res[i, j] > 2 ? ProColors.NoWafer : ProColors.Wafer);
 
             var noiseSuppression = new NoiseSuppression(outputPicture);
             outputPicture = noiseSuppression.GetNoiseSuppressedMas();
