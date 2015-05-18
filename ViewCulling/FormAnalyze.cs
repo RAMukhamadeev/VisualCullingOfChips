@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using System.Windows.Threading;
 using NIIPP.ComputerVision;
 
 namespace ViewCulling
@@ -15,28 +16,90 @@ namespace ViewCulling
 
         private readonly Dictionary<string, int> _columns = new Dictionary<string, int>()
         {
-            {"Название файла", 0},
-            {"Вердикт", 1},
-            {"Коэффициент", 2},
-            {"Время обработки, с", 3}
+            {"Номер", 0},
+            {"Название файла", 1},
+            {"Вердикт", 2},
+            {"Коэффициент", 3},
+            {"Время обработки, с", 4}
         };
+
+        private struct StatisticInfo
+        {
+            // для многопоточного доступа
+            private static readonly Mutex Mutex = new Mutex();
+            public static void StartAccess()
+            {
+                Mutex.WaitOne();
+            }
+            public static void FinishAccess()
+            {
+                Mutex.ReleaseMutex();
+            }
+
+            public static int CountOfFiles = 0;
+            public static int CountOfGood = 0;
+            public static int CountOfBad = 0;
+            public static int CountOfCalced = 0;
+            public static string CurrFile = "";
+        }
 
         private CullingProject _cullingProject;
         private string _pathToTestingChipsFolder;
         private string _pathToCullingPattern;
 
         private Thread[] _workThreads;
-        private Mutex _mutex = new Mutex();
+        private DateTime _dtStartOfCalculation;
+        private DispatcherTimer _mainTimer;
 
         private List<string> _pathesToImageFiles = new List<string>();
         private int _currFileIndex;
 
-        const int _countOfAcceptableBadPix = 300;
+        private const int CountOfAcceptableBadPix = 300;
 
         public FormAnalyze()
         {
             InitializeComponent();
             Instance = this;
+        }
+
+        private void RefreshStatisticControls()
+        {
+            BeginInvoke(new MethodInvoker(
+                delegate
+                {
+                    StatisticInfo.StartAccess();
+                    lblCountOfFiles.Text = StatisticInfo.CountOfFiles.ToString();
+                    lblCountOfCalced.Text = StatisticInfo.CountOfCalced.ToString();
+                    if (StatisticInfo.CountOfGood + StatisticInfo.CountOfBad > 0)
+                        lblPercentOfOut.Text = String.Format("{0:P}", ((double)StatisticInfo.CountOfGood) / (StatisticInfo.CountOfGood + StatisticInfo.CountOfBad));
+                    lblCountOfGood.Text = StatisticInfo.CountOfGood.ToString();
+                    lblCountOfBad.Text = StatisticInfo.CountOfBad.ToString();
+                    if (StatisticInfo.CountOfFiles > 0)
+                        lblPercentOfProgress.Text = String.Format("{0:P}", ((double)StatisticInfo.CountOfCalced) / StatisticInfo.CountOfFiles);
+                    pbProgress.Value = StatisticInfo.CountOfCalced <= pbProgress.Maximum ? StatisticInfo.CountOfCalced : pbProgress.Maximum;
+                    RefreshTime();
+
+                    StatisticInfo.FinishAccess();
+                }
+                ));
+        }
+
+        private void EndOfCalculation()
+        {
+            _mainTimer.Stop();
+
+            BeginInvoke(new MethodInvoker(delegate
+            {
+                pbLoading.Image = null;
+            }));
+        }
+
+        private void ScrollToRow(int currRow)
+        {
+            BeginInvoke(new MethodInvoker(delegate
+            {
+                dgvTestingOfChips.FirstDisplayedScrollingRowIndex = Math.Max(0, currRow - 15);
+            }));
         }
 
         public void SetUserCorrectedStatus(string nameOfChip, Verdict.VerdictStructure verdict)
@@ -85,6 +148,7 @@ namespace ViewCulling
                 dgvTestingOfChips.RowCount++;
                 int currRow = dgvTestingOfChips.RowCount - 2;
 
+                dgvTestingOfChips.Rows[currRow].Cells[_columns["Номер"]].Value = (currRow + 1).ToString();
                 dgvTestingOfChips.Rows[currRow].Cells[_columns["Название файла"]].Value = fileInfo.Name;
                 Verdict.SetVerdictCell(dgvTestingOfChips.Rows[currRow].Cells[_columns["Вердикт"]], Verdict.Queue);
             }
@@ -110,19 +174,20 @@ namespace ViewCulling
             do
             {
                 // синхронизируем получение доступа к файлам для обработки
-                _mutex.WaitOne();
-                if (_currFileIndex >= _pathesToImageFiles.Count)
+                String currFileName;
+                lock (_pathesToImageFiles)
                 {
-                    _mutex.ReleaseMutex();
-                    return;
+                    if (_currFileIndex >= _pathesToImageFiles.Count)
+                        return;
+                    currFileName = _pathesToImageFiles[_currFileIndex];
+                    _currFileIndex++;
                 }
-                String currFileName = _pathesToImageFiles[_currFileIndex];
-                _currFileIndex++;
-                _mutex.ReleaseMutex();
-                // доступ получен, освободжаем mutex
 
                 int currRow = FindDgvRowByFileName(Path.GetFileName(currFileName));
                 Verdict.SetVerdictCell(dgvTestingOfChips.Rows[currRow].Cells[_columns["Вердикт"]], Verdict.Processing);
+
+                ScrollToRow(currRow);
+
                 bool isError = false;
                 DateTime dtBefore = DateTime.Now;
                 try
@@ -139,17 +204,27 @@ namespace ViewCulling
                 TimeSpan timeSpan = DateTime.Now - dtBefore;
                 double seconds = timeSpan.TotalMilliseconds / 1000.0;
                 dgvTestingOfChips.Rows[currRow].Cells[_columns["Время обработки, с"]].Value = String.Format("{0:0.000}", seconds);
-
                 dgvTestingOfChips.Rows[currRow].Cells[_columns["Коэффициент"]].Value = vi.CurrMark.ToString();
 
                 var dgvcVerdict = dgvTestingOfChips.Rows[currRow].Cells[_columns["Вердикт"]];
+                StatisticInfo.StartAccess();
                 if (isError)
                     Verdict.SetVerdictCell(dgvcVerdict, Verdict.Error);
+                else if (vi.CurrMark >= CountOfAcceptableBadPix)
+                {
+                    Verdict.SetVerdictCell(dgvcVerdict, Verdict.Bad);
+                    StatisticInfo.CountOfBad++;
+                }
                 else
-                    if (vi.CurrMark >= _countOfAcceptableBadPix)
-                        Verdict.SetVerdictCell(dgvcVerdict, Verdict.Bad);
-                    else
-                        Verdict.SetVerdictCell(dgvcVerdict, Verdict.Good); 
+                {
+                    Verdict.SetVerdictCell(dgvcVerdict, Verdict.Good);
+                    StatisticInfo.CountOfGood++;
+                }
+                StatisticInfo.CountOfCalced++;
+                StatisticInfo.CurrFile = Path.GetFileName(currFileName);
+                StatisticInfo.FinishAccess();
+
+                RefreshStatisticControls();
             } 
             while (true);
         }
@@ -171,6 +246,8 @@ namespace ViewCulling
 
         private void FormStartAnalyze_Load(object sender, EventArgs e)
         {
+            Thread.CurrentThread.Priority = ThreadPriority.Highest;
+
             InitDgvTestingOfChips();
         }
 
@@ -187,7 +264,6 @@ namespace ViewCulling
             {
                 formAnalyzeView = FormAnalyzeView.Instance;
             }
-
 
             string nameOfFile = dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Название файла"]].Value.ToString();
             string spritePicPath = "\\Storage\\results\\" + nameOfFile;
@@ -207,6 +283,9 @@ namespace ViewCulling
 
         private void стартToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (_cullingProject == null || _pathToTestingChipsFolder == null)
+                return;
+
             SetLoadingImage();
 
             DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
@@ -217,17 +296,46 @@ namespace ViewCulling
                     .ToList();
 
             _pathesToImageFiles.Sort();
+            pbProgress.Maximum = _pathesToImageFiles.Count;
+            StatisticInfo.CountOfFiles = _pathesToImageFiles.Count;
             _currFileIndex = 0;
 
-            int countOfThreads = Environment.ProcessorCount;
+
+            _dtStartOfCalculation = DateTime.Now;
+            _mainTimer = new DispatcherTimer();
+            _mainTimer.Tick += mainTimer_Tick;
+            _mainTimer.Interval = new TimeSpan(0, 0, 0, 0, 200);
+            _mainTimer.Start();
+            int countOfThreads = Environment.ProcessorCount - 1;
             _workThreads = new Thread[countOfThreads];
             for (int i = 0; i < countOfThreads; i++)
             {
-                _workThreads[i] = new Thread(ReleaseTesting);
+                _workThreads[i] = new Thread(ReleaseTesting) {Name = i.ToString()};
                 _workThreads[i].Start();
             }
+        }
 
+        private void RefreshTime()
+        {
+            TimeSpan timeOfCalc = DateTime.Now - _dtStartOfCalculation;
+            lblTimeOfCalculation.Text = timeOfCalc.ToString(@"hh\:mm\:ss");
+            if (StatisticInfo.CountOfCalced > 0)
+            {
+                TimeSpan timeLeft = TimeSpan.FromSeconds((timeOfCalc.TotalSeconds / StatisticInfo.CountOfCalced) * StatisticInfo.CountOfFiles - timeOfCalc.TotalSeconds);
+                lblTimeLeft.Text = timeLeft.ToString(@"hh\:mm\:ss");
+            }
+        }
 
+        void mainTimer_Tick(object sender, EventArgs e)
+        {
+            RefreshTime();
+
+            StatisticInfo.StartAccess();
+            if (StatisticInfo.CountOfFiles == StatisticInfo.CountOfCalced)
+            {
+                EndOfCalculation();
+            }
+            StatisticInfo.FinishAccess();
         }
 
         private void открытьПроектОтбраковкиToolStripMenuItem_Click(object sender, EventArgs e)
@@ -250,6 +358,8 @@ namespace ViewCulling
         {
             if (MessageBox.Show("Вы действительно хотите выйти?", "Question", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
+                if (_mainTimer != null)
+                    _mainTimer.Stop();
                 if (_workThreads != null)
                 {
                     foreach (Thread thread in _workThreads.Where(thread => thread != null))

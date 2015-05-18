@@ -234,13 +234,24 @@ namespace NIIPP.ComputerVision
         /// <summary>
         /// Проверяет является ли переданный пиксель фоновым
         /// </summary>
-        /// <param name="r">R-компонента пикселя</param>
-        /// <param name="g">G-компонента пикселя</param>
-        /// <param name="b">B-компонента пикселя</param>
+        /// <param name="mas">Массив пикселей</param>
+        /// <param name="i">i координата</param>
+        /// <param name="j">j координата</param>
         /// <returns>True - это пиксель фона, False - это не пиксель фона</returns>
-        private bool IsBackground(byte r, byte g, byte b)
+        private bool IsBackground(byte[,,] mas, int i, int j)
         {
-            return Math.Abs(_backColR - r) + Math.Abs(_backColG - g) + Math.Abs(_backColB - b) <= _delta;
+            return Math.Abs(_backColR - mas[i, j, 0]) + Math.Abs(_backColG - mas[i, j, 1]) + Math.Abs(_backColB - mas[i, j, 2]) <= _delta;
+        }
+
+        private bool IsSuitablePlaceForStartFilling(int si, int sj)
+        {
+            for (int i = si; i < si + RadiusOfStartFilling; i++)
+                for (int j = sj; j < sj + RadiusOfStartFilling; j++)
+                    if (!IsBackground(_masRgb, i, j))
+                    {
+                        return false;
+                    }
+            return true;
         }
 
         /// <summary>
@@ -248,32 +259,18 @@ namespace NIIPP.ComputerVision
         /// </summary>
         private void ReleaseSegmentation()
         {
-            int[] dx = { 0, 0, RadiusOfStartFilling, RadiusOfStartFilling, RadiusOfStartFilling / 2, 0, RadiusOfStartFilling / 2, RadiusOfStartFilling, RadiusOfStartFilling / 2 };
-            int[] dy = { 0, RadiusOfStartFilling, 0, RadiusOfStartFilling, RadiusOfStartFilling / 2, RadiusOfStartFilling / 2, 0, RadiusOfStartFilling / 2, RadiusOfStartFilling };
-
             for (int i = 0; i < _height - RadiusOfStartFilling; i++)
                 for (int j = 0; j < _width - RadiusOfStartFilling; j++)
                 {
-                    bool curRes = true;
-                    for (int k = 0; k < dx.Length; k++)
-                    {
-                        if (!IsBackground(_masRgb[i + dy[k], j + dx[k], 0], _masRgb[i + dy[k], j + dx[k], 1], _masRgb[i + dy[k], j + dx[k], 2]))
-                        {
-                            curRes = false;
-                            break;
-                        }
-                    }
-                    if (curRes)
+                    if (IsSuitablePlaceForStartFilling(i, j))
                         FillBackground(i, j);
                 }
 
             for (int i = 0; i < _height; i++)
                 for (int j = 0; j < _width; j++)
                 {
-                    if (_masRgb[i, j, 0] != ProColors.Wafer.R)
-                    {
+                    if (!ProColors.IsEqual(_masRgb, i, j, ProColors.Wafer))
                         ProColors.SetColor(_masRgb, i, j, ProColors.NoWafer);
-                    }
                 }
         }
 
@@ -348,7 +345,7 @@ namespace NIIPP.ComputerVision
                     if (ProColors.IsEqual(_masRgb, i, j, ProColors.Wafer))
                         continue;
 
-                    if (IsBackground(_masRgb[i, j, 0], _masRgb[i, j, 1], _masRgb[i, j, 2]))
+                    if (IsBackground(_masRgb, i, j))
                     {
                         st.Add(new Point(i, j));
                         ProColors.SetColor(_masRgb, i, j, ProColors.Wafer);
@@ -534,15 +531,6 @@ namespace NIIPP.ComputerVision
             int wOrigin = _originMas.GetUpperBound(1) + 1;
 
             int res = 0;
-
-            //for (int i = _top; i < _top + Bandwidth; i++)
-            //{
-            //    for (int j = 0; j < wOrigin; j++)
-            //    {
-            //        if (_originMas[i, j, 0] != _currMas[i + point.Y, j + point.X, 0])
-            //            res++;
-            //    }
-            //}
 
             for (int i = _bottom - Bandwidth; i < _bottom; i++)
             {
@@ -1099,7 +1087,7 @@ namespace NIIPP.ComputerVision
             if (si <= 25 || sj <= 25 || _h - si <= 25 || _w - sj <= 25)
                 radius = 4;
             else
-                radius = 1;
+                radius = 2;
 
             int i, j;
             bool res = true;
