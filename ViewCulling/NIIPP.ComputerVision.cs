@@ -25,7 +25,7 @@ namespace NIIPP.ComputerVision
     {
         public struct VerdictStructure
         {
-            public string Name;
+            public readonly string Name;
             public Color Color;
             public VerdictStructure(string name, Color color)
             {
@@ -34,10 +34,25 @@ namespace NIIPP.ComputerVision
             }
         }
 
+        /// <summary>
+        /// Чип годен
+        /// </summary>
         public static readonly VerdictStructure Good = new VerdictStructure("Годный", Color.LawnGreen);
+        /// <summary>
+        /// Чип не годен
+        /// </summary>
         public static readonly VerdictStructure Bad = new VerdictStructure("Не годный", Color.OrangeRed);
+        /// <summary>
+        /// Произошла ошибка в результате анализа чипа
+        /// </summary>
         public static readonly VerdictStructure Error = new VerdictStructure("Ошибка", Color.DarkTurquoise);
+        /// <summary>
+        /// Данный чип находится в очереди и еще не обработан
+        /// </summary>
         public static readonly VerdictStructure Queue = new VerdictStructure("В очереди", Color.White);
+        /// <summary>
+        /// В данный момент этот чип обрабатывается
+        /// </summary>
         public static readonly VerdictStructure Processing = new VerdictStructure("Обрабатывается...", Color.Yellow);
 
         /// <summary>
@@ -96,6 +111,9 @@ namespace NIIPP.ComputerVision
         }
     }
 
+    /// <summary>
+    /// Класс хранит информация о проекте отбраковки
+    /// </summary>
     [Serializable]
     public class CullingProject 
     {
@@ -259,6 +277,10 @@ namespace NIIPP.ComputerVision
                 }
         }
 
+        /// <summary>
+        /// Инициализация переменных класса
+        /// </summary>
+        /// <param name="innerPic">Изображение, которое необходимо сегментированть</param>
         private void InitData(Bitmap innerPic)
         {
             Color col = Utils.FindColorByPoints(innerPic, _points);

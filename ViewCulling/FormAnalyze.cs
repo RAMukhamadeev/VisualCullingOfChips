@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using NIIPP.ComputerVision;
@@ -24,7 +25,13 @@ namespace ViewCulling
         private string _pathToTestingChipsFolder;
         private string _pathToCullingPattern;
 
-        private Thread _workThread;
+        private Thread[] _workThreads;
+        private Mutex _mutex = new Mutex();
+
+        private List<string> _pathesToImageFiles = new List<string>();
+        private int _currFileIndex;
+
+        const int _countOfAcceptableBadPix = 300;
 
         public FormAnalyze()
         {
@@ -78,65 +85,73 @@ namespace ViewCulling
                 dgvTestingOfChips.RowCount++;
                 int currRow = dgvTestingOfChips.RowCount - 2;
 
-                dgvTestingOfChips.Rows[currRow].Cells[0].Value = fileInfo.Name;
+                dgvTestingOfChips.Rows[currRow].Cells[_columns["Название файла"]].Value = fileInfo.Name;
                 Verdict.SetVerdictCell(dgvTestingOfChips.Rows[currRow].Cells[_columns["Вердикт"]], Verdict.Queue);
             }
             dgvTestingOfChips.ClearSelection();
         }
 
+        private int FindDgvRowByFileName(string fileName)
+        {
+            int indexOfColumn = _columns["Название файла"];
+
+            int res = -1;
+            for (int i = 0; i < dgvTestingOfChips.Rows.Count - 1; i++)
+                if (dgvTestingOfChips.Rows[i].Cells[indexOfColumn].Value.ToString() == fileName)
+                    res = i;
+
+            return res;
+        }
+
         private void ReleaseTesting()
         {
             VisualInspect vi = new VisualInspect(_cullingProject);
-            DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
-            //int s = (_cullingProject.UnitedImage.GetUpperBound(0) + 1) *
-            //           (_cullingProject.UnitedImage.GetUpperBound(1) + 1);
-            //int countOfAcceptableBadPix = s / 1000;
-            int countOfAcceptableBadPix = 300;
 
-            int currFile = 0;
-            foreach (FileInfo fileInfo in di.GetFiles())
+            do
             {
-                if (Path.GetExtension(fileInfo.Name) != ".bmp")
-                    continue;
+                // синхронизируем получение доступа к файлам для обработки
+                _mutex.WaitOne();
+                if (_currFileIndex >= _pathesToImageFiles.Count)
+                {
+                    _mutex.ReleaseMutex();
+                    return;
+                }
+                String currFileName = _pathesToImageFiles[_currFileIndex];
+                _currFileIndex++;
+                _mutex.ReleaseMutex();
+                // доступ получен, освободжаем mutex
 
-                Verdict.SetVerdictCell(dgvTestingOfChips.Rows[currFile].Cells[_columns["Вердикт"]], Verdict.Processing);
-
+                int currRow = FindDgvRowByFileName(Path.GetFileName(currFileName));
+                Verdict.SetVerdictCell(dgvTestingOfChips.Rows[currRow].Cells[_columns["Вердикт"]], Verdict.Processing);
                 bool isError = false;
                 DateTime dtBefore = DateTime.Now;
                 try
                 {
-                    Bitmap bmp = vi.CheckNextChip(fileInfo.FullName);
-                    bmp.Save("\\Storage\\results\\" + fileInfo.Name);
+                    Bitmap bmp = vi.CheckNextChip(currFileName);
+                    bmp.Save("\\Storage\\results\\" + Path.GetFileName(currFileName));
                 }
                 catch (Exception ex)
                 {
                     isError = true;
                     //MessageBox.Show(String.Format("Произошла ошибка при обработке: {0}", ex.Message));
                 }
-                
+
                 TimeSpan timeSpan = DateTime.Now - dtBefore;
                 double seconds = timeSpan.TotalMilliseconds / 1000.0;
-                dgvTestingOfChips.Rows[currFile].Cells[ _columns["Время обработки, с"] ].Value = String.Format("{0:0.000}", seconds);
+                dgvTestingOfChips.Rows[currRow].Cells[_columns["Время обработки, с"]].Value = String.Format("{0:0.000}", seconds);
 
-                dgvTestingOfChips.Rows[currFile].Cells[ _columns["Коэффициент"] ].Value = vi.CurrMark.ToString();
+                dgvTestingOfChips.Rows[currRow].Cells[_columns["Коэффициент"]].Value = vi.CurrMark.ToString();
 
-                var dgvcVerdict = dgvTestingOfChips.Rows[currFile].Cells[_columns["Вердикт"]];
+                var dgvcVerdict = dgvTestingOfChips.Rows[currRow].Cells[_columns["Вердикт"]];
                 if (isError)
-                {
                     Verdict.SetVerdictCell(dgvcVerdict, Verdict.Error);
-                }
                 else
-                    if (vi.CurrMark >= countOfAcceptableBadPix)
-                    {
+                    if (vi.CurrMark >= _countOfAcceptableBadPix)
                         Verdict.SetVerdictCell(dgvcVerdict, Verdict.Bad);
-                    }
                     else
-                    {
-                        Verdict.SetVerdictCell(dgvcVerdict, Verdict.Good);
-                    }
-
-                currFile++;
-            }
+                        Verdict.SetVerdictCell(dgvcVerdict, Verdict.Good); 
+            } 
+            while (true);
         }
 
         private void открытьToolStripMenuItem_Click(object sender, EventArgs e)
@@ -174,7 +189,7 @@ namespace ViewCulling
             }
 
 
-            string nameOfFile = dgvTestingOfChips.Rows[rowNumber].Cells[0].Value.ToString();
+            string nameOfFile = dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Название файла"]].Value.ToString();
             string spritePicPath = "\\Storage\\results\\" + nameOfFile;
             string originalPicPath = lblPathToTestFolder.Text + "\\" + nameOfFile;
             formAnalyzeView.LoadData(nameOfFile, spritePicPath, originalPicPath, _cullingProject, rowNumber, dgvTestingOfChips.Rows.Count - 1);
@@ -192,10 +207,27 @@ namespace ViewCulling
 
         private void стартToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            _workThread = new Thread(ReleaseTesting);
-            _workThread.Start();
-
             SetLoadingImage();
+
+            DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
+            _pathesToImageFiles =
+                di.GetFiles()
+                    .Select(fileName => fileName.FullName)
+                    .Where(fileName => Path.GetExtension(fileName) == ".bmp")
+                    .ToList();
+
+            _pathesToImageFiles.Sort();
+            _currFileIndex = 0;
+
+            int countOfThreads = Environment.ProcessorCount;
+            _workThreads = new Thread[countOfThreads];
+            for (int i = 0; i < countOfThreads; i++)
+            {
+                _workThreads[i] = new Thread(ReleaseTesting);
+                _workThreads[i].Start();
+            }
+
+
         }
 
         private void открытьПроектОтбраковкиToolStripMenuItem_Click(object sender, EventArgs e)
@@ -218,8 +250,13 @@ namespace ViewCulling
         {
             if (MessageBox.Show("Вы действительно хотите выйти?", "Question", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                if (_workThread != null)
-                    _workThread.Abort();
+                if (_workThreads != null)
+                {
+                    foreach (Thread thread in _workThreads.Where(thread => thread != null))
+                    {
+                        thread.Abort();
+                    }
+                }
             }
             else
             {
