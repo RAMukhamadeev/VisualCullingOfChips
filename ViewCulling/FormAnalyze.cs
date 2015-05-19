@@ -235,7 +235,7 @@ namespace ViewCulling
             while (true);
         }
 
-        private void открытьToolStripMenuItem_Click(object sender, EventArgs e)
+        private void OpenFolderForTesting()
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog
             {
@@ -253,6 +253,11 @@ namespace ViewCulling
             }
         }
 
+        private void открытьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFolderForTesting();
+        }
+
         private void FormStartAnalyze_Load(object sender, EventArgs e)
         {
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
@@ -262,14 +267,62 @@ namespace ViewCulling
             InitDgvTestingOfChips();
         }
 
-        public void SendDataToShow(int rowNumber)
+        private string GetVerdict(int row)
         {
+            return dgvTestingOfChips.Rows[row].Cells[_columns["Вердикт"]].Value.ToString();
+        }
+
+        private int SearchNextChip(int startPoint, bool isNext, string filter)
+        {
+            int countOfRows = dgvTestingOfChips.Rows.Count - 1;
+            int pos = startPoint;
+
+            if (filter == "")
+            {
+                if (isNext)
+                {
+                    pos++;
+                    while (pos < countOfRows && GetVerdict(pos) != Verdict.Good.Name && GetVerdict(pos) != Verdict.Bad.Name)
+                        pos++;
+                }
+                else
+                {
+                    pos--;
+                    while (pos >= 0 && GetVerdict(pos) != Verdict.Good.Name && GetVerdict(pos) != Verdict.Bad.Name)
+                        pos--;
+                }
+            }
+            else
+            {
+                if (isNext)
+                {
+                    pos++;
+                    while (pos < countOfRows && GetVerdict(pos) != filter)
+                        pos++;
+                }
+                else
+                {
+                    pos--;
+                    while (pos >= 0 && GetVerdict(pos) != filter)
+                        pos--;
+                }
+            }
+            if (pos < countOfRows && pos >= 0)
+                return pos;
+
+            return startPoint;
+        }
+
+        public void SendDataToShow(int rowNumber, bool? isNext = null, string filter = null)
+        {
+            if (isNext != null && filter != null)
+                rowNumber = SearchNextChip(rowNumber, (bool) isNext, filter);
+
             FormAnalyzeView formAnalyzeView;
             if (!Utils.FormIsOpen("FormAnalyzeView"))
             {
                 formAnalyzeView = new FormAnalyzeView {TopLevel = false};
-                Controls.Add(formAnalyzeView);
-                formAnalyzeView.Show();
+                FormMain.Instance.Controls.Add(formAnalyzeView);
             }
             else
             {
@@ -277,10 +330,16 @@ namespace ViewCulling
             }
 
             string nameOfFile = dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Название файла"]].Value.ToString();
+            string coeff = dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Коэффициент"]].Value.ToString();
             string spritePicPath = "\\Storage\\results\\" + nameOfFile;
             string originalPicPath = lblPathToTestFolder.Text + "\\" + nameOfFile;
-            formAnalyzeView.LoadData(nameOfFile, spritePicPath, originalPicPath, _cullingProject, rowNumber, dgvTestingOfChips.Rows.Count - 1);
+
+            formAnalyzeView.LoadMainData(_cullingProject);
+            formAnalyzeView.LoadData(nameOfFile, spritePicPath, originalPicPath, coeff, rowNumber);
             formAnalyzeView.SetStatus(dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Вердикт"]].Value.ToString());
+
+            formAnalyzeView.Show();
+            formAnalyzeView.Focus();
         }
 
         private void SetLoadingImage()
@@ -292,7 +351,7 @@ namespace ViewCulling
             pbLoading.Image = image;
         }
 
-        private void стартToolStripMenuItem_Click(object sender, EventArgs e)
+        private void StartCalculating()
         {
             if (_cullingProject == null || _pathToTestingChipsFolder == null)
                 return;
@@ -307,9 +366,14 @@ namespace ViewCulling
             _workThreads = new Thread[countOfThreads];
             for (int i = 0; i < countOfThreads; i++)
             {
-                _workThreads[i] = new Thread(ReleaseTesting) {Name = i.ToString()};
+                _workThreads[i] = new Thread(ReleaseTesting) { Name = i.ToString() };
                 _workThreads[i].Start();
             }
+        }
+
+        private void стартToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StartCalculating();
         }
 
         private void RefreshTime()
@@ -336,15 +400,20 @@ namespace ViewCulling
             }
         }
 
-        private void открытьПроектОтбраковкиToolStripMenuItem_Click(object sender, EventArgs e)
+        private void OpenCullingProject()
         {
             string path = Environment.CurrentDirectory + "\\" + Settings.PathToSaveProjects;
-            OpenFileDialog ofd = new OpenFileDialog {InitialDirectory = path, Filter = "Culling Project (*.cpr)|*.cpr"};
+            OpenFileDialog ofd = new OpenFileDialog { InitialDirectory = path, Filter = "Culling Project (*.cpr)|*.cpr" };
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 _cullingProject = CullingProject.GetSavedProject(ofd.FileName);
                 lblProjectOfCulling.Text = Path.GetFileName(ofd.FileName);
             }
+        }
+
+        private void открытьПроектОтбраковкиToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenCullingProject();
         }
 
         private void закрытьToolStripMenuItem_Click(object sender, EventArgs e)
@@ -356,7 +425,7 @@ namespace ViewCulling
         {
             if (MessageBox.Show("Вы действительно хотите выйти?", "Question", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                StopTesting();
+                StopCalculating();
             }
             else
             {
@@ -364,7 +433,7 @@ namespace ViewCulling
             }
         }
 
-        private void StopTesting()
+        private void StopCalculating()
         {
             if (_mainTimer != null)
                 _mainTimer.Stop();
@@ -425,7 +494,9 @@ namespace ViewCulling
         {
             if (e.ColumnIndex == _columns["Вердикт"])
             {
-                SendDataToShow(e.RowIndex);
+                string verdict = dgvTestingOfChips.Rows[e.RowIndex].Cells[_columns["Вердикт"]].Value.ToString();
+                if (verdict == Verdict.Good.Name || verdict == Verdict.Bad.Name)
+                    SendDataToShow(e.RowIndex);
             }
         }
 
@@ -436,7 +507,7 @@ namespace ViewCulling
 
         private void остановкаToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            StopTesting();
+            StopCalculating();
         }
 
         public void SetNewSegmentationLim(int lim)
@@ -453,5 +524,31 @@ namespace ViewCulling
             formCalibrationAndSettings.Show();
             formCalibrationAndSettings.LoadInfo(_pathesToImageFiles, _cullingProject.Lim, _cullingProject.KeyPoints);
         }
+
+        private void pbStart_Click(object sender, EventArgs e)
+        {
+            StartCalculating();
+        }
+
+        private void pbPause_Click(object sender, EventArgs e)
+        {
+            StopCalculating();
+        }
+
+        private void pbStop_Click(object sender, EventArgs e)
+        {
+            StopCalculating();
+        }
+
+        private void pbChooseCullingProject_Click(object sender, EventArgs e)
+        {
+            OpenCullingProject();
+        }
+
+        private void pbChooseFolder_Click(object sender, EventArgs e)
+        {
+            OpenFolderForTesting();
+        }
+
     }
 }

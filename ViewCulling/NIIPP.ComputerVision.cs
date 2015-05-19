@@ -240,7 +240,7 @@ namespace NIIPP.ComputerVision
             _delta = delta;
             _points = points;
 
-            RadiusOfStartFilling = 5;
+            RadiusOfStartFilling = 7;
         }
 
         /// <summary>

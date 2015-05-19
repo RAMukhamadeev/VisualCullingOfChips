@@ -16,7 +16,6 @@ namespace ViewCulling
         private CullingProject _cullingProject;
         private string _nameOfFile;
         private int _pos;
-        private int _countOfRows;
 
         public FormAnalyzeView()
         {
@@ -29,17 +28,74 @@ namespace ViewCulling
             Close();
         }
 
-        public void LoadData(string nameOfFile, string pathSpritePic, string pathToOriginalPic, CullingProject cullingProject, int pos, int countOfRows)
+        private Bitmap GetOriginal()
+        {
+            return new Bitmap(_pathToOriginalPic);
+        }
+
+        private Bitmap GetSegmentation()
+        {
+            Bitmap innerPic = new Bitmap(_pathToOriginalPic);
+            Segmentation segmentation = new Segmentation(_cullingProject.KeyPoints, _cullingProject.Lim);
+            Bitmap res = segmentation.GetSegmentedPicture(innerPic);
+            return res;
+        }
+
+        private Bitmap GetSpriteImage()
+        {
+            return new Bitmap(_pathToSpritePic);
+        }
+
+        private Bitmap GetKeyPointsImage()
+        {
+            return Utils.DrawKeyPointsOnImage(new Bitmap(_pathToOriginalPic), _cullingProject.KeyPoints);
+        }
+
+        private Bitmap GetEdgeImage()
+        {
+            Bitmap innerPic = new Bitmap(_pathToOriginalPic);
+            Segmentation segmentation = new Segmentation(_cullingProject.KeyPoints, _cullingProject.Lim);
+            Bitmap res = segmentation.GetSegmentedPicture(innerPic);
+            EdgeFinder edgeFinder = new EdgeFinder(res);
+            return edgeFinder.GetEdgePic();
+        }
+
+        private Bitmap GetPatternImage()
+        {
+            return Utils.ByteToBitmapRgb(_cullingProject.UnitedImage);
+        }
+
+        private void SetCurrResumeImage()
+        {
+            if (оригиналToolStripMenuItem.Checked)
+                pbViewPicture.Image = GetOriginal();
+            if (сегментацияToolStripMenuItem.Checked)
+                pbViewPicture.Image = GetSegmentation();
+            if (спрайтыToolStripMenuItem.Checked)
+                pbViewPicture.Image = GetSpriteImage();
+            if (ключевыеТочкиToolStripMenuItem.Checked)
+                pbViewPicture.Image = GetKeyPointsImage();
+            if (краяToolStripMenuItem.Checked)
+                pbViewPicture.Image = GetEdgeImage();
+            if (шаблонToolStripMenuItem.Checked)
+                pbViewPicture.Image = GetPatternImage();
+        }
+
+        public void LoadMainData(CullingProject cullingProject)
+        {
+            _cullingProject = cullingProject;
+        }
+
+        public void LoadData(string nameOfFile, string pathSpritePic, string pathToOriginalPic, string coeff, int pos)
         {
             _nameOfFile = nameOfFile;
             _pathToOriginalPic = pathToOriginalPic;
             _pathToSpritePic = pathSpritePic;
-            _cullingProject = cullingProject;
             _pos = pos;
-            _countOfRows = countOfRows;
+            lblCoeff.Text = coeff;
+            lblNameOfChip.Text = Path.GetFileNameWithoutExtension(nameOfFile);
 
-            pbViewPicture.Image = new Bitmap(_pathToSpritePic);
-            lblNameOfChip.Text = Path.GetFileNameWithoutExtension(_nameOfFile);
+            SetCurrResumeImage();
         }
 
         public void SetStatus(string verdict)
@@ -51,11 +107,6 @@ namespace ViewCulling
                     rbBad.Checked = true;
         }
 
-        private void FormViewPicture_Load(object sender, EventArgs e)
-        {
-
-        }
-
         private void pbViewPicture_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             pbViewPicture.Image.Save("\\tempPic.bmp");
@@ -64,21 +115,31 @@ namespace ViewCulling
 
         private void сегментацияToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Bitmap innerPic = new Bitmap(_pathToOriginalPic);
-            Segmentation segmentation = new Segmentation(_cullingProject.KeyPoints, _cullingProject.Lim);
-            Bitmap res = segmentation.GetSegmentedPicture(innerPic);
-
-            pbViewPicture.Image = res;
+            SetTsmiChecked(sender);
+            SetCurrResumeImage();
         }
 
         private void оригиналToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            pbViewPicture.Image = new Bitmap(_pathToOriginalPic);
+            SetTsmiChecked(sender);
+            SetCurrResumeImage();
+        }
+
+        private void SetTsmiChecked(object sender)
+        {
+            ToolStripMenuItem tsmi = (ToolStripMenuItem)sender;
+
+            foreach (var next in tsmi.GetCurrentParent().Items)
+            {
+                ((ToolStripMenuItem)next).Checked = false;
+            }
+            tsmi.Checked = true;
         }
 
         private void спрайтыToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            pbViewPicture.Image = new Bitmap(_pathToSpritePic);
+        {   
+            SetTsmiChecked(sender);
+            SetCurrResumeImage();
         }
 
         private void SetVerdictStatus()
@@ -102,16 +163,14 @@ namespace ViewCulling
 
         private void ключевыеТочкиToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            pbViewPicture.Image = Utils.DrawKeyPointsOnImage(new Bitmap(_pathToOriginalPic), _cullingProject.KeyPoints);
+            SetTsmiChecked(sender);
+            SetCurrResumeImage();
         }
 
         private void краяToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Bitmap innerPic = new Bitmap(_pathToOriginalPic);
-            Segmentation segmentation = new Segmentation(_cullingProject.KeyPoints, _cullingProject.Lim);
-            Bitmap res = segmentation.GetSegmentedPicture(innerPic);
-            EdgeFinder edgeFinder = new EdgeFinder(res);
-            pbViewPicture.Image = edgeFinder.GetEdgePic();
+            SetTsmiChecked(sender);
+            SetCurrResumeImage();
         }
 
         private void сохранитьToolStripMenuItem_Click(object sender, EventArgs e)
@@ -125,19 +184,63 @@ namespace ViewCulling
 
         private void шаблонToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            pbViewPicture.Image = Utils.ByteToBitmapRgb(_cullingProject.UnitedImage);
+            SetTsmiChecked(sender);
+            SetCurrResumeImage();
+        }
+
+        private string CurrFilter()
+        {
+            string filter = "";
+            if (rbShowBads.Checked)
+                filter = Verdict.Bad.Name;
+            if (rbShowGoods.Checked)
+                filter = Verdict.Good.Name;
+            if (rbShowAll.Checked)
+                filter = "";
+
+            return filter;
         }
 
         private void pbLeftArrow_Click(object sender, EventArgs e)
         {
-            if (_pos > 0)
-                FormAnalyze.Instance.SendDataToShow(_pos - 1);
+            FormAnalyze.Instance.SendDataToShow(_pos, false, CurrFilter());
         }
 
         private void pbRightArrow_Click(object sender, EventArgs e)
         {
-            if (_pos < _countOfRows - 1)
-                FormAnalyze.Instance.SendDataToShow(_pos + 1);
+            FormAnalyze.Instance.SendDataToShow(_pos, true, CurrFilter());
+        }
+
+        private void FormAnalyzeView_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            const int wmKeydown = 0x100;
+            const int wmSyskeydown = 0x104;
+
+            if ((msg.Msg == wmKeydown) || (msg.Msg == wmSyskeydown))
+            {
+                switch (keyData)
+                {
+                    case Keys.OemOpenBrackets:
+                        FormAnalyze.Instance.SendDataToShow(_pos, false, CurrFilter());
+                        break;
+                    case Keys.OemCloseBrackets:
+                        FormAnalyze.Instance.SendDataToShow(_pos, true, CurrFilter());
+                        break;
+                    case Keys.G:
+                        rbGood.Checked = true;
+                        break;
+                    case Keys.B:
+                        rbBad.Checked = true;
+                        break;
+                }
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
         }
     }
 }
