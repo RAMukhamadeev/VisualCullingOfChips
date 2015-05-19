@@ -173,14 +173,14 @@
             // стартToolStripMenuItem
             // 
             this.стартToolStripMenuItem.Name = "стартToolStripMenuItem";
-            this.стартToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.стартToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
             this.стартToolStripMenuItem.Text = "Запуск";
             this.стартToolStripMenuItem.Click += new System.EventHandler(this.стартToolStripMenuItem_Click);
             // 
             // остановкаToolStripMenuItem
             // 
             this.остановкаToolStripMenuItem.Name = "остановкаToolStripMenuItem";
-            this.остановкаToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.остановкаToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
             this.остановкаToolStripMenuItem.Text = "Остановка";
             this.остановкаToolStripMenuItem.Click += new System.EventHandler(this.остановкаToolStripMenuItem_Click);
             // 
@@ -331,7 +331,7 @@
             // pbLoading
             // 
             this.pbLoading.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.pbLoading.Location = new System.Drawing.Point(166, 148);
+            this.pbLoading.Location = new System.Drawing.Point(172, 148);
             this.pbLoading.Name = "pbLoading";
             this.pbLoading.Size = new System.Drawing.Size(102, 99);
             this.pbLoading.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -373,7 +373,7 @@
             // 
             this.lblCountOfFiles.AutoSize = true;
             this.lblCountOfFiles.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.875F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblCountOfFiles.Location = new System.Drawing.Point(162, 24);
+            this.lblCountOfFiles.Location = new System.Drawing.Point(163, 22);
             this.lblCountOfFiles.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblCountOfFiles.Name = "lblCountOfFiles";
             this.lblCountOfFiles.Size = new System.Drawing.Size(28, 18);
@@ -395,7 +395,7 @@
             // 
             this.lblTimeLeft.AutoSize = true;
             this.lblTimeLeft.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.875F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblTimeLeft.Location = new System.Drawing.Point(18, 206);
+            this.lblTimeLeft.Location = new System.Drawing.Point(18, 205);
             this.lblTimeLeft.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblTimeLeft.Name = "lblTimeLeft";
             this.lblTimeLeft.Size = new System.Drawing.Size(28, 18);
@@ -406,7 +406,7 @@
             // 
             this.label10.AutoSize = true;
             this.label10.Font = new System.Drawing.Font("Candara", 11.25F, System.Drawing.FontStyle.Italic);
-            this.label10.Location = new System.Drawing.Point(17, 186);
+            this.label10.Location = new System.Drawing.Point(17, 185);
             this.label10.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(78, 18);
@@ -417,7 +417,7 @@
             // 
             this.lblTimeOfCalculation.AutoSize = true;
             this.lblTimeOfCalculation.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.875F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblTimeOfCalculation.Location = new System.Drawing.Point(18, 166);
+            this.lblTimeOfCalculation.Location = new System.Drawing.Point(18, 162);
             this.lblTimeOfCalculation.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblTimeOfCalculation.Name = "lblTimeOfCalculation";
             this.lblTimeOfCalculation.Size = new System.Drawing.Size(28, 18);
@@ -428,7 +428,7 @@
             // 
             this.label6.AutoSize = true;
             this.label6.Font = new System.Drawing.Font("Candara", 11.25F, System.Drawing.FontStyle.Italic);
-            this.label6.Location = new System.Drawing.Point(17, 144);
+            this.label6.Location = new System.Drawing.Point(17, 140);
             this.label6.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(112, 18);
@@ -439,7 +439,7 @@
             // 
             this.lblCountOfBad.AutoSize = true;
             this.lblCountOfBad.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.875F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblCountOfBad.Location = new System.Drawing.Point(162, 93);
+            this.lblCountOfBad.Location = new System.Drawing.Point(162, 91);
             this.lblCountOfBad.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblCountOfBad.Name = "lblCountOfBad";
             this.lblCountOfBad.Size = new System.Drawing.Size(28, 18);
@@ -461,7 +461,7 @@
             // 
             this.lblCountOfGood.AutoSize = true;
             this.lblCountOfGood.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.875F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblCountOfGood.Location = new System.Drawing.Point(162, 70);
+            this.lblCountOfGood.Location = new System.Drawing.Point(163, 68);
             this.lblCountOfGood.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblCountOfGood.Name = "lblCountOfGood";
             this.lblCountOfGood.Size = new System.Drawing.Size(28, 18);
@@ -483,7 +483,7 @@
             // 
             this.lblPercentOfProgress.AutoSize = true;
             this.lblPercentOfProgress.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.875F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblPercentOfProgress.Location = new System.Drawing.Point(91, 230);
+            this.lblPercentOfProgress.Location = new System.Drawing.Point(94, 228);
             this.lblPercentOfProgress.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblPercentOfProgress.Name = "lblPercentOfProgress";
             this.lblPercentOfProgress.Size = new System.Drawing.Size(28, 18);
@@ -505,7 +505,7 @@
             // 
             this.lblPercentOfOut.AutoSize = true;
             this.lblPercentOfOut.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.875F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblPercentOfOut.Location = new System.Drawing.Point(162, 115);
+            this.lblPercentOfOut.Location = new System.Drawing.Point(163, 113);
             this.lblPercentOfOut.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblPercentOfOut.Name = "lblPercentOfOut";
             this.lblPercentOfOut.Size = new System.Drawing.Size(28, 18);
@@ -527,7 +527,7 @@
             // 
             this.lblCountOfCalced.AutoSize = true;
             this.lblCountOfCalced.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.875F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblCountOfCalced.Location = new System.Drawing.Point(162, 47);
+            this.lblCountOfCalced.Location = new System.Drawing.Point(163, 45);
             this.lblCountOfCalced.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblCountOfCalced.Name = "lblCountOfCalced";
             this.lblCountOfCalced.Size = new System.Drawing.Size(28, 18);
@@ -548,10 +548,10 @@
             // pbProgress
             // 
             this.pbProgress.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.pbProgress.Location = new System.Drawing.Point(20, 264);
+            this.pbProgress.Location = new System.Drawing.Point(20, 263);
             this.pbProgress.Margin = new System.Windows.Forms.Padding(2);
             this.pbProgress.Name = "pbProgress";
-            this.pbProgress.Size = new System.Drawing.Size(251, 14);
+            this.pbProgress.Size = new System.Drawing.Size(254, 15);
             this.pbProgress.TabIndex = 16;
             // 
             // FormAnalyze

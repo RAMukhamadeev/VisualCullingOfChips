@@ -352,6 +352,8 @@ namespace ViewCulling
             OpenFileDialog ofd = new OpenFileDialog {Multiselect = true};
             if (ofd.ShowDialog() == DialogResult.OK)
             {
+                pbGoodChipImage.SizeMode = PictureBoxSizeMode.StretchImage;
+
                 foreach (string path in ofd.FileNames)
                 {
                     AddImage(path);
@@ -495,6 +497,8 @@ namespace ViewCulling
 
             RefreshSegmentationLabels();
             FillColorIndicator();
+
+            pbGoodChipImage.Image = _currImage;
         }
 
         private void сохранитьПроектToolStripMenuItem_Click(object sender, EventArgs e)
@@ -504,6 +508,13 @@ namespace ViewCulling
 
             CullingProject cullingProject = new CullingProject(tbNameOfProject.Text, rtbDescription.Text, union, _keyPoints, _offset, trbToleranceLimit.Value);
             cullingProject.SaveObject();
+        }
+
+        private void удалитьПоследнююТочкуToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _keyPoints.RemoveAt(_keyPoints.Count - 1);
+
+            pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage(_currImage, _keyPoints);
         }
 
     }

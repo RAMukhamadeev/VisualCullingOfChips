@@ -137,7 +137,7 @@
             this.pbGoodChipImage.Location = new System.Drawing.Point(8, 19);
             this.pbGoodChipImage.Name = "pbGoodChipImage";
             this.pbGoodChipImage.Size = new System.Drawing.Size(703, 577);
-            this.pbGoodChipImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pbGoodChipImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
             this.pbGoodChipImage.TabIndex = 0;
             this.pbGoodChipImage.TabStop = false;
             this.pbGoodChipImage.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pbGoodChipImage_MouseClick);
@@ -267,6 +267,7 @@
             this.удалитьПоследнююТочкуToolStripMenuItem.Name = "удалитьПоследнююТочкуToolStripMenuItem";
             this.удалитьПоследнююТочкуToolStripMenuItem.Size = new System.Drawing.Size(248, 22);
             this.удалитьПоследнююТочкуToolStripMenuItem.Text = "Удалить последнюю точку";
+            this.удалитьПоследнююТочкуToolStripMenuItem.Click += new System.EventHandler(this.удалитьПоследнююТочкуToolStripMenuItem_Click);
             // 
             // видToolStripMenuItem
             // 

@@ -23,26 +23,8 @@ namespace ViewCulling
             {"Время обработки, с", 4}
         };
 
-        private struct StatisticInfo
-        {
-            // для многопоточного доступа
-            private static readonly Mutex Mutex = new Mutex();
-            public static void StartAccess()
-            {
-                Mutex.WaitOne();
-            }
-            public static void FinishAccess()
-            {
-                Mutex.ReleaseMutex();
-            }
-
-            public static int CountOfFiles = 0;
-            public static int CountOfGood = 0;
-            public static int CountOfBad = 0;
-            public static int CountOfCalced = 0;
-            public static string CurrFile = "";
-        }
-
+        private readonly StatisticInfo _statInfo = new StatisticInfo();
+        
         private CullingProject _cullingProject;
         private string _pathToTestingChipsFolder;
         private string _pathToCullingPattern;
@@ -67,19 +49,24 @@ namespace ViewCulling
             BeginInvoke(new MethodInvoker(
                 delegate
                 {
-                    StatisticInfo.StartAccess();
-                    lblCountOfFiles.Text = StatisticInfo.CountOfFiles.ToString();
-                    lblCountOfCalced.Text = StatisticInfo.CountOfCalced.ToString();
-                    if (StatisticInfo.CountOfGood + StatisticInfo.CountOfBad > 0)
-                        lblPercentOfOut.Text = String.Format("{0:P}", ((double)StatisticInfo.CountOfGood) / (StatisticInfo.CountOfGood + StatisticInfo.CountOfBad));
-                    lblCountOfGood.Text = StatisticInfo.CountOfGood.ToString();
-                    lblCountOfBad.Text = StatisticInfo.CountOfBad.ToString();
-                    if (StatisticInfo.CountOfFiles > 0)
-                        lblPercentOfProgress.Text = String.Format("{0:P}", ((double)StatisticInfo.CountOfCalced) / StatisticInfo.CountOfFiles);
-                    pbProgress.Value = StatisticInfo.CountOfCalced <= pbProgress.Maximum ? StatisticInfo.CountOfCalced : pbProgress.Maximum;
-                    RefreshTime();
-
-                    StatisticInfo.FinishAccess();
+                    lock (_statInfo)
+                    {
+                        lblCountOfFiles.Text = _statInfo.CountOfFiles.ToString();
+                        lblCountOfCalced.Text = _statInfo.CountOfCalced.ToString();
+                        if (_statInfo.CountOfGood + _statInfo.CountOfBad > 0)
+                            lblPercentOfOut.Text = String.Format("{0:P}",
+                                ((double)_statInfo.CountOfGood) /
+                                (_statInfo.CountOfGood + _statInfo.CountOfBad));
+                        lblCountOfGood.Text = _statInfo.CountOfGood.ToString();
+                        lblCountOfBad.Text = _statInfo.CountOfBad.ToString();
+                        if (_statInfo.CountOfFiles > 0)
+                            lblPercentOfProgress.Text = String.Format("{0:P}",
+                                ((double)_statInfo.CountOfCalced) / _statInfo.CountOfFiles);
+                        pbProgress.Value = _statInfo.CountOfCalced <= pbProgress.Maximum
+                            ? _statInfo.CountOfCalced
+                            : pbProgress.Maximum;
+                        RefreshTime();
+                    }
                 }
                 ));
         }
@@ -90,7 +77,7 @@ namespace ViewCulling
 
             BeginInvoke(new MethodInvoker(delegate
             {
-                pbLoading.Image = null;
+                pbLoading.Image = new Bitmap("assets\\done.png");
             }));
         }
 
@@ -168,7 +155,7 @@ namespace ViewCulling
 
             _pathesToImageFiles.Sort();
             pbProgress.Maximum = _pathesToImageFiles.Count;
-            StatisticInfo.CountOfFiles = _pathesToImageFiles.Count;
+            _statInfo.CountOfFiles = _pathesToImageFiles.Count;
             _currFileIndex = 0;
         }
 
@@ -224,22 +211,24 @@ namespace ViewCulling
                 dgvTestingOfChips.Rows[currRow].Cells[_columns["Коэффициент"]].Value = vi.CurrMark.ToString();
 
                 var dgvcVerdict = dgvTestingOfChips.Rows[currRow].Cells[_columns["Вердикт"]];
-                StatisticInfo.StartAccess();
-                if (isError)
-                    Verdict.SetVerdictCell(dgvcVerdict, Verdict.Error);
-                else if (vi.CurrMark >= CountOfAcceptableBadPix)
+
+                lock (_statInfo)
                 {
-                    Verdict.SetVerdictCell(dgvcVerdict, Verdict.Bad);
-                    StatisticInfo.CountOfBad++;
+                    if (isError)
+                        Verdict.SetVerdictCell(dgvcVerdict, Verdict.Error);
+                    else if (vi.CurrMark >= CountOfAcceptableBadPix)
+                    {
+                        Verdict.SetVerdictCell(dgvcVerdict, Verdict.Bad);
+                        _statInfo.CountOfBad++;
+                    }
+                    else
+                    {
+                        Verdict.SetVerdictCell(dgvcVerdict, Verdict.Good);
+                        _statInfo.CountOfGood++;
+                    }
+                    _statInfo.CountOfCalced++;
+                    _statInfo.CurrFile = Path.GetFileName(currFileName);
                 }
-                else
-                {
-                    Verdict.SetVerdictCell(dgvcVerdict, Verdict.Good);
-                    StatisticInfo.CountOfGood++;
-                }
-                StatisticInfo.CountOfCalced++;
-                StatisticInfo.CurrFile = Path.GetFileName(currFileName);
-                StatisticInfo.FinishAccess();
 
                 RefreshStatisticControls();
             } 
@@ -268,6 +257,8 @@ namespace ViewCulling
         {
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
+            pbLoading.Image = new Bitmap("assets\\waiting.png");
+            InitDgvTestingOfChips();
             InitDgvTestingOfChips();
         }
 
@@ -323,25 +314,26 @@ namespace ViewCulling
 
         private void RefreshTime()
         {
-            if (StatisticInfo.CountOfCalced > 0)
+            if (_statInfo.CountOfCalced > 0)
             {
                 TimeSpan timeOfCalc = DateTime.Now - _dtStartOfCalculation;
                 lblTimeOfCalculation.Text = timeOfCalc.ToString(@"hh\:mm\:ss");
 
-                TimeSpan timeLeft = TimeSpan.FromSeconds((timeOfCalc.TotalSeconds / StatisticInfo.CountOfCalced) * StatisticInfo.CountOfFiles - timeOfCalc.TotalSeconds);
+                TimeSpan timeLeft = TimeSpan.FromSeconds((timeOfCalc.TotalSeconds / _statInfo.CountOfCalced) * _statInfo.CountOfFiles - timeOfCalc.TotalSeconds);
                 lblTimeLeft.Text = timeLeft.ToString(@"hh\:mm\:ss");
             }
         }
 
         void mainTimer_Tick(object sender, EventArgs e)
         {
-            StatisticInfo.StartAccess();
-            RefreshTime();
-            if (StatisticInfo.CountOfFiles == StatisticInfo.CountOfCalced)
+            lock (_statInfo)
             {
-                EndOfCalculation();
+                RefreshTime();
+                if (_statInfo.CountOfFiles == _statInfo.CountOfCalced)
+                {
+                    EndOfCalculation();
+                }
             }
-            StatisticInfo.FinishAccess();
         }
 
         private void открытьПроектОтбраковкиToolStripMenuItem_Click(object sender, EventArgs e)

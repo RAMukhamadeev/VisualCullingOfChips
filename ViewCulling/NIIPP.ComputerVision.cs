@@ -19,6 +19,18 @@ namespace NIIPP.ComputerVision
     }
 
     /// <summary>
+    /// Класс для хранения статистики по текущему процессу анализа изображений пластин
+    /// </summary>
+    public class StatisticInfo
+    {
+        public int CountOfFiles = 0;
+        public int CountOfGood = 0;
+        public int CountOfBad = 0;
+        public int CountOfCalced = 0;
+        public string CurrFile = "";
+    }
+
+    /// <summary>
     /// Список вердиктов проверки изобрадения чипа с ассоциированными цветами
     /// </summary>
     public struct Verdict
