@@ -30,3 +30,4 @@ C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debu
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormAnalyzeView.resources
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormAnalyze.resources
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormAnalyzeView.resources
+D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormCalibrationAndSettings.resources

@@ -96,6 +96,8 @@ namespace ViewCulling
 
         private void ScrollToRow(int currRow)
         {
+            if (!автопрокруткаToolStripMenuItem.Checked)
+                return;
             BeginInvoke(new MethodInvoker(delegate
             {
                 dgvTestingOfChips.FirstDisplayedScrollingRowIndex = Math.Max(0, currRow - 15);
@@ -139,20 +141,35 @@ namespace ViewCulling
         {
             dgvTestingOfChips.Visible = true;
 
-            DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
-            foreach (FileInfo fileInfo in di.GetFiles())
+            foreach (string path in _pathesToImageFiles)
             {
-                if (Path.GetExtension(fileInfo.Name) != ".bmp")
+                string name = Path.GetFileName(path);
+                if (Path.GetExtension(name) != ".bmp")
                     continue;
 
                 dgvTestingOfChips.RowCount++;
                 int currRow = dgvTestingOfChips.RowCount - 2;
 
                 dgvTestingOfChips.Rows[currRow].Cells[_columns["Номер"]].Value = (currRow + 1).ToString();
-                dgvTestingOfChips.Rows[currRow].Cells[_columns["Название файла"]].Value = fileInfo.Name;
+                dgvTestingOfChips.Rows[currRow].Cells[_columns["Название файла"]].Value = name;
                 Verdict.SetVerdictCell(dgvTestingOfChips.Rows[currRow].Cells[_columns["Вердикт"]], Verdict.Queue);
             }
             dgvTestingOfChips.ClearSelection();
+        }
+
+        private void PrepareImageMas()
+        {
+            DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
+            _pathesToImageFiles =
+                di.GetFiles()
+                    .Select(fileName => fileName.FullName)
+                    .Where(fileName => Path.GetExtension(fileName) == ".bmp")
+                    .ToList();
+
+            _pathesToImageFiles.Sort();
+            pbProgress.Maximum = _pathesToImageFiles.Count;
+            StatisticInfo.CountOfFiles = _pathesToImageFiles.Count;
+            _currFileIndex = 0;
         }
 
         private int FindDgvRowByFileName(string fileName)
@@ -240,7 +257,10 @@ namespace ViewCulling
             {
                 _pathToTestingChipsFolder = fbd.SelectedPath;
                 lblPathToTestFolder.Text = fbd.SelectedPath;
+
+                PrepareImageMas();
                 LoadInfoAboutTestingSet();
+                RefreshStatisticControls();
             }
         }
 
@@ -287,26 +307,12 @@ namespace ViewCulling
                 return;
 
             SetLoadingImage();
-
-            DirectoryInfo di = new DirectoryInfo(_pathToTestingChipsFolder);
-            _pathesToImageFiles =
-                di.GetFiles()
-                    .Select(fileName => fileName.FullName)
-                    .Where(fileName => Path.GetExtension(fileName) == ".bmp")
-                    .ToList();
-
-            _pathesToImageFiles.Sort();
-            pbProgress.Maximum = _pathesToImageFiles.Count;
-            StatisticInfo.CountOfFiles = _pathesToImageFiles.Count;
-            _currFileIndex = 0;
-
-
             _dtStartOfCalculation = DateTime.Now;
             _mainTimer = new DispatcherTimer();
             _mainTimer.Tick += mainTimer_Tick;
             _mainTimer.Interval = new TimeSpan(0, 0, 0, 0, 200);
             _mainTimer.Start();
-            int countOfThreads = Environment.ProcessorCount - 1;
+            int countOfThreads = Environment.ProcessorCount;
             _workThreads = new Thread[countOfThreads];
             for (int i = 0; i < countOfThreads; i++)
             {
@@ -317,10 +323,11 @@ namespace ViewCulling
 
         private void RefreshTime()
         {
-            TimeSpan timeOfCalc = DateTime.Now - _dtStartOfCalculation;
-            lblTimeOfCalculation.Text = timeOfCalc.ToString(@"hh\:mm\:ss");
             if (StatisticInfo.CountOfCalced > 0)
             {
+                TimeSpan timeOfCalc = DateTime.Now - _dtStartOfCalculation;
+                lblTimeOfCalculation.Text = timeOfCalc.ToString(@"hh\:mm\:ss");
+
                 TimeSpan timeLeft = TimeSpan.FromSeconds((timeOfCalc.TotalSeconds / StatisticInfo.CountOfCalced) * StatisticInfo.CountOfFiles - timeOfCalc.TotalSeconds);
                 lblTimeLeft.Text = timeLeft.ToString(@"hh\:mm\:ss");
             }
@@ -328,9 +335,8 @@ namespace ViewCulling
 
         void mainTimer_Tick(object sender, EventArgs e)
         {
-            RefreshTime();
-
             StatisticInfo.StartAccess();
+            RefreshTime();
             if (StatisticInfo.CountOfFiles == StatisticInfo.CountOfCalced)
             {
                 EndOfCalculation();
@@ -358,20 +364,27 @@ namespace ViewCulling
         {
             if (MessageBox.Show("Вы действительно хотите выйти?", "Question", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                if (_mainTimer != null)
-                    _mainTimer.Stop();
-                if (_workThreads != null)
-                {
-                    foreach (Thread thread in _workThreads.Where(thread => thread != null))
-                    {
-                        thread.Abort();
-                    }
-                }
+                StopTesting();
             }
             else
             {
                 e.Cancel = true;
             }
+        }
+
+        private void StopTesting()
+        {
+            if (_mainTimer != null)
+                _mainTimer.Stop();
+            if (_workThreads != null)
+            {
+                foreach (Thread thread in _workThreads.Where(thread => thread != null))
+                {
+                    thread.Abort();
+                }
+            }
+
+            _currFileIndex = Math.Max(0, _currFileIndex - Environment.ProcessorCount*2);
         }
 
         private void открытьToolStripMenuItem1_Click(object sender, EventArgs e)
@@ -422,6 +435,31 @@ namespace ViewCulling
             {
                 SendDataToShow(e.RowIndex);
             }
+        }
+
+        private void автопрокруткаToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ((ToolStripMenuItem) sender).Checked = !((ToolStripMenuItem) sender).Checked;
+        }
+
+        private void остановкаToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StopTesting();
+        }
+
+        public void SetNewSegmentationLim(int lim)
+        {
+            if (_cullingProject != null)
+                _cullingProject.Lim = lim;
+        }
+
+        private void порогСегментацииToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FormCalibrationAndSettings formCalibrationAndSettings = new FormCalibrationAndSettings {TopLevel = false};
+            FormMain.Instance.Controls.Add(formCalibrationAndSettings);
+
+            formCalibrationAndSettings.Show();
+            formCalibrationAndSettings.LoadInfo(_pathesToImageFiles, _cullingProject.Lim, _cullingProject.KeyPoints);
         }
     }
 }

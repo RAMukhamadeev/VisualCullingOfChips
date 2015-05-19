@@ -1085,9 +1085,9 @@ namespace NIIPP.ComputerVision
             // рамка у края ни сильно важна, поэтому для нее радиус больше
             int radius;
             if (si <= 25 || sj <= 25 || _h - si <= 25 || _w - sj <= 25)
-                radius = 4;
+                radius = 3;
             else
-                radius = 2;
+                radius = 1;
 
             int i, j;
             bool res = true;
@@ -1420,14 +1420,72 @@ namespace NIIPP.ComputerVision
     /// </summary>
     static class Utils
     {
+        /// <summary>
+        /// Проверяет открыта ли данная форма
+        /// </summary>
+        /// <param name="nameOfForm"></param>
+        /// <returns></returns>
         public static bool FormIsOpen(string nameOfForm)
         {
             return Application.OpenForms.Cast<Form>().Any(form => form.Name == nameOfForm);
         }
 
-        public static Form GetFormByName(string nameOfForm)
+        public static List<string> GetPicturesFromDifferentPointsOfWafer(List<string> pathes)
         {
-            return Application.OpenForms.Cast<Form>().FirstOrDefault(form => form.Name == nameOfForm);
+            List<string> res = new List<string>();
+
+            Dictionary<Point, string> coordMap = new Dictionary<Point, string>();
+            foreach (string path in pathes)
+            {
+                int x, y;
+                try
+                {
+                    string fileName = Path.GetFileName(path);
+                    x = Int32.Parse(fileName.Substring(0, 3));
+                    y = Int32.Parse(fileName.Substring(3, 3));
+                }
+                catch (Exception ex)
+                {
+                    continue;
+                }
+                coordMap.Add(new Point(x, y), path);
+            }
+
+            if (coordMap.Count == 0)
+                return res;
+
+            int minX = coordMap.Keys.Min(point => point.X) + 3,
+                minY = coordMap.Keys.Min(point => point.Y) + 3,
+                maxX = coordMap.Keys.Max(point => point.X) - 3,
+                maxY = coordMap.Keys.Max(point => point.Y) - 3,
+                avgX = (minX + maxX) / 2,
+                avgY = (minY + maxY) / 2;
+
+            res.Add(FindNearStringByPoint(new Point(minX, avgY), coordMap));
+            res.Add(FindNearStringByPoint(new Point(maxX, avgY), coordMap));
+            res.Add(FindNearStringByPoint(new Point(avgX, minY), coordMap));
+            res.Add(FindNearStringByPoint(new Point(avgX, maxY), coordMap));
+            res.Add(FindNearStringByPoint(new Point(avgX, avgY), coordMap));
+
+            return res.Where(str => str != "").ToList();
+        }
+
+        private static string FindNearStringByPoint(Point point, Dictionary<Point, string> map)
+        {
+            string res = "";
+
+            int min = Int32.MaxValue;
+            foreach (Point nextPoint in map.Keys)
+            {
+                int curr = Math.Abs(nextPoint.X - point.X) + Math.Abs(nextPoint.Y - point.Y);
+                if (curr < min)
+                {
+                    min = curr;
+                    res = map[nextPoint];
+                }
+            }
+
+            return res;
         }
 
         /// <summary>

@@ -50,6 +50,12 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FormCalibrationAndSettings.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormCalibrationAndSettings.Designer.cs">
+      <DependentUpon>FormCalibrationAndSettings.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormCullingProject.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -102,6 +108,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="FormCalibrationAndSettings.resx">
+      <DependentUpon>FormCalibrationAndSettings.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormCullingProject.resx">
       <DependentUpon>FormCullingProject.cs</DependentUpon>
     </EmbeddedResource>
