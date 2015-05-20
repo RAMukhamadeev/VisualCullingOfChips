@@ -7,7 +7,7 @@ using NIIPP.ComputerVision;
 
 namespace ViewCulling
 {
-    public partial class FormCalibrationAndSettings : Form
+    public partial class FormCalibration : Form
     {
         private readonly List<Bitmap> _images = new List<Bitmap>();
         private List<string> _pathes = new List<string>();
@@ -15,7 +15,7 @@ namespace ViewCulling
         private List<Point> _keyPoints;
         private int _currIndex;
 
-        public FormCalibrationAndSettings()
+        public FormCalibration()
         {
             InitializeComponent();
         }

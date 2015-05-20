@@ -20,7 +20,6 @@ C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debu
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.Properties.Resources.resources
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.csproj.GenerateResource.Cache
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormShowPicture.resources
-D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormLoading.resources
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormLoading.resources
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormShowPicture.resources
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormCullingProject.resources
@@ -29,6 +28,7 @@ C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debu
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormAnalyzeView.resources
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormAnalyze.resources
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormAnalyzeView.resources
-D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormCalibrationAndSettings.resources
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormCalibrationAndSettings.resources
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.csprojResolveAssemblyReference.cache
+D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormCalibration.resources
+D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormSettings.resources

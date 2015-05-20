@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using NIIPP.ComputerVision;
 
 namespace ViewCulling
 {
@@ -18,9 +19,10 @@ namespace ViewCulling
         private void MainForm_Load(object sender, EventArgs e)
         {
             Random rnd = new Random();
-
             string nameOfImage = String.Format("vision_{0}.jpg", rnd.Next(4) + 1);
             BackgroundImage = new Bitmap("assets\\" + nameOfImage);
+
+            Utils.CreateCache();
         }
 
         private void закрытьToolStripMenuItem_Click(object sender, EventArgs e)
@@ -60,18 +62,11 @@ namespace ViewCulling
             formTestOfImposition.Show();
         }
 
-        private void загрузкаToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            FormLoading formLoading = new FormLoading {TopLevel = false};
-            Controls.Add(formLoading);
-
-            formLoading.Show();
-        }
-
         private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (MessageBox.Show("Вы действительно хотите выйти?", "Question", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
+                Utils.DeleteCache();
             }
             else
             {

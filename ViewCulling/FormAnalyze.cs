@@ -20,7 +20,8 @@ namespace ViewCulling
             {"Название файла", 1},
             {"Вердикт", 2},
             {"Коэффициент", 3},
-            {"Время обработки, с", 4}
+            {"Время обработки, с", 4},
+            {"Просмотрено", 5}
         };
 
         private readonly StatisticInfo _statInfo = new StatisticInfo();
@@ -36,7 +37,7 @@ namespace ViewCulling
         private List<string> _pathesToImageFiles = new List<string>();
         private int _currFileIndex;
 
-        private const int CountOfAcceptableBadPix = 300;
+        private const int CountOfAcceptableBadPix = 150;
 
         public FormAnalyze()
         {
@@ -197,7 +198,7 @@ namespace ViewCulling
                 try
                 {
                     Bitmap bmp = vi.CheckNextChip(currFileName);
-                    bmp.Save("\\Storage\\results\\" + Path.GetFileName(currFileName));
+                    bmp.Save( String.Format("{0}\\{1}", Settings.PathToCache, Path.GetFileName(currFileName)) );
                 }
                 catch (Exception ex)
                 {
@@ -239,7 +240,7 @@ namespace ViewCulling
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog
             {
-                SelectedPath = Environment.CurrentDirectory.Substring(0, 2) + "\\Storage"
+                SelectedPath = "D:\\Storage"
             };
 
             if (fbd.ShowDialog() == DialogResult.OK)
@@ -263,7 +264,6 @@ namespace ViewCulling
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
             pbLoading.Image = new Bitmap("assets\\waiting.png");
-            InitDgvTestingOfChips();
             InitDgvTestingOfChips();
         }
 
@@ -331,7 +331,7 @@ namespace ViewCulling
 
             string nameOfFile = dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Название файла"]].Value.ToString();
             string coeff = dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Коэффициент"]].Value.ToString();
-            string spritePicPath = "\\Storage\\results\\" + nameOfFile;
+            string spritePicPath = Settings.PathToCache + "\\" + nameOfFile;
             string originalPicPath = lblPathToTestFolder.Text + "\\" + nameOfFile;
 
             formAnalyzeView.LoadMainData(_cullingProject);
@@ -518,7 +518,7 @@ namespace ViewCulling
 
         private void порогСегментацииToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FormCalibrationAndSettings formCalibrationAndSettings = new FormCalibrationAndSettings {TopLevel = false};
+            FormCalibration formCalibrationAndSettings = new FormCalibration {TopLevel = false};
             FormMain.Instance.Controls.Add(formCalibrationAndSettings);
 
             formCalibrationAndSettings.Show();
@@ -548,6 +548,15 @@ namespace ViewCulling
         private void pbChooseFolder_Click(object sender, EventArgs e)
         {
             OpenFolderForTesting();
+        }
+
+        private void коэффициентыToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FormSettings formSettings = new FormSettings {TopLevel = false};
+            FormMain.Instance.Controls.Add(formSettings);
+
+            formSettings.Show();
+            formSettings.BringToFront();
         }
 
     }

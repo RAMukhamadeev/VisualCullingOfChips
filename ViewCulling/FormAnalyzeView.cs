@@ -145,9 +145,15 @@ namespace ViewCulling
         private void SetVerdictStatus()
         {
             if (rbGood.Checked)
+            {
                 pbStatus.Image = new Bitmap("assets\\good.png");
+                gbImage.BackColor = Color.GreenYellow;
+            }
             if (rbBad.Checked)
+            {
                 pbStatus.Image = new Bitmap("assets\\bad.png");
+                gbImage.BackColor = Color.LightSalmon;
+            }
             FormAnalyze.Instance.SetUserCorrectedStatus(_nameOfFile, rbGood.Checked ? Verdict.Good : Verdict.Bad);
         }
 

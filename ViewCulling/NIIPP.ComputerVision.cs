@@ -16,6 +16,12 @@ namespace NIIPP.ComputerVision
     public static class Settings
     {
         public static string PathToSaveProjects = "projects";
+        public static string PathToCache = "C:\\Cache_VI";
+
+        public static int CountOfPixelsInClaster = 80;
+        public static int SumOfPixelsInClusters = 250;
+        public static double AcceptablePercentInImposition = 0.15;
+        public static int RadiusOfStartFilling = 7;
     }
 
     /// <summary>
@@ -1398,7 +1404,7 @@ namespace NIIPP.ComputerVision
             {
                 int x = Int32.Parse(nameOfFile.Substring(0, 3));
                 int y = Int32.Parse(nameOfFile.Substring(3, 3));
-                _culledMas[x, y] = 2;
+                _culledMas[x, y] = 8;
             }
             catch (Exception ex)
             {
@@ -1432,6 +1438,35 @@ namespace NIIPP.ComputerVision
     /// </summary>
     static class Utils
     {
+        /// <summary>
+        /// Удаляет кэш 
+        /// </summary>
+        public static void DeleteCache()
+        {
+            DirectoryInfo di = new DirectoryInfo(Settings.PathToCache);
+            foreach (FileInfo file in di.GetFiles())
+            {
+                try
+                {
+                    file.Delete();
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+        }
+
+        /// <summary>
+        /// Создает папку с кэшем
+        /// </summary>
+        public static void CreateCache()
+        {
+            DirectoryInfo di = new DirectoryInfo(Settings.PathToCache);
+            if (!di.Exists)
+                di.Create();
+        }
+
         /// <summary>
         /// Проверяет открыта ли данная форма
         /// </summary>

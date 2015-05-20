@@ -141,7 +141,6 @@
             this.загрузкаToolStripMenuItem.Name = "загрузкаToolStripMenuItem";
             this.загрузкаToolStripMenuItem.Size = new System.Drawing.Size(254, 40);
             this.загрузкаToolStripMenuItem.Text = "Загрузка";
-            this.загрузкаToolStripMenuItem.Click += new System.EventHandler(this.загрузкаToolStripMenuItem_Click);
             // 
             // FormMain
             // 
