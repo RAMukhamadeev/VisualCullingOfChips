@@ -28,7 +28,8 @@ namespace ViewCulling
             SetTextBoxValue(tbSizeOfClaster, Settings.CountOfPixelsInClaster.ToString());
             SetTextBoxValue(tbSumOfClasters, Settings.SumOfPixelsInClusters.ToString());
             SetTextBoxValue(tbRadiusOfStartFilling, Settings.RadiusOfStartFilling.ToString());
-            SetTextBoxValue(tbAcceptablePercent, Settings.AcceptablePercentInImposition.ToString(CultureInfo.InvariantCulture));
+            SetTextBoxValue(tbAcceptablePercent, Settings.ImpositionAcceptablePercent.ToString(CultureInfo.InvariantCulture));
+            SetTextBoxValue(tbEdgeArea, Settings.EdgeNearArea.ToString());
         }
 
         private void сохранитьToolStripMenuItem_Click(object sender, EventArgs e)
@@ -38,8 +39,9 @@ namespace ViewCulling
                 Settings.CountOfPixelsInClaster = Int32.Parse(tbSizeOfClaster.Text);
                 Settings.SumOfPixelsInClusters = Int32.Parse(tbSumOfClasters.Text);
                 Settings.RadiusOfStartFilling = Int32.Parse(tbRadiusOfStartFilling.Text);
-                Settings.AcceptablePercentInImposition = Int32.Parse(tbAcceptablePercent.Text,
+                Settings.ImpositionAcceptablePercent = Double.Parse(tbAcceptablePercent.Text,
                     CultureInfo.InvariantCulture);
+                Settings.EdgeNearArea = Int32.Parse(tbEdgeArea.Text);
             }
             catch (Exception ex)
             {

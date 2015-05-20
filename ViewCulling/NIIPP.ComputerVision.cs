@@ -20,8 +20,9 @@ namespace NIIPP.ComputerVision
 
         public static int CountOfPixelsInClaster = 80;
         public static int SumOfPixelsInClusters = 250;
-        public static double AcceptablePercentInImposition = 0.15;
+        public static double ImpositionAcceptablePercent = 0.1;
         public static int RadiusOfStartFilling = 7;
+        public static int EdgeNearArea = 2;
     }
 
     /// <summary>
@@ -102,15 +103,23 @@ namespace NIIPP.ComputerVision
         /// Цвет повреждения
         /// </summary>
         public static readonly Color Damage = Color.FromArgb(250, 127, 80);
+
         /// <summary>
         /// Цвет рамки вокруг повреждения
         /// </summary>
-        public static readonly Color Frame = Color.FromArgb(172, 255, 47);
+        public static readonly Color Frame = Color.FromArgb(255, 255, 0);
         /// <summary>
         /// Цвет краев сегментов
         /// </summary>
-        public static readonly Color Edge = Color.FromArgb(250, 255, 0);
+        public static readonly Color Edge = Color.FromArgb(255, 255, 0);
 
+        /// <summary>
+        /// Устанавливает цвет пикселя в определенной координате заданного массива
+        /// </summary>
+        /// <param name="mas"></param>
+        /// <param name="i"></param>
+        /// <param name="j"></param>
+        /// <param name="color"></param>
         public static void SetColor(byte[,,] mas, int i, int j, Color color)
         {
             mas[i, j, 0] = color.R;
@@ -210,7 +219,7 @@ namespace NIIPP.ComputerVision
         /// <summary>
         /// Минимальный радиус фоновой области, из которой начинается заливка изображения фоновыми пикселями
         /// </summary>
-        private int RadiusOfStartFilling { get; set; }
+        public int RadiusOfStartFilling = 7;
         /// <summary>
         /// Трехмерный массив - двумерный массив пикселей + 3 измерение RGB компоненты
         /// </summary>
@@ -245,8 +254,6 @@ namespace NIIPP.ComputerVision
         {
             _delta = delta;
             _points = points;
-
-            RadiusOfStartFilling = 7;
         }
 
         /// <summary>
@@ -417,6 +424,11 @@ namespace NIIPP.ComputerVision
         /// Ширина краевой индикаторной полосы по которой происходит совмещение
         /// </summary>
         private const int Bandwidth = 20;
+
+        /// <summary>
+        /// Максимальный процент несоответствия при котором проходит проверка полос на совмещение
+        /// </summary>
+        public double AcceptablePercent = 0.1;
 
         /// <summary>
         /// Конструктор принимает массив пикселей изображения годного чипа
@@ -599,8 +611,6 @@ namespace NIIPP.ComputerVision
         /// <returns>Множество возможных точек совмещения</returns>
         private List<Point> FindProbablePositions()
         {
-            const double acceptablePercent = 0.1;
-
             List<Point> probablePositions = new List<Point>();
 
             int h = _currMas.GetUpperBound(0) + 1;
@@ -639,13 +649,13 @@ namespace NIIPP.ComputerVision
                     double leftDelta = (double)(Math.Abs(countOfPixelsLeft - currCountOfPixelsLeft)) / countOfPixelsLeft;
                     
                     int countOfAcceptable = 0;
-                    if (upDelta < acceptablePercent)
+                    if (upDelta < AcceptablePercent)
                         countOfAcceptable++;
-                    if (downDelta < acceptablePercent)
+                    if (downDelta < AcceptablePercent)
                         countOfAcceptable++;
-                    if (rightDelta < acceptablePercent)
+                    if (rightDelta < AcceptablePercent)
                         countOfAcceptable++;
-                    if (leftDelta < acceptablePercent)
+                    if (leftDelta < AcceptablePercent)
                         countOfAcceptable++;
 
                     if (countOfAcceptable >= 3)
@@ -807,12 +817,22 @@ namespace NIIPP.ComputerVision
         /// Область вблизи краев образца годного чипа
         /// </summary>
         private readonly byte[,,] _edgeNearAreaMas;
-
         /// <summary>
         /// Сдвиг соответствующий идеальному совмещению
         /// </summary>
         private Point _offset;
-
+        /// <summary>
+        /// Изображение чипа с подсветкой повреждений
+        /// </summary>
+        public Bitmap PicWithSprites { get; private set; }
+        /// <summary>
+        /// Минимальный размер островка несоответствующих пикселей, которые не игнорируются
+        /// </summary>
+        private readonly int _islandLimit;
+        /// <summary>
+        /// Максимальный размер суммы пикселей в неигнорируемых островках, при котором чип считается годным
+        /// </summary>
+        private readonly int _sumIslandLimit;
         /// <summary>
         /// Ширина изображения годного чипа
         /// </summary>
@@ -830,9 +850,19 @@ namespace NIIPP.ComputerVision
         /// </summary>
         public string CurrVerdict { get; private set; }
         /// <summary>
-        /// Текущая оценка чипа (сумма отличающихся пикселей)
+        /// Текущая оценка чипа (сумма отличающихся пикселей в островках)
         /// </summary>
-        public int CurrMark { get; private set; }
+        public int CurrMarkIsland { get; private set; }
+        /// <summary>
+        /// Полное число отличающихся пикселей
+        /// </summary>
+        public int CurrMarkDust { get; private set; }
+
+        /// <summary>
+        /// Количество найденных повреждений
+        /// </summary>
+        public int CountOfDamages { get; private set; }
+
         /// <summary>
         /// Объект для нахождения лучшего совмещения
         /// </summary>
@@ -841,14 +871,35 @@ namespace NIIPP.ComputerVision
         /// Объект проекта отбраковки
         /// </summary>
         private readonly CullingProject _cullingProject;
+        /// <summary>
+        /// Нужно ли красить повреждения
+        /// </summary>
+        public bool NeedToPaintDamages = false;
 
+        /// <summary>
+        /// Радиус игнорируемой области вокруг краев
+        /// </summary>
+        public int EdgeRadius = 2;
+        /// <summary>
+        /// Коэффициент для совмещения
+        /// </summary>
+        public double ImpositionAcceptablePercent = 0.1;
+        /// <summary>
+        /// Коэффициент сегментации
+        /// </summary>
+        public int SegmentationRadiusOfStartFilling = 7;
 
         /// <summary>
         /// Конструктор принимает объект проекта отбраковки
         /// </summary>
         /// <param name="cullingProject">Ссылка на объект проекта отбраковки</param>
-        public VisualInspect(CullingProject cullingProject)
+        /// <param name="islandLimit">Минимальный размер островка несоответствующих пикселей, которые не игнорируются</param>
+        /// <param name="sumIslandLimit">Максимальный размер суммы пикселей в неигнорируемых островках, при котором чип считается годным</param>
+        public VisualInspect(CullingProject cullingProject, int islandLimit, int sumIslandLimit)
         {
+            _islandLimit = islandLimit;
+            _sumIslandLimit = sumIslandLimit;
+
             // сохраняем проект отбраковки
             _cullingProject = cullingProject;
 
@@ -857,14 +908,17 @@ namespace NIIPP.ComputerVision
 
             // находим края изображения годного чипа
             EdgeFinder edgeFinder = new EdgeFinder(_segmentedMassGoodChip);
-            _edgeNearAreaMas = edgeFinder.GetEdgeNearArea();
+            _edgeNearAreaMas = edgeFinder.GetEdgeNearArea(EdgeRadius);
 
             // фиксируем размеры массива
             _heightOfGood = _segmentedMassGoodChip.GetUpperBound(0) + 1;
             _widthOfGood = _segmentedMassGoodChip.GetUpperBound(1) + 1;
 
             // создаем объект для нахождения лучшего совмещения
-            _superImposition = new SuperImposition(_segmentedMassGoodChip);
+            _superImposition = new SuperImposition(_segmentedMassGoodChip)
+            {
+                AcceptablePercent = ImpositionAcceptablePercent
+            };
         }
 
         /// <summary>
@@ -872,11 +926,14 @@ namespace NIIPP.ComputerVision
         /// </summary>
         /// <param name="pathToChipFile">Путь к файлу с изображением чипа</param>
         /// <returns>Возвращает изображение в формате Bitmap с пометкой подозрительных областей</returns>
-        public Bitmap CheckNextChip(string pathToChipFile)
+        public void CheckNextChip(string pathToChipFile)
         {
             // сегментируем очередной чип, который нужно проверить
             Bitmap bmp = new Bitmap(pathToChipFile);
-            Segmentation segm = new Segmentation(_cullingProject.KeyPoints, _cullingProject.Lim);
+            Segmentation segm = new Segmentation(_cullingProject.KeyPoints, _cullingProject.Lim)
+            {
+                RadiusOfStartFilling = SegmentationRadiusOfStartFilling
+            };
             byte[,,] segmentedMass = segm.GetSegmentedMass(bmp);
 
             // сохраняем изображение очередного чипа
@@ -885,10 +942,13 @@ namespace NIIPP.ComputerVision
             // находим наилучшее совмещение
             _offset = _superImposition.FindBestImposition(segmentedMass);
 
+            CurrMarkIsland = 0;
+            CurrMarkDust = 0;
+            CountOfDamages = 0;
             // сравниваем хороший чип и очередной тестируемый
-            Bitmap picWithSprites = CheckChipForDamage(segmentedMass);
+            CheckChipForDamage(segmentedMass);
 
-            return picWithSprites;
+            CurrVerdict = CurrMarkIsland < _sumIslandLimit ? Verdict.Good.Name : Verdict.Bad.Name;
         }
 
         /// <summary>
@@ -900,7 +960,7 @@ namespace NIIPP.ComputerVision
         /// <param name="nextChipWithSprites"></param>
         /// <param name="isAnalyzed"></param>
         /// <returns></returns>
-        private int AnalyzeIslandOfPixels(int si, int sj, byte[,,] nextPicMass, ref byte[,,] nextChipWithSprites, ref bool[,] isAnalyzed)
+        private void AnalyzeIslandOfPixels(int si, int sj, byte[,,] nextPicMass, ref byte[,,] nextChipWithSprites, ref bool[,] isAnalyzed)
         {
             int[] di = {-1, 1, 0, 0};
             int[] dj = {0, 0, 1, -1};
@@ -933,102 +993,94 @@ namespace NIIPP.ComputerVision
                 currPos++;
             }
 
-            // оцениваем остров по параметрам
-            int maxi = 0, maxj = 0, mini = Int32.MaxValue, minj = Int32.MaxValue; 
-            foreach (Point nextPoint in queue)
+            if (queue.Count > _islandLimit)
             {
-                int i = nextPoint.Y,
-                    j = nextPoint.X;
+                CurrMarkIsland += queue.Count;
+                CountOfDamages++;
 
-                maxi = Math.Max(maxi, i);
-                maxj = Math.Max(maxj, j);
-                mini = Math.Min(mini, i);
-                minj = Math.Min(minj, j);
-            }
-
-            bool isDamage = queue.Count > 80;
-
-            if (isDamage)
-            {
-                // закрашиваем остров - повреждение
-                //foreach (Point nextPoint in queue)
-                //{
-                //    int curri = nextPoint.Y,
-                //        currj = nextPoint.X;
-                //    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 0] = VisionColors.Damage.R;
-                //    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 1] = VisionColors.Damage.G;
-                //    nextChipWithSprites[curri + _offset.Y, currj + _offset.X, 2] = VisionColors.Damage.B;
-                //}
+                // закрашиваем остров - повреждение если это нужно
+                if (NeedToPaintDamages)
+                    DrawDamage(queue, ref nextChipWithSprites);
 
                 // рисуем рамку
-                mini -= 4;
-                minj -= 4;
-                maxj += 4;
-                maxi += 4;
+                DrawFrame(queue, ref nextChipWithSprites);
+            }
+            else
+            {
+                CurrMarkDust += queue.Count;
+            }
+        }
 
-                int limitForI = nextChipWithSprites.GetUpperBound(0) - 1 - _offset.Y,
-                    limitForJ = nextChipWithSprites.GetUpperBound(1) - 1 - _offset.X;
+        private void DrawDamage(List<Point> queue, ref byte[,,] nextChipWithSprites)
+        {
+            foreach (Point nextPoint in queue)
+            {
+                ProColors.SetColor(nextChipWithSprites, nextPoint.Y + _offset.Y, nextPoint.X + _offset.X, ProColors.Damage);
+            }
+        }
 
-                mini = Math.Max(mini, 1);
-                maxi = Math.Min(maxi, limitForI);
-                minj = Math.Max(minj, 1);
-                maxj = Math.Min(maxj, limitForJ);
+        private void DrawFrame(List<Point> queue, ref byte[,,] nextChipWithSprites)
+        {
+            const int width = 7;
 
-                for (int i = mini - 1; i < mini + 1; i++)
+            int limitForI = (nextChipWithSprites.GetUpperBound(0) - 1) - _offset.Y,
+                limitForJ = (nextChipWithSprites.GetUpperBound(1) - 1) - _offset.X;
+
+            // находим границы острова из пикселей
+            int maxi = Math.Min(queue.Max(point => point.Y) + width, limitForI),
+                maxj = Math.Min(queue.Max(point => point.X) + width, limitForJ),
+                mini = Math.Max(queue.Min(point => point.Y) - width, 1),
+                minj = Math.Max(queue.Min(point => point.X) - width, 1);
+
+            for (int i = mini - 1; i < mini + 1; i++)
+            {
+                for (int j = minj; j < maxj + 1; j++)
                 {
-                    for (int j = minj; j < maxj; j++)
-                    {
-                        ProColors.SetColor(nextChipWithSprites, i + _offset.Y, j + _offset.X, ProColors.Frame);
-                    }
-                }
-                for (int i = maxi - 1; i < maxi + 1; i++)
-                {
-                    for (int j = minj; j < maxj; j++)
-                    {
-                        ProColors.SetColor(nextChipWithSprites, i + _offset.Y, j + _offset.X, ProColors.Frame);
-                    }
-                }
-                for (int j = minj - 1; j < minj + 1; j++)
-                {
-                    for (int i = mini; i < maxi; i++)
-                    {
-                        ProColors.SetColor(nextChipWithSprites, i + _offset.Y, j + _offset.X, ProColors.Frame);
-                    }
-                }
-                for (int j = maxj - 1; j < maxj + 1; j++)
-                {
-                    for (int i = mini; i < maxi; i++)
-                    {
-                        ProColors.SetColor(nextChipWithSprites, i + _offset.Y, j + _offset.X, ProColors.Frame);
-                    }
+                    ProColors.SetColor(nextChipWithSprites, i + _offset.Y, j + _offset.X, ProColors.Frame);
                 }
             }
-
-            return isDamage ? queue.Count : 0;
+            for (int i = maxi - 1; i < maxi + 1; i++)
+            {
+                for (int j = minj; j < maxj; j++)
+                {
+                    ProColors.SetColor(nextChipWithSprites, i + _offset.Y, j + _offset.X, ProColors.Frame);
+                }
+            }
+            for (int j = minj - 1; j < minj + 1; j++)
+            {
+                for (int i = mini; i < maxi; i++)
+                {
+                    ProColors.SetColor(nextChipWithSprites, i + _offset.Y, j + _offset.X, ProColors.Frame);
+                }
+            }
+            for (int j = maxj - 1; j < maxj + 1; j++)
+            {
+                for (int i = mini; i < maxi; i++)
+                {
+                    ProColors.SetColor(nextChipWithSprites, i + _offset.Y, j + _offset.X, ProColors.Frame);
+                }
+            }
         }
 
         /// <summary>
         /// Анализ изображения тестируемого чипа на предмет брака
         /// </summary>
         /// <param name="nextPicMass">Изображение тестируемого чипа в виде массива пикселей</param>
-        /// <returns>Изображение с пометкой подозрительных областей</returns>
-        private Bitmap CheckChipForDamage(byte[,,] nextPicMass)
+        private void CheckChipForDamage(byte[,,] nextPicMass)
         {
             bool[,] isAnalyzed = new bool[_heightOfGood, _widthOfGood];
 
             byte[,,] nextChipWithSprites = Utils.BitmapToByteRgb(_currChipForTest);
-            int diff = 0;
             for (int i = 0; i < _heightOfGood; i++)
                 for (int j = 0; j < _widthOfGood; j++)
                 {
                     if (!isAnalyzed[i, j] && (!ProColors.IsEqual(_segmentedMassGoodChip, nextPicMass, i, j, _offset)))
                     {
-                        diff += AnalyzeIslandOfPixels(i, j, nextPicMass, ref nextChipWithSprites, ref isAnalyzed);
+                        AnalyzeIslandOfPixels(i, j, nextPicMass, ref nextChipWithSprites, ref isAnalyzed);
                     }
                 }
 
-            CurrMark = diff;
-            return Utils.ByteToBitmapRgb(nextChipWithSprites);
+            PicWithSprites = Utils.ByteToBitmapRgb(nextChipWithSprites);
         }
     }
 
@@ -1097,15 +1149,13 @@ namespace NIIPP.ComputerVision
         /// <param name="si">i-координата</param>
         /// <param name="sj">j-координата</param>
         /// <param name="edgeOfGood">Массив с краями сегментов</param>
+        /// <param name="radius">Радиус игнорируемой области около краев</param>
         /// <returns></returns>
-        private bool FarFromEdge(int si, int sj, byte[,,] edgeOfGood)
+        private bool FarFromEdge(int si, int sj, byte[,,] edgeOfGood, int radius)
         {
             // рамка у края ни сильно важна, поэтому для нее радиус больше
-            int radius;
             if (si <= 25 || sj <= 25 || _h - si <= 25 || _w - sj <= 25)
                 radius = 3;
-            else
-                radius = 1;
 
             int i, j;
             bool res = true;
@@ -1153,14 +1203,14 @@ namespace NIIPP.ComputerVision
             return res;
         }
 
-        public byte[,,] GetEdgeNearArea()
+        public byte[,,] GetEdgeNearArea(int radius)
         {
             byte[,,] edgeMas = GetEdgeMas();
 
             byte[,,] edgeNearAreaMas = new byte[_h, _w, 3];
             for (int i = 0; i < _h; i++)
                 for (int j = 0; j < _w; j++)
-                    ProColors.SetColor(edgeNearAreaMas, i, j, !FarFromEdge(i, j, edgeMas) ? ProColors.Edge : ProColors.Wafer);
+                    ProColors.SetColor(edgeNearAreaMas, i, j, !FarFromEdge(i, j, edgeMas, radius) ? ProColors.Edge : ProColors.Wafer);
 
             return edgeNearAreaMas;
         }

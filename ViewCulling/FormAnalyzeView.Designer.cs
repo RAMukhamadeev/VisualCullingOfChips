@@ -77,7 +77,7 @@
             this.видToolStripMenuItem});
             this.msMain.Location = new System.Drawing.Point(0, 0);
             this.msMain.Name = "msMain";
-            this.msMain.Size = new System.Drawing.Size(1838, 44);
+            this.msMain.Size = new System.Drawing.Size(1576, 44);
             this.msMain.TabIndex = 0;
             this.msMain.Text = "menuStrip1";
             // 
@@ -169,7 +169,7 @@
             this.pbViewPicture.Location = new System.Drawing.Point(24, 40);
             this.pbViewPicture.Margin = new System.Windows.Forms.Padding(4);
             this.pbViewPicture.Name = "pbViewPicture";
-            this.pbViewPicture.Size = new System.Drawing.Size(1300, 1016);
+            this.pbViewPicture.Size = new System.Drawing.Size(1086, 1016);
             this.pbViewPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pbViewPicture.TabIndex = 1;
             this.pbViewPicture.TabStop = false;
@@ -224,7 +224,7 @@
             this.gbImage.Margin = new System.Windows.Forms.Padding(4);
             this.gbImage.Name = "gbImage";
             this.gbImage.Padding = new System.Windows.Forms.Padding(4);
-            this.gbImage.Size = new System.Drawing.Size(1348, 1084);
+            this.gbImage.Size = new System.Drawing.Size(1134, 1084);
             this.gbImage.TabIndex = 1;
             this.gbImage.TabStop = false;
             this.gbImage.Text = "Изображение";
@@ -236,7 +236,7 @@
             this.gbInstruments.Controls.Add(this.gbInfo);
             this.gbInstruments.Controls.Add(this.gbView);
             this.gbInstruments.Font = new System.Drawing.Font("Candara", 11.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))));
-            this.gbInstruments.Location = new System.Drawing.Point(1434, 52);
+            this.gbInstruments.Location = new System.Drawing.Point(1181, 52);
             this.gbInstruments.Margin = new System.Windows.Forms.Padding(4);
             this.gbInstruments.Name = "gbInstruments";
             this.gbInstruments.Padding = new System.Windows.Forms.Padding(4);
@@ -387,7 +387,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(192F, 192F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(1838, 1154);
+            this.ClientSize = new System.Drawing.Size(1576, 1154);
             this.Controls.Add(this.gbInstruments);
             this.Controls.Add(this.gbImage);
             this.Controls.Add(this.msMain);
