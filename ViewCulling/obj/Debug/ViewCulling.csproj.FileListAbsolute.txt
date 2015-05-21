@@ -1,7 +1,6 @@
 D:\GitHub\VisualCullingOfChips\ViewCulling\bin\Debug\ViewCulling.exe.config
 D:\GitHub\VisualCullingOfChips\ViewCulling\bin\Debug\ViewCulling.exe
 D:\GitHub\VisualCullingOfChips\ViewCulling\bin\Debug\ViewCulling.pdb
-D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.csprojResolveAssemblyReference.cache
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormMain.resources
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormRgbAnalyze.resources
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.Properties.Resources.resources

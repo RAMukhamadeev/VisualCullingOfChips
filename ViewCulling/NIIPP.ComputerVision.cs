@@ -1527,6 +1527,10 @@ namespace NIIPP.ComputerVision
             return Application.OpenForms.Cast<Form>().Any(form => form.Name == nameOfForm);
         }
 
+
+
+
+
         public static List<string> GetPicturesFromDifferentPointsOfWafer(List<string> pathes)
         {
             List<string> res = new List<string>();
@@ -1585,6 +1589,13 @@ namespace NIIPP.ComputerVision
             return res;
         }
 
+
+
+
+
+
+
+
         /// <summary>
         /// Отображает ключевые точки на изображении
         /// </summary>
@@ -1593,6 +1604,7 @@ namespace NIIPP.ComputerVision
         /// <returns>Изображение с точками</returns>
         public static Bitmap DrawKeyPointsOnImage(Bitmap bmp, List<Point> points)
         {
+            points = GetCorrectedKeyPoints(bmp, points);
             const int outRad = 10;
             const int inRad = 4;
 
@@ -1612,6 +1624,55 @@ namespace NIIPP.ComputerVision
             return newBitmap;
         }
 
+        public static List<Point> GetCorrectedKeyPoints(Bitmap bmp, List<Point> points)
+        {
+            return points.Select(point => CorrectedKeyPoint(Utils.BitmapToByteRgb(bmp), point)).ToList();
+        }
+
+        private static Point CorrectedKeyPoint(byte[,,] bmp, Point point)
+        {
+            const int delta = 20;
+            const int area = 5;
+            int h = bmp.GetUpperBound(0) - 1 - area;
+            int w = bmp.GetUpperBound(1) - 1 - area;
+
+            int minVal = Int32.MaxValue;
+            Point res = new Point(point.X, point.Y);
+            for (int x = Math.Max(point.X - delta, area); x < Math.Min(point.X + delta, w); x++)
+                for (int y = Math.Max(point.Y - delta, area); y < Math.Min(point.Y + delta, h); y++)
+                {
+                    Point temp = new Point(x, y);
+                    int coeff = CalcSmoothCoeff(bmp, temp);
+                    if (minVal > coeff)
+                    {
+                        minVal = coeff;
+                        res = temp;
+                    }
+                }
+
+            return res;
+        }
+
+        private static int CalcSmoothCoeff(byte[,,] bmp, Point point)
+        {
+            const int area = 7;
+
+            int res = 0;
+            for (int x = point.X - area; x < point.X + area; x++)
+                res += PixelDiff(bmp, point.Y, point.X, point.Y, x);
+
+            for (int y = point.Y - area; y < point.Y + area; y++)
+                res += PixelDiff(bmp, point.Y, point.X, y, point.X);
+
+            return res;
+        }
+
+        private static int PixelDiff(byte[,,] mas, int i1, int j1, int i2, int j2)
+        {
+            return Math.Abs(mas[i1, j1, 0] - mas[i2, j2, 0]) + Math.Abs(mas[i1, j1, 1] - mas[i2, j2, 1]) + Math.Abs(mas[i1, j1, 2] - mas[i2, j2, 2]);
+        }
+
+
         /// <summary>
         /// Определение цвета по ключевым точкам на изображении
         /// </summary>
@@ -1620,6 +1681,7 @@ namespace NIIPP.ComputerVision
         /// <returns>Усредненный (без выпадающих точек) цвет</returns>
         public static Color FindColorByPoints(Bitmap bmp, List<Point> points)
         {
+            points = GetCorrectedKeyPoints(bmp, points);
             const int limOfOut = 100;
 
             // безопасно извлекаем пиксели
@@ -1660,6 +1722,12 @@ namespace NIIPP.ComputerVision
             Color res = Color.FromArgb(r / countOfPoints, g / countOfPoints, b / countOfPoints);
             return res;
         }
+
+
+
+
+
+
 
         /// <summary>
         /// Объединяет сегментированные изображения в одно сегментированное с подавлением шума

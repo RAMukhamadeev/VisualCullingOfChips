@@ -16,6 +16,7 @@ namespace ViewCulling
         private CullingProject _cullingProject;
         private string _nameOfFile;
         private int _pos;
+        private int _countOfRows;
 
         public FormAnalyzeView()
         {
@@ -81,9 +82,12 @@ namespace ViewCulling
                 pbViewPicture.Image = GetPatternImage();
         }
 
-        public void LoadMainData(CullingProject cullingProject)
+        public void LoadMainData(CullingProject cullingProject, int countOfRows)
         {
+            _countOfRows = countOfRows;
             _cullingProject = cullingProject;
+
+            pbPosition.Maximum = countOfRows;
         }
 
         public void LoadData(string nameOfFile, string pathSpritePic, string pathToOriginalPic, string coeff, int pos)
@@ -92,8 +96,11 @@ namespace ViewCulling
             _pathToOriginalPic = pathToOriginalPic;
             _pathToSpritePic = pathSpritePic;
             _pos = pos;
+
             lblCoeff.Text = coeff;
             lblNameOfChip.Text = Path.GetFileNameWithoutExtension(nameOfFile);
+            lblCurrPos.Text = String.Format("{0} из {1}", _pos + 1, _countOfRows);
+            pbPosition.Value = _pos;
 
             SetCurrResumeImage();
         }

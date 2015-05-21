@@ -210,7 +210,8 @@ namespace ViewCulling
                 int currRow = FindDgvRowByFileName(Path.GetFileName(currFileName));
                 var dgvcVerdict = dgvTestingOfChips.Rows[currRow].Cells[_columns["Вердикт"]];
 
-                if (dgvcVerdict.Value.ToString() != Verdict.Queue.Name)
+                // если уже проверен то не смотрим
+                if (dgvcVerdict.Value.ToString() != Verdict.Queue.Name && dgvcVerdict.Value.ToString() != Verdict.Processing.Name)
                     continue;
 
                 Verdict.SetVerdictCell(dgvcVerdict, Verdict.Processing);
@@ -265,13 +266,15 @@ namespace ViewCulling
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog
             {
-                SelectedPath = "C:\\Storage"
+                SelectedPath = @"\\172.16.1.7\pc001-backup\4LAB\!MEASURING",
+                Description = "Выбор папки с микрофотографиями для визуального анализа",
             };
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
                 _pathToTestingChipsFolder = fbd.SelectedPath;
-                lblPathToTestFolder.Text = fbd.SelectedPath;
+                Text = fbd.SelectedPath;
+                lblNameOfTestFolder.Text = Path.GetFileName(fbd.SelectedPath);
 
                 PrepareImageMas();
                 LoadInfoAboutTestingSet();
@@ -361,9 +364,9 @@ namespace ViewCulling
             string nameOfFile = dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Название файла"]].Value.ToString();
             string coeff = dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Коэффициент (кластер)"]].Value.ToString();
             string spritePicPath = Settings.PathToCache + "\\" + nameOfFile;
-            string originalPicPath = lblPathToTestFolder.Text + "\\" + nameOfFile;
+            string originalPicPath = _pathToTestingChipsFolder + "\\" + nameOfFile;
 
-            formAnalyzeView.LoadMainData(_cullingProject);
+            formAnalyzeView.LoadMainData(_cullingProject, dgvTestingOfChips.Rows.Count - 1);
             formAnalyzeView.LoadData(nameOfFile, spritePicPath, originalPicPath, coeff, rowNumber);
             formAnalyzeView.SetStatus(dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Вердикт"]].Value.ToString());
 
@@ -374,6 +377,7 @@ namespace ViewCulling
         {
             Random rnd = new Random();
             int num = rnd.Next(8) + 1;
+            num = 4;
             string path = String.Format("assets\\loading{0}.gif", num);
             Image image = new Bitmap(path);
             pbLoading.Image = image;
@@ -431,7 +435,12 @@ namespace ViewCulling
         private void OpenCullingProject()
         {
             string path = Environment.CurrentDirectory + "\\" + Settings.PathToSaveProjects;
-            OpenFileDialog ofd = new OpenFileDialog { InitialDirectory = path, Filter = "Culling Project (*.cpr)|*.cpr" };
+            OpenFileDialog ofd = new OpenFileDialog
+            {
+                InitialDirectory = path,
+                Filter = "Culling Project (*.cpr)|*.cpr",
+                Title = "Выбор файла проекта отбраковки"
+            };
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 _cullingProject = CullingProject.GetSavedProject(ofd.FileName);
@@ -478,7 +487,12 @@ namespace ViewCulling
 
         private void открытьToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog { Filter = "Map files (*.map)|*.*" };
+            OpenFileDialog ofd = new OpenFileDialog 
+            { 
+                Filter = "Map files (*.map)|*.*", 
+                Title = "Выбор шаблона карты раскроя", 
+                InitialDirectory = @"\\172.16.1.7\pc001-backup\4LAB\!MEASURING" 
+            };
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 lblCullingPattern.Text = Path.GetFileName(ofd.FileName);
@@ -505,9 +519,17 @@ namespace ViewCulling
 
         private void сохранитьТекущуюКартуРаскрояToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (_pathToCullingPattern == null)
+            {
+                MessageBox.Show("Не выбран шаблон карты раскроя!");
+                return;
+            }
+
             SaveFileDialog sfd = new SaveFileDialog
             {
                 Filter = "Map file (*.map)|*.map",
+                Title = "Сохранение текущей карты раскроя",
+                InitialDirectory = @"\\172.16.1.7\pc001-backup\4LAB\!MEASURING",
                 FileName =
                     String.Format("{0}_after_visual_culling.map",
                         Path.GetFileNameWithoutExtension(lblCullingPattern.Text))
