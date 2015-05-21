@@ -234,7 +234,7 @@ namespace ViewCulling
                     continue;
 
                 byte[, ,] currMas = segmentation.GetSegmentedMass(_images[i]);
-                Point offset = superImposition.FindBestImposition(currMas);
+                Point offset = superImposition.FindBestImposition(currMas, new Point(trbLeftPosition.Value, trbUpPosition.Value));
                 _images[i] = CutBitmapImage(_images[i], offset, _images[pos].Width, _images[pos].Height);
             }
 
@@ -300,7 +300,7 @@ namespace ViewCulling
         private void выборЦветаФонаToolStripMenuItem_Click(object sender, EventArgs e)
         {
             CurrResume = Resume.ChooseKeyPoints;
-            pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage(_currImage, GetCorrectedPoints());
+            pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage(_currImage, GetCorrectedPoints(), true);
 
             SetTsmiChecked(sender);
         }
@@ -427,7 +427,7 @@ namespace ViewCulling
             if (CurrResume == Resume.Cutting)
                 DrawFrame();
             if (CurrResume == Resume.ChooseKeyPoints)
-                pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage((Bitmap) pbGoodChipImage.Image, GetCorrectedPoints());
+                pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage((Bitmap) pbGoodChipImage.Image, GetCorrectedPoints(), true);
         }
 
         private void pbLeftArrow_Click(object sender, EventArgs e)
@@ -453,7 +453,7 @@ namespace ViewCulling
             if (CurrResume == Resume.Cutting)
                 DrawFrame();
             if (CurrResume == Resume.ChooseKeyPoints)
-                pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage((Bitmap)pbGoodChipImage.Image, GetCorrectedPoints());
+                pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage((Bitmap)pbGoodChipImage.Image, GetCorrectedPoints(), true);
         }
 
         private void создатьОбъединениеToolStripMenuItem_Click(object sender, EventArgs e)
@@ -482,7 +482,7 @@ namespace ViewCulling
             if (CurrResume == Resume.ChooseKeyPoints)
             {
                 ChooseBackground(e);
-                pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage( (Bitmap) pbGoodChipImage.Image, GetCorrectedPoints());
+                pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage( (Bitmap) pbGoodChipImage.Image, GetCorrectedPoints(), false);
             }
         }
 
@@ -514,7 +514,7 @@ namespace ViewCulling
         {
             _keyPoints.RemoveAt(_keyPoints.Count - 1);
 
-            pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage(_currImage, _keyPoints);
+            pbGoodChipImage.Image = Utils.DrawKeyPointsOnImage(_currImage, _keyPoints, false);
         }
 
     }

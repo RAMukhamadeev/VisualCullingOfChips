@@ -34,6 +34,7 @@ namespace ViewCulling
         private Thread[] _workThreads;
         private DateTime _dtStartOfCalculation;
         private DispatcherTimer _mainTimer;
+        private WaferMap _waferMap;
 
         private List<string> _pathesToImageFiles = new List<string>();
         private int _currFileIndex;
@@ -246,6 +247,19 @@ namespace ViewCulling
                         {
                             Verdict.SetVerdictCell(dgvcVerdict, Verdict.Bad);
                             _statInfo.CountOfBad++;
+
+                            if (_waferMap != null)
+                            {
+                                _waferMap.SetChipAsCulled(Path.GetFileName(currFileName));
+                                BeginInvoke(new MethodInvoker(
+                                    delegate
+                                    {
+                                        if (Utils.FormIsOpen("FormWaferMap"))
+                                            FormWaferMap.Instance.RefreshWaferMapPicture();
+                                    }
+                                ));
+                                
+                            }
                         }
                         if (vi.CurrVerdict == Verdict.Good.Name)
                         {
@@ -262,11 +276,11 @@ namespace ViewCulling
             while (true);
         }
 
-        private void OpenFolderForTesting()
+        private void OpenFolderForTesting(string initPath)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog
             {
-                SelectedPath = @"\\172.16.1.7\pc001-backup\4LAB\!MEASURING",
+                SelectedPath = initPath,
                 Description = "Выбор папки с микрофотографиями для визуального анализа",
             };
 
@@ -284,7 +298,7 @@ namespace ViewCulling
 
         private void открытьToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFolderForTesting();
+            OpenFolderForTesting("");
         }
 
         private void FormStartAnalyze_Load(object sender, EventArgs e)
@@ -490,13 +504,14 @@ namespace ViewCulling
             OpenFileDialog ofd = new OpenFileDialog 
             { 
                 Filter = "Map files (*.map)|*.*", 
-                Title = "Выбор шаблона карты раскроя", 
-                InitialDirectory = @"\\172.16.1.7\pc001-backup\4LAB\!MEASURING" 
+                // InitialDirectory = @"\\172.16.1.7\pc001-backup\4LAB\!MEASURING" 
+                Title = "Выбор шаблона карты раскроя",
             };
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 lblCullingPattern.Text = Path.GetFileName(ofd.FileName);
                 _pathToCullingPattern = ofd.FileName;
+                _waferMap = new WaferMap(_pathToCullingPattern);
             }
         }
 
@@ -529,7 +544,7 @@ namespace ViewCulling
             {
                 Filter = "Map file (*.map)|*.map",
                 Title = "Сохранение текущей карты раскроя",
-                InitialDirectory = @"\\172.16.1.7\pc001-backup\4LAB\!MEASURING",
+               // InitialDirectory = @"\\172.16.1.7\pc001-backup\4LAB\!MEASURING",
                 FileName =
                     String.Format("{0}_after_visual_culling.map",
                         Path.GetFileNameWithoutExtension(lblCullingPattern.Text))
@@ -597,7 +612,7 @@ namespace ViewCulling
 
         private void pbChooseFolder_Click(object sender, EventArgs e)
         {
-            OpenFolderForTesting();
+            OpenFolderForTesting("");
         }
 
         private void коэффициентыToolStripMenuItem_Click(object sender, EventArgs e)
@@ -607,6 +622,23 @@ namespace ViewCulling
 
             formSettings.Show();
             formSettings.BringToFront();
+        }
+
+        private void открытьФайлыДляАнализаСетевоеХранилищеToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFolderForTesting(@"\\172.16.1.7\pc001-backup\4LAB\!MEASURING");
+        }
+
+        private void открытьКартуРаскрояToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FormWaferMap formWaferMap = new FormWaferMap {TopLevel = false};
+            FormMain.Instance.Controls.Add(formWaferMap);
+            formWaferMap.Show();
+
+            if (_waferMap != null)
+                formWaferMap.SetWaferMap(_waferMap);
+
+            formWaferMap.BringToFront();
         }
 
     }

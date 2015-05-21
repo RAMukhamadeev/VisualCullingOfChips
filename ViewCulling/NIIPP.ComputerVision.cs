@@ -609,7 +609,7 @@ namespace NIIPP.ComputerVision
         /// Находит множество возможных точек совмещения изображений с помощью анализа позиций индикаторных полос
         /// </summary>
         /// <returns>Множество возможных точек совмещения</returns>
-        private List<Point> FindProbablePositions()
+        private List<Point> FindProbablePositions(Point orientedPoint)
         {
             List<Point> probablePositions = new List<Point>();
 
@@ -623,12 +623,29 @@ namespace NIIPP.ComputerVision
             int countOfPixelsRight = _calcedOriginMas[hOrigin - 1, _right] - _calcedOriginMas[hOrigin - 1, _right - Bandwidth];
             int countOfPixelsLeft = _calcedOriginMas[hOrigin - 1, _left + Bandwidth] - _calcedOriginMas[hOrigin - 1, _left];
 
-            int limitI = h - hOrigin + 1;
-            int startJ = wOrigin;
-
-            for (int i = 0; i < limitI; i++)
+            int startI;
+            int limitI;
+            int startJ;
+            int limitJ;
+            if (orientedPoint.X == 0 && orientedPoint.Y == 0)
             {
-                for (int j = startJ; j < w; j++)
+                startI = 0;
+                limitI = h - hOrigin + 1;
+                startJ = wOrigin;
+                limitJ = w;
+            }
+            else
+            {
+                int area = 25;
+                startI = Math.Max(orientedPoint.Y - area, 0);
+                limitI = Math.Min(orientedPoint.Y + area, h - hOrigin);
+                startJ = Math.Max(orientedPoint.X - area + wOrigin, wOrigin);
+                limitJ = Math.Min(orientedPoint.X + area + wOrigin, w);
+            }
+
+            for (int i = startI; i < limitI; i++)
+            {
+                for (int j = startJ; j < limitJ; j++)
                 {
                     int currCountOfPixelsUp = _calcedCurrMas[_top + i + Bandwidth, j] 
                         - (_calcedCurrMas[_top + i, j] + _calcedCurrMas[_top + i + Bandwidth, j - wOrigin]) 
@@ -760,19 +777,13 @@ namespace NIIPP.ComputerVision
         /// </summary>
         /// <param name="currMas">Массив пикселей изображения тестируемого чипа</param>
         /// <returns></returns>
-        public Point FindBestImposition(byte[, ,] currMas)
+        public Point FindBestImposition(byte[, ,] currMas, Point orientedPoint)
         {
             _currMas = currMas;
             _calcedCurrMas = CalcRectanglePixelCount(_currMas);
 
-            List<Point> probablePositions = FindProbablePositions();
-
-            Point res = FindBestStripePoint(probablePositions);
-
-            // для дополнительной корректировки
-            //res = FindPreciseImposition(res);
-
-            return res;
+            List<Point> probablePositions = FindProbablePositions(orientedPoint);
+            return probablePositions.Count > 0 ? FindBestStripePoint(probablePositions) : orientedPoint;
         }
         
         /// <summary>
@@ -940,7 +951,7 @@ namespace NIIPP.ComputerVision
             _currChipForTest = bmp;
 
             // находим наилучшее совмещение
-            _offset = _superImposition.FindBestImposition(segmentedMass);
+            _offset = _superImposition.FindBestImposition(segmentedMass, _cullingProject.OriginOffset);
 
             CurrMarkIsland = 0;
             CurrMarkDust = 0;
@@ -1427,6 +1438,12 @@ namespace NIIPP.ComputerVision
 
         private readonly int _width;
         private readonly int _height;
+
+        private int _mapMaxX;
+        private int _mapMaxY;
+        private int _mapMinY;
+        private int _mapMinX;
+
         private readonly int[,] _culledMas = new int[XLim, YLim];
 
         /// <summary>
@@ -1446,6 +1463,29 @@ namespace NIIPP.ComputerVision
                 }
             inFile.Close();
             inStream.Close();
+
+            FindMinMaxOfWaferMap();
+        }
+
+        private void FindMinMaxOfWaferMap()
+        {
+            _mapMaxX = 0;
+            _mapMaxY = 0;
+            _mapMinY = YLim - 1;
+            _mapMinX = XLim - 1;
+            for (int i = 0; i < YLim; i++)
+                for (int j = 0; j < XLim; j++)
+                    if (_culledMas[i, j] != 0)
+                    {
+                        if (i > _mapMaxX)
+                            _mapMaxX = i;
+                        if (i < _mapMinX)
+                            _mapMinX = i;
+                        if (j > _mapMaxY)
+                            _mapMaxY = j;
+                        if (j < _mapMinY)
+                            _mapMinY = j;
+                    }
         }
 
         public void SetChipAsCulled(string nameOfFile)
@@ -1480,6 +1520,76 @@ namespace NIIPP.ComputerVision
             outFile.Flush();
             outFile.Close();
             outStream.Close();
+        }
+
+        /// <summary>
+        /// Метод возвращает изображение текущей карты раскроя пластины (с учетом отброковок)
+        /// </summary>
+        /// <param name="widthPix">Ширина изображения в пикселях</param>
+        /// <param name="heightPix">Высота изображения в пикселях</param>
+        /// <returns>Изображение карты раскроя</returns>
+        public Bitmap GetBmpWaferMap(int widthPix, int heightPix)
+        {
+            Bitmap res = new Bitmap(widthPix, heightPix);
+            Graphics g = Graphics.FromImage(res);
+
+            int hCount = _mapMaxY - _mapMinY + 1,
+                wCount = _mapMaxX - _mapMinX + 1;
+
+            int h0 = heightPix / hCount,
+                w0 = widthPix / wCount;
+
+            for (int i = _mapMinX; i <= _mapMaxX; i++)
+            {
+                for (int j = _mapMinY; j <= _mapMaxY; j++)
+                {
+                    Color col;
+                    switch (_culledMas[i, j])
+                    {
+                        case 0:
+                            col = Color.FromArgb(220, 220, 220);
+                            break;
+                        case 1:
+                            col = Color.FromArgb(0, 255, 0);
+                            break;
+                        case 2:
+                            col = Color.FromArgb(255, 0, 0);
+                            break;
+                        case 3:
+                            col = Color.FromArgb(255, 255, 255);
+                            break;
+                        case 4:
+                            col = Color.FromArgb(255, 255, 0);
+                            break;
+                        case 5:
+                            col = Color.FromArgb(255, 192, 203);
+                            break;
+                        case 6:
+                            col = Color.FromArgb(255, 0, 255);
+                            break;
+                        case 7:
+                            col = Color.FromArgb(65, 105, 225);
+                            break;
+                        case 8:
+                            col = Color.FromArgb(0, 255, 225);
+                            break;
+                        default:
+                            col = Color.Black;
+                            break;
+                    }
+
+                    SolidBrush brCol = new SolidBrush(col);
+                    g.FillRectangle(brCol, (i - _mapMinX) * w0, (j - _mapMinY) * h0, w0, h0);
+                }
+            }
+
+            for (int i = _mapMinX; i <= _mapMaxX; i++)
+            {
+                for (int j = _mapMinY; j <= _mapMaxY; j++)
+                    g.DrawRectangle(Pens.Gray, (i - _mapMinX) * w0, (j - _mapMinY) * h0, w0, h0);
+            }
+
+            return res;
         }
     }
 
@@ -1590,28 +1700,24 @@ namespace NIIPP.ComputerVision
         }
 
 
-
-
-
-
-
-
         /// <summary>
         /// Отображает ключевые точки на изображении
         /// </summary>
         /// <param name="bmp">Входное изображение, на котором необходимо нарисовать точки</param>
         /// <param name="points">Массив точек</param>
+        /// <param name="needToScanArea"></param>
         /// <returns>Изображение с точками</returns>
-        public static Bitmap DrawKeyPointsOnImage(Bitmap bmp, List<Point> points)
+        public static Bitmap DrawKeyPointsOnImage(Bitmap bmp, List<Point> points, bool needToScanArea)
         {
-            points = GetCorrectedKeyPoints(bmp, points);
+            if (needToScanArea)
+                points = GetCorrectedKeyPoints(bmp, points);
             const int outRad = 10;
             const int inRad = 4;
 
             Bitmap newBitmap = (Bitmap) bmp.Clone();
             Graphics g = Graphics.FromImage(newBitmap);
 
-            Font drawFont = new Font("Arial", 25);
+            Font drawFont = new Font("Arial", 20);
             for (int i = 0; i < points.Count; i++)
             {
                 Rectangle outRect = new Rectangle(points[i].X - outRad / 2, points[i].Y - outRad / 2, outRad, outRad);
@@ -1624,15 +1730,16 @@ namespace NIIPP.ComputerVision
             return newBitmap;
         }
 
-        public static List<Point> GetCorrectedKeyPoints(Bitmap bmp, List<Point> points)
+        private static List<Point> GetCorrectedKeyPoints(Bitmap bmp, List<Point> points)
         {
-            return points.Select(point => CorrectedKeyPoint(Utils.BitmapToByteRgb(bmp), point)).ToList();
+            byte[,,] mas = BitmapToByteRgb(bmp);
+            return points.Select(point => CorrectedKeyPoint(mas, point)).ToList();
         }
 
         private static Point CorrectedKeyPoint(byte[,,] bmp, Point point)
         {
             const int delta = 20;
-            const int area = 5;
+            const int area = 7;
             int h = bmp.GetUpperBound(0) - 1 - area;
             int w = bmp.GetUpperBound(1) - 1 - area;
 

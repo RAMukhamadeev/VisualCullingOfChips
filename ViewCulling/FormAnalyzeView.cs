@@ -49,7 +49,7 @@ namespace ViewCulling
 
         private Bitmap GetKeyPointsImage()
         {
-            return Utils.DrawKeyPointsOnImage(new Bitmap(_pathToOriginalPic), _cullingProject.KeyPoints);
+            return Utils.DrawKeyPointsOnImage(new Bitmap(_pathToOriginalPic), _cullingProject.KeyPoints, true);
         }
 
         private Bitmap GetEdgeImage()

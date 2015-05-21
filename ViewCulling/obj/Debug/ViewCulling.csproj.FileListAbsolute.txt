@@ -31,3 +31,4 @@ D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormCalibration
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormSettings.resources
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormCalibration.resources
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormSettings.resources
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormWaferMap.resources

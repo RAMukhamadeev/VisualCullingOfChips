@@ -98,6 +98,12 @@
     <Compile Include="FormAnalyzeView.Designer.cs">
       <DependentUpon>FormAnalyzeView.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormWaferMap.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormWaferMap.Designer.cs">
+      <DependentUpon>FormWaferMap.cs</DependentUpon>
+    </Compile>
     <Compile Include="Globals.cs" />
     <Compile Include="NIIPP.ComputerVision.cs" />
     <Compile Include="FormMain.cs">
@@ -134,6 +140,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormAnalyzeView.resx">
       <DependentUpon>FormAnalyzeView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormWaferMap.resx">
+      <DependentUpon>FormWaferMap.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
