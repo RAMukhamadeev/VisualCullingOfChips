@@ -32,3 +32,5 @@ D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormSettings.re
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormCalibration.resources
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormSettings.resources
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormWaferMap.resources
+D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.csprojResolveAssemblyReference.cache
+D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormWaferMap.resources

@@ -34,7 +34,8 @@ namespace NIIPP.ComputerVision
         public int CountOfGood = 0;
         public int CountOfBad = 0;
         public int CountOfCalced = 0;
-        public string CurrFile = "";
+
+        public string CurrFile;
     }
 
     /// <summary>
@@ -1436,13 +1437,27 @@ namespace NIIPP.ComputerVision
         private const int XLim = 400;
         private const int YLim = 400;
 
-        private readonly int _width;
-        private readonly int _height;
+        public int Width { get; private set; }
+        public int Height { get; private set; }
+        public int CountOfChips { get; private set; }
+        public int CountOfGood { get; private set; }
+        public int CountOfBad { get; private set; }
+        public int CountOfVisBad { get; private set; }
+        public int CountOfParBad { get; private set; }
+        public double PercentOfOut { get; private set; }
 
         private int _mapMaxX;
         private int _mapMaxY;
         private int _mapMinY;
         private int _mapMinX;
+
+        public int CurrPosX { get; private set; }
+        public int CurrPosY { get; private set; }
+
+        public int CurrAbsPosX = -1;
+        public int CurrAbsPosY = -1;
+
+        public string PathToSourceFile { get; private set; }
 
         private readonly int[,] _culledMas = new int[XLim, YLim];
 
@@ -1452,10 +1467,12 @@ namespace NIIPP.ComputerVision
         /// <param name="pathToTemplateFile">Путь к файлу с картой раскроя</param>
         public WaferMap(string pathToTemplateFile)
         {
+            PathToSourceFile = pathToTemplateFile;
+
             FileStream inStream = new FileStream(pathToTemplateFile, FileMode.Open);
             BinaryReader inFile = new BinaryReader(inStream);
-            _width = inFile.ReadInt32();
-            _height = inFile.ReadInt32();
+            Width = inFile.ReadInt32();
+            Height = inFile.ReadInt32();
             for (int i = 0; i < YLim; i++)
                 for (int j = 0; j < XLim; j++)
                 {
@@ -1464,10 +1481,10 @@ namespace NIIPP.ComputerVision
             inFile.Close();
             inStream.Close();
 
-            FindMinMaxOfWaferMap();
+            FindMinMaxCoord();
         }
 
-        private void FindMinMaxOfWaferMap()
+        private void FindMinMaxCoord()
         {
             _mapMaxX = 0;
             _mapMaxY = 0;
@@ -1475,6 +1492,7 @@ namespace NIIPP.ComputerVision
             _mapMinX = XLim - 1;
             for (int i = 0; i < YLim; i++)
                 for (int j = 0; j < XLim; j++)
+                {
                     if (_culledMas[i, j] != 0)
                     {
                         if (i > _mapMaxX)
@@ -1486,19 +1504,81 @@ namespace NIIPP.ComputerVision
                         if (j < _mapMinY)
                             _mapMinY = j;
                     }
+                }
         }
 
-        public void SetChipAsCulled(string nameOfFile)
+        private void ExtractInfoOfWaferMap()
         {
+            CountOfBad = 0;
+            CountOfGood = 0;
+            PercentOfOut = 1;
+            CountOfParBad = 0;
+            CountOfVisBad = 0;
+
+            for (int i = 0; i < YLim; i++)
+                for (int j = 0; j < XLim; j++)
+                {
+                    if (_culledMas[i, j] == 1)
+                        CountOfGood++;
+                    if (_culledMas[i, j] == 2)
+                        CountOfParBad++;
+                    if (_culledMas[i, j] == 8)
+                        CountOfVisBad++;
+                }
+            CountOfBad = CountOfParBad + CountOfVisBad;
+            PercentOfOut = (double) (CountOfGood) / (CountOfGood + CountOfBad);
+        }
+
+        private Point? GetCoordFromChipName(string chipName)
+        {
+            Point res;
             try
             {
-                int x = Int32.Parse(nameOfFile.Substring(0, 3));
-                int y = Int32.Parse(nameOfFile.Substring(3, 3));
-                _culledMas[x, y] = 8;
+                res = new Point
+                {
+                    X = Int32.Parse(chipName.Substring(0, 3)), 
+                    Y = Int32.Parse(chipName.Substring(3, 3))
+                };
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Произошла ошибка при попытке установки статуса чипа.\n" + ex.Message);
+                //MessageBox.Show("Произошла ошибка при попытке установки статуса чипа.\n" + ex.Message);
+                return null;
+            }
+
+            return res;
+        }
+
+        public void SetCurrFileName(string currFileName)
+        {
+            SetChipAsCurrent(currFileName);
+        }
+
+        public void SetChipsAsCulled(List<string> masOfBadChips)
+        {
+            foreach (string name in masOfBadChips)
+                SetChipAsCulled(name);
+
+            ExtractInfoOfWaferMap();
+        }
+
+        private void SetChipAsCulled(string nameOfFile)
+        {
+            Point? point = GetCoordFromChipName(nameOfFile);
+            if (point != null)
+            {
+                Point temp = (Point)point;
+                _culledMas[temp.X, temp.Y] = 8;
+            }
+        }
+
+        private void SetChipAsCurrent(string nameOfFile)
+        {
+            Point? point = GetCoordFromChipName(nameOfFile);
+            if (point != null)
+            {
+                Point temp = (Point)point;
+                _culledMas[temp.X, temp.Y] = 9;
             }
         }
         
@@ -1510,8 +1590,8 @@ namespace NIIPP.ComputerVision
         {
             FileStream outStream = new FileStream(pathToSave, FileMode.Create);
             BinaryWriter outFile = new BinaryWriter(outStream);
-            outFile.Write(_width);
-            outFile.Write(_height);
+            outFile.Write(Width);
+            outFile.Write(Height);
             for (int i = 0; i < YLim; i++)
                 for (int j = 0; j < XLim; j++)
                 {
@@ -1525,20 +1605,19 @@ namespace NIIPP.ComputerVision
         /// <summary>
         /// Метод возвращает изображение текущей карты раскроя пластины (с учетом отброковок)
         /// </summary>
-        /// <param name="widthPix">Ширина изображения в пикселях</param>
-        /// <param name="heightPix">Высота изображения в пикселях</param>
+        /// <param name="pbWidth">Ширина изображения в пикселях</param>
+        /// <param name="pbHeight">Высота изображения в пикселях</param>
         /// <returns>Изображение карты раскроя</returns>
-        public Bitmap GetBmpWaferMap(int widthPix, int heightPix)
+        public Bitmap GetBmpWaferMap(int pbWidth, int pbHeight)
         {
-            Bitmap res = new Bitmap(widthPix, heightPix);
-            Graphics g = Graphics.FromImage(res);
-
             int hCount = _mapMaxY - _mapMinY + 1,
                 wCount = _mapMaxX - _mapMinX + 1;
+            int h0 = pbWidth / hCount,
+                w0 = pbHeight / wCount;
+            Bitmap res = new Bitmap(wCount * w0, hCount * h0);
+            Graphics g = Graphics.FromImage(res);
 
-            int h0 = heightPix / hCount,
-                w0 = widthPix / wCount;
-
+            // рисуем квадратики
             for (int i = _mapMinX; i <= _mapMaxX; i++)
             {
                 for (int j = _mapMinY; j <= _mapMaxY; j++)
@@ -1573,6 +1652,9 @@ namespace NIIPP.ComputerVision
                         case 8:
                             col = Color.FromArgb(0, 255, 225);
                             break;
+                        case 9:
+                            col = Color.Orange;
+                            break;
                         default:
                             col = Color.Black;
                             break;
@@ -1583,13 +1665,33 @@ namespace NIIPP.ComputerVision
                 }
             }
 
+            // рисуем сетку
             for (int i = _mapMinX; i <= _mapMaxX; i++)
             {
                 for (int j = _mapMinY; j <= _mapMaxY; j++)
                     g.DrawRectangle(Pens.Gray, (i - _mapMinX) * w0, (j - _mapMinY) * h0, w0, h0);
             }
 
+            // рисуем выделенную пользователем клетку (чип)
+            DrawSelectedCell(pbWidth, pbHeight, g);
+
             return res;
+        }
+
+        private void DrawSelectedCell(int pbWidth, int pbHeight, Graphics g)
+        {
+            if (CurrAbsPosX == -1 || CurrPosY == -1)
+                return;
+            int hCount = _mapMaxY - _mapMinY + 1,
+                wCount = _mapMaxX - _mapMinX + 1;
+            int h0 = pbWidth / hCount,
+                w0 = pbHeight / wCount;
+            int x = CurrAbsPosX / w0;
+            int y = CurrAbsPosY / h0;
+            g.FillRectangle(new SolidBrush(Color.Orange), x * w0 + 1, y * h0 + 1, w0 - 1, h0 - 1);
+
+            CurrPosX = x + _mapMinX;
+            CurrPosY = y + _mapMinY;
         }
     }
 

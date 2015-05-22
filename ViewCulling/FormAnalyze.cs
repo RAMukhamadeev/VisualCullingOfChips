@@ -34,7 +34,6 @@ namespace ViewCulling
         private Thread[] _workThreads;
         private DateTime _dtStartOfCalculation;
         private DispatcherTimer _mainTimer;
-        private WaferMap _waferMap;
 
         private List<string> _pathesToImageFiles = new List<string>();
         private int _currFileIndex;
@@ -43,6 +42,17 @@ namespace ViewCulling
         {
             InitializeComponent();
             Instance = this;
+        }
+
+        private void RefreshWaferMap()
+        {
+            if (_pathToCullingPattern != null && Utils.FormIsOpen("FormWaferMap"))
+            {
+                WaferMap waferMap = new WaferMap(_pathToCullingPattern);
+                waferMap.SetChipsAsCulled(GetListOfBadChips());
+                waferMap.SetCurrFileName(_statInfo.CurrFile);
+                FormWaferMap.Instance.SetWaferMap(waferMap);
+            }
         }
 
         private void RefreshStatisticControls()
@@ -67,6 +77,8 @@ namespace ViewCulling
                             ? _statInfo.CountOfCalced
                             : pbProgress.Maximum;
                         RefreshTime();
+
+                        RefreshWaferMap();
                     }
                 }
                 ));
@@ -79,6 +91,8 @@ namespace ViewCulling
             BeginInvoke(new MethodInvoker(delegate
             {
                 pbLoading.Image = new Bitmap("assets\\done.png");
+                _statInfo.CurrFile = null;
+                RefreshStatisticControls();
             }));
         }
 
@@ -94,13 +108,21 @@ namespace ViewCulling
 
         public void SetUserCorrectedStatus(string nameOfChip, Verdict.VerdictStructure verdict)
         {
+            int pos = -1;
             int indexOfName = _columns["Название файла"];
-            int indexOfVerdict =  _columns["Вердикт"];
             for (int i = 0; i < dgvTestingOfChips.Rows.Count - 1; i++)
             {
-                if (dgvTestingOfChips.Rows[i].Cells[indexOfName].Value.ToString() != nameOfChip) continue;
+                if (dgvTestingOfChips.Rows[i].Cells[indexOfName].Value.ToString() == nameOfChip)
+                {
+                    pos = i;
+                    break;
+                }
+            }
 
-                DataGridViewCell dgvcVerdict = dgvTestingOfChips.Rows[i].Cells[indexOfVerdict];
+            if (pos != -1)
+            {
+                int indexOfVerdict = _columns["Вердикт"];
+                DataGridViewCell dgvcVerdict = dgvTestingOfChips.Rows[pos].Cells[indexOfVerdict];
                 if (dgvcVerdict.Value.ToString() == Verdict.Good.Name && verdict.Name == Verdict.Bad.Name)
                 {
                     _statInfo.CountOfGood--;
@@ -112,10 +134,8 @@ namespace ViewCulling
                     _statInfo.CountOfBad--;
                 }
                 Verdict.SetVerdictCell(dgvcVerdict, verdict);
-
-                break;
+                RefreshStatisticControls();
             }
-            RefreshStatisticControls();
         }
 
         private void InitDgvTestingOfChips()
@@ -247,19 +267,6 @@ namespace ViewCulling
                         {
                             Verdict.SetVerdictCell(dgvcVerdict, Verdict.Bad);
                             _statInfo.CountOfBad++;
-
-                            if (_waferMap != null)
-                            {
-                                _waferMap.SetChipAsCulled(Path.GetFileName(currFileName));
-                                BeginInvoke(new MethodInvoker(
-                                    delegate
-                                    {
-                                        if (Utils.FormIsOpen("FormWaferMap"))
-                                            FormWaferMap.Instance.RefreshWaferMapPicture();
-                                    }
-                                ));
-                                
-                            }
                         }
                         if (vi.CurrVerdict == Verdict.Good.Name)
                         {
@@ -267,8 +274,8 @@ namespace ViewCulling
                             _statInfo.CountOfGood++;
                         }
                     }
-                    _statInfo.CountOfCalced++;
                     _statInfo.CurrFile = Path.GetFileName(currFileName);
+                    _statInfo.CountOfCalced++;
                 }
 
                 RefreshStatisticControls();
@@ -353,6 +360,13 @@ namespace ViewCulling
                 return pos;
 
             return startPoint;
+        }
+
+        public void SendDataToShow(string nameOfFile)
+        {
+            int pos = FindDgvRowByFileName(nameOfFile);
+            if (pos != -1)
+                SendDataToShow(pos);
         }
 
         public void SendDataToShow(int rowNumber, bool? isNext = null, string filter = null)
@@ -499,40 +513,46 @@ namespace ViewCulling
             _currFileIndex = Math.Max(0, _currFileIndex - Environment.ProcessorCount * 2);
         }
 
-        private void открытьToolStripMenuItem1_Click(object sender, EventArgs e)
+        private void OpenCullingPatternMapFile(string initPath)
         {
-            OpenFileDialog ofd = new OpenFileDialog 
-            { 
-                Filter = "Map files (*.map)|*.*", 
-                // InitialDirectory = @"\\172.16.1.7\pc001-backup\4LAB\!MEASURING" 
+            OpenFileDialog ofd = new OpenFileDialog
+            {
+                Filter = "Map files (*.map)|*.*",
+                InitialDirectory = initPath,
                 Title = "Выбор шаблона карты раскроя",
             };
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 lblCullingPattern.Text = Path.GetFileName(ofd.FileName);
                 _pathToCullingPattern = ofd.FileName;
-                _waferMap = new WaferMap(_pathToCullingPattern);
             }
         }
 
-        private void SaveCullingMap(string pathToSave)
+        private void открытьToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            WaferMap waferMap = new WaferMap(_pathToCullingPattern);
+            OpenCullingPatternMapFile("");
+        }
 
+        private List<string> GetListOfBadChips()
+        {
+            List<string> res = new List<string>();
             int indexOfVerdict = _columns["Вердикт"];
             int indexOfNameOfFile = _columns["Название файла"];
             for (int i = 0; i < dgvTestingOfChips.Rows.Count - 1; i++)
-            {
-                string verdict = dgvTestingOfChips.Rows[i].Cells[indexOfVerdict].Value.ToString();
-                string nameOfFile = dgvTestingOfChips.Rows[i].Cells[indexOfNameOfFile].Value.ToString();
-                if (verdict == Verdict.Bad.Name)
-                    waferMap.SetChipAsCulled(nameOfFile);
-            }
+                if ( dgvTestingOfChips.Rows[i].Cells[indexOfVerdict].Value.ToString() == Verdict.Bad.Name)
+                    res.Add(dgvTestingOfChips.Rows[i].Cells[indexOfNameOfFile].Value.ToString());
 
+            return res;
+        }
+
+        private void SaveWaferMapFile(string pathToSave)
+        {
+            WaferMap waferMap = new WaferMap(_pathToCullingPattern);
+            waferMap.SetChipsAsCulled(GetListOfBadChips());
             waferMap.SaveCullingPatternFile(pathToSave);
         }
 
-        private void сохранитьТекущуюКартуРаскрояToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SaveWaferMap()
         {
             if (_pathToCullingPattern == null)
             {
@@ -544,15 +564,19 @@ namespace ViewCulling
             {
                 Filter = "Map file (*.map)|*.map",
                 Title = "Сохранение текущей карты раскроя",
-               // InitialDirectory = @"\\172.16.1.7\pc001-backup\4LAB\!MEASURING",
                 FileName =
-                    String.Format("{0}_after_visual_culling.map",
-                        Path.GetFileNameWithoutExtension(lblCullingPattern.Text))
+                    String.Format("{0}_after_VC.map",
+                        Path.GetFileNameWithoutExtension(_pathToCullingPattern))
             };
             if (sfd.ShowDialog() == DialogResult.OK)
             {
-                SaveCullingMap(sfd.FileName);
+                SaveWaferMapFile(sfd.FileName);
             }
+        }
+
+        private void сохранитьТекущуюКартуРаскрояToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveWaferMap();
         }
 
         private void dgvTestingOfChips_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
@@ -612,7 +636,7 @@ namespace ViewCulling
 
         private void pbChooseFolder_Click(object sender, EventArgs e)
         {
-            OpenFolderForTesting("");
+            OpenFolderForTesting(@"\\172.16.1.7\pc001-backup\4LAB\!MEASURING");
         }
 
         private void коэффициентыToolStripMenuItem_Click(object sender, EventArgs e)
@@ -624,22 +648,35 @@ namespace ViewCulling
             formSettings.BringToFront();
         }
 
-        private void открытьФайлыДляАнализаСетевоеХранилищеToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            OpenFolderForTesting(@"\\172.16.1.7\pc001-backup\4LAB\!MEASURING");
-        }
-
         private void открытьКартуРаскрояToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FormWaferMap formWaferMap = new FormWaferMap {TopLevel = false};
             FormMain.Instance.Controls.Add(formWaferMap);
             formWaferMap.Show();
 
-            if (_waferMap != null)
-                formWaferMap.SetWaferMap(_waferMap);
+            if (_pathToCullingPattern != null)
+            {
+                WaferMap waferMap = new WaferMap(_pathToCullingPattern);
+                waferMap.SetChipsAsCulled(GetListOfBadChips());
+                formWaferMap.SetWaferMap(waferMap);
+            }
 
             formWaferMap.BringToFront();
         }
 
+        private void pbOpenMap_Click(object sender, EventArgs e)
+        {
+            string path = null;
+            if (_pathToTestingChipsFolder != null)
+                path = _pathToTestingChipsFolder.Substring(0,
+                    _pathToTestingChipsFolder.Length - Path.GetFileName(_pathToTestingChipsFolder).Length - 1);
+
+            OpenCullingPatternMapFile(path ?? @"\\172.16.1.7\pc001-backup\4LAB\!MEASURING");
+        }
+
+        private void pbSaveMap_Click(object sender, EventArgs e)
+        {
+            SaveWaferMap();
+        }
     }
 }

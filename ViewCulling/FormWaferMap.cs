@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 using NIIPP.ComputerVision;
 
@@ -15,17 +16,34 @@ namespace ViewCulling
             Instance = this;
         }
 
-        public void RefreshWaferMapPicture()
+        private void RefreshWaferMapPicture()
         {
             pbWaferMap.Image = _waferMap.GetBmpWaferMap(pbWaferMap.Width, pbWaferMap.Height);
+        }
+
+        private void ShowStatInfo()
+        {
+            lblCountOfAll.Text = _waferMap.CountOfChips.ToString();
+            lblCountOfVisualBad.Text = _waferMap.CountOfVisBad.ToString();
+            lblCountOfParBad.Text = _waferMap.CountOfParBad.ToString();
+            lblCountOfBad.Text = _waferMap.CountOfBad.ToString();
+            lblCountOfGood.Text = _waferMap.CountOfGood.ToString();
+            lblWidth.Text = String.Format("{0} мкм", _waferMap.Width);
+            lblHeight.Text = String.Format("{0} мкм", _waferMap.Height);
+            lblPercentOfOut.Text = _waferMap.PercentOfOut.ToString("P");
+
+            lblCurrX.Text = _waferMap.CurrPosX.ToString();
+            lblCurrY.Text = _waferMap.CurrPosY.ToString();
         }
 
         public void SetWaferMap(WaferMap waferMap)
         {
             _waferMap = waferMap;
-            RefreshWaferMapPicture();
-        }
+            Text = waferMap.PathToSourceFile;
 
+            RefreshWaferMapPicture();
+            ShowStatInfo();
+        }
 
         private void FormWaferMap_Load(object sender, EventArgs e)
         {
@@ -38,6 +56,31 @@ namespace ViewCulling
             {
                 RefreshWaferMapPicture();
             }
+        }
+
+        private void pbWaferMap_MouseClick(object sender, MouseEventArgs e)
+        {
+            Bitmap currImage = (Bitmap) pbWaferMap.Image;
+            
+            double xZoom = ((double)(e.X) / pbWaferMap.Width);
+            double yZoom = ((double)(e.Y) / pbWaferMap.Height);
+            int x = (int)(xZoom * currImage.Width);
+            int y = (int)(yZoom * currImage.Height);
+
+            y = (y >= currImage.Height) ? currImage.Height - 1 : y;
+            x = (x >= currImage.Width) ? currImage.Width - 1 : x;
+
+            _waferMap.CurrAbsPosX = x;
+            _waferMap.CurrAbsPosY = y;
+
+            RefreshWaferMapPicture();
+            ShowStatInfo();
+        }
+
+        private void pbWaferMap_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            string nameOfFile = String.Format("{0:000}{1:000}.bmp", _waferMap.CurrPosX, _waferMap.CurrPosY);
+            FormAnalyze.Instance.SendDataToShow(nameOfFile);
         }
     }
 }
