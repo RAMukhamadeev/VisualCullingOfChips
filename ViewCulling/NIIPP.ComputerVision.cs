@@ -1451,15 +1451,47 @@ namespace NIIPP.ComputerVision
         private int _mapMinY;
         private int _mapMinX;
 
-        public int CurrPosX { get; private set; }
-        public int CurrPosY { get; private set; }
+        /// <summary>
+        /// Координата текущего выделенного пользователем чипа
+        /// </summary>
+        public Point? CurrUserSelectedChipCoord { get; private set; }
 
-        public int CurrAbsPosX = -1;
-        public int CurrAbsPosY = -1;
+        /// <summary>
+        /// Координата текущего обрабатываемого чипа
+        /// </summary>
+        public Point? CurrProccessedChipCoord { get; private set; }
+
+        private int _picWidth;
+        private int _picHeight;
 
         public string PathToSourceFile { get; private set; }
 
-        private readonly int[,] _culledMas = new int[XLim, YLim];
+        private int[,] _currMap = new int[XLim, YLim];
+        private readonly int[,] _originalMap = new int[XLim, YLim];
+
+        private Dictionary<string, string> _nameAndStatusMap;
+
+        public WaferMap(List<string> namesOfChips)
+        {
+            for (int i = 0; i < YLim; i++)
+                for (int j = 0; j < XLim; j++)
+                {
+                    _originalMap[i, j] = 0;
+                }
+
+            foreach (string name in namesOfChips)
+            {
+                Point? point = GetCoordFromChipName(name);
+                if (point != null)
+                {
+                    int x = ((Point) point).X;
+                    int y = ((Point) point).Y;
+                    _originalMap[x, y] = 1;
+                }
+            }
+
+            FindMinMaxCoord();
+        }
 
         /// <summary>
         /// Конструктор с загрузкой информации из шаблона файла с картой раскроя
@@ -1476,7 +1508,7 @@ namespace NIIPP.ComputerVision
             for (int i = 0; i < YLim; i++)
                 for (int j = 0; j < XLim; j++)
                 {
-                    _culledMas[i, j] = inFile.ReadInt32();
+                    _originalMap[i, j] = inFile.ReadInt32();
                 }
             inFile.Close();
             inStream.Close();
@@ -1493,7 +1525,7 @@ namespace NIIPP.ComputerVision
             for (int i = 0; i < YLim; i++)
                 for (int j = 0; j < XLim; j++)
                 {
-                    if (_culledMas[i, j] != 0)
+                    if (_originalMap[i, j] != 0)
                     {
                         if (i > _mapMaxX)
                             _mapMaxX = i;
@@ -1514,16 +1546,19 @@ namespace NIIPP.ComputerVision
             PercentOfOut = 1;
             CountOfParBad = 0;
             CountOfVisBad = 0;
+            CountOfChips = 0;
 
             for (int i = 0; i < YLim; i++)
                 for (int j = 0; j < XLim; j++)
                 {
-                    if (_culledMas[i, j] == 1)
+                    if (_currMap[i, j] == 1)
                         CountOfGood++;
-                    if (_culledMas[i, j] == 2)
+                    if (_currMap[i, j] == 2)
                         CountOfParBad++;
-                    if (_culledMas[i, j] == 8)
+                    if (_currMap[i, j] == 8)
                         CountOfVisBad++;
+                    if (_currMap[i, j] != 0)
+                        CountOfChips++;
                 }
             CountOfBad = CountOfParBad + CountOfVisBad;
             PercentOfOut = (double) (CountOfGood) / (CountOfGood + CountOfBad);
@@ -1549,36 +1584,54 @@ namespace NIIPP.ComputerVision
             return res;
         }
 
-        public void SetCurrFileName(string currFileName)
+        public void SetCurrProgramProccessedChip(string currFileName)
         {
-            SetChipAsCurrent(currFileName);
+            CurrProccessedChipCoord = GetCoordFromChipName(currFileName);
         }
 
-        public void SetChipsAsCulled(List<string> masOfBadChips)
+        public void SetCoordOfUserSelectedChip(int x, int y)
         {
-            foreach (string name in masOfBadChips)
-                SetChipAsCulled(name);
+            int hCount = _mapMaxY - _mapMinY + 1,
+                wCount = _mapMaxX - _mapMinX + 1;
+            int h0 = _picWidth / hCount,
+                w0 = _picHeight / wCount;
+
+            CurrUserSelectedChipCoord = new Point( (x / w0) + _mapMinX, (y / h0) + _mapMinY);
+        }
+        
+        public void SetChipsStatus(Dictionary<string, string> nameAndStatusMap)
+        {
+            _nameAndStatusMap = nameAndStatusMap;
+
+            _currMap = (int[,]) _originalMap.Clone();
+            foreach (string name in nameAndStatusMap.Keys)
+            {
+                if (nameAndStatusMap[name] == Verdict.Bad.Name)
+                    SetChipAsBad(name);
+                if (nameAndStatusMap[name] == Verdict.Good.Name)
+                    SetChipAsGood(name);
+            }
 
             ExtractInfoOfWaferMap();
         }
 
-        private void SetChipAsCulled(string nameOfFile)
+        private void SetChipAsBad(string nameOfFile)
         {
             Point? point = GetCoordFromChipName(nameOfFile);
             if (point != null)
             {
                 Point temp = (Point)point;
-                _culledMas[temp.X, temp.Y] = 8;
+                _currMap[temp.X, temp.Y] = 8;
             }
         }
 
-        private void SetChipAsCurrent(string nameOfFile)
+        private void SetChipAsGood(string nameOfFile)
         {
             Point? point = GetCoordFromChipName(nameOfFile);
             if (point != null)
             {
                 Point temp = (Point)point;
-                _culledMas[temp.X, temp.Y] = 9;
+                _currMap[temp.X, temp.Y] = 1;
             }
         }
         
@@ -1586,7 +1639,7 @@ namespace NIIPP.ComputerVision
         /// Сохранение файла с картой раскроя пластины
         /// </summary>
         /// <param name="pathToSave">Путь к сохраняемому файлу</param>
-        public void SaveCullingPatternFile(string pathToSave)
+        public void SaveWaferMapFile(string pathToSave)
         {
             FileStream outStream = new FileStream(pathToSave, FileMode.Create);
             BinaryWriter outFile = new BinaryWriter(outStream);
@@ -1595,7 +1648,7 @@ namespace NIIPP.ComputerVision
             for (int i = 0; i < YLim; i++)
                 for (int j = 0; j < XLim; j++)
                 {
-                    outFile.Write(_culledMas[i, j]);
+                    outFile.Write(_currMap[i, j]);
                 }
             outFile.Flush();
             outFile.Close();
@@ -1610,20 +1663,25 @@ namespace NIIPP.ComputerVision
         /// <returns>Изображение карты раскроя</returns>
         public Bitmap GetBmpWaferMap(int pbWidth, int pbHeight)
         {
+            if (pbWidth == 0 || pbHeight == 0)
+                return null;
+            _picHeight = pbHeight;
+            _picWidth = pbWidth;
+
             int hCount = _mapMaxY - _mapMinY + 1,
                 wCount = _mapMaxX - _mapMinX + 1;
             int h0 = pbWidth / hCount,
                 w0 = pbHeight / wCount;
             Bitmap res = new Bitmap(wCount * w0, hCount * h0);
             Graphics g = Graphics.FromImage(res);
-
+            
             // рисуем квадратики
             for (int i = _mapMinX; i <= _mapMaxX; i++)
             {
                 for (int j = _mapMinY; j <= _mapMaxY; j++)
                 {
                     Color col;
-                    switch (_culledMas[i, j])
+                    switch (_currMap[i, j])
                     {
                         case 0:
                             col = Color.FromArgb(220, 220, 220);
@@ -1652,18 +1710,23 @@ namespace NIIPP.ComputerVision
                         case 8:
                             col = Color.FromArgb(0, 255, 225);
                             break;
-                        case 9:
-                            col = Color.Orange;
-                            break;
                         default:
                             col = Color.Black;
                             break;
                     }
 
-                    SolidBrush brCol = new SolidBrush(col);
-                    g.FillRectangle(brCol, (i - _mapMinX) * w0, (j - _mapMinY) * h0, w0, h0);
+                    g.FillRectangle(new SolidBrush(col), (i - _mapMinX) * w0, (j - _mapMinY) * h0, w0, h0);
                 }
             }
+
+            // отмечаем текущий набор чипов с которыми происходит работа
+            DrawActualChips(g);
+
+            // рисуем выделенную пользователем клетку (чип)
+            DrawUserSelectedChip(g);
+
+            // рисуем клетку отображающую текущий обрабатываемый чип
+            DrawCurrentProccessedChip(g);
 
             // рисуем сетку
             for (int i = _mapMinX; i <= _mapMaxX; i++)
@@ -1672,26 +1735,45 @@ namespace NIIPP.ComputerVision
                     g.DrawRectangle(Pens.Gray, (i - _mapMinX) * w0, (j - _mapMinY) * h0, w0, h0);
             }
 
-            // рисуем выделенную пользователем клетку (чип)
-            DrawSelectedCell(pbWidth, pbHeight, g);
-
             return res;
         }
 
-        private void DrawSelectedCell(int pbWidth, int pbHeight, Graphics g)
+        private void DrawActualChips(Graphics g)
         {
-            if (CurrAbsPosX == -1 || CurrPosY == -1)
-                return;
-            int hCount = _mapMaxY - _mapMinY + 1,
-                wCount = _mapMaxX - _mapMinX + 1;
-            int h0 = pbWidth / hCount,
-                w0 = pbHeight / wCount;
-            int x = CurrAbsPosX / w0;
-            int y = CurrAbsPosY / h0;
-            g.FillRectangle(new SolidBrush(Color.Orange), x * w0 + 1, y * h0 + 1, w0 - 1, h0 - 1);
+            int h0 = _picWidth / (_mapMaxY - _mapMinY + 1),
+                w0 = _picHeight / (_mapMaxX - _mapMinX + 1);
 
-            CurrPosX = x + _mapMinX;
-            CurrPosY = y + _mapMinY;
+            foreach (string nameOfChip in _nameAndStatusMap.Keys)
+            {
+                Point? point = GetCoordFromChipName(nameOfChip);
+                if (point != null)
+                {
+                    int x = ((Point) point).X - _mapMinX;
+                    int y = ((Point) point).Y - _mapMinY;
+                    g.DrawEllipse(Pens.Black, x * w0 + w0/4, y * h0 + h0/4, w0/2, h0/2);
+                }
+            }
+        }
+
+        private void DrawCurrentProccessedChip(Graphics g)
+        {
+            if (CurrProccessedChipCoord != null)
+                SetChipColor((Point) CurrProccessedChipCoord, Color.Gray, g);
+        }
+
+        private void DrawUserSelectedChip(Graphics g)
+        {
+            if (CurrUserSelectedChipCoord != null)
+                SetChipColor((Point) CurrUserSelectedChipCoord, Color.Orange, g);
+        }
+
+        private void SetChipColor(Point point, Color color, Graphics g)
+        {
+            int x = point.X - _mapMinX;
+            int y = point.Y - _mapMinY;
+            int h0 = _picWidth / (_mapMaxY - _mapMinY + 1),
+                w0 = _picHeight / (_mapMaxX - _mapMinX + 1);
+            g.FillRectangle(new SolidBrush(color), x * w0, y * h0, w0, h0);
         }
     }
 

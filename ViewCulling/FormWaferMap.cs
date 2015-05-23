@@ -32,8 +32,11 @@ namespace ViewCulling
             lblHeight.Text = String.Format("{0} мкм", _waferMap.Height);
             lblPercentOfOut.Text = _waferMap.PercentOfOut.ToString("P");
 
-            lblCurrX.Text = _waferMap.CurrPosX.ToString();
-            lblCurrY.Text = _waferMap.CurrPosY.ToString();
+            if (_waferMap.CurrUserSelectedChipCoord != null)
+            {
+                lblCurrX.Text = ((Point)_waferMap.CurrUserSelectedChipCoord).X.ToString();
+                lblCurrY.Text = ((Point)_waferMap.CurrUserSelectedChipCoord).Y.ToString();
+            }
         }
 
         public void SetWaferMap(WaferMap waferMap)
@@ -66,12 +69,9 @@ namespace ViewCulling
             double yZoom = ((double)(e.Y) / pbWaferMap.Height);
             int x = (int)(xZoom * currImage.Width);
             int y = (int)(yZoom * currImage.Height);
-
             y = (y >= currImage.Height) ? currImage.Height - 1 : y;
             x = (x >= currImage.Width) ? currImage.Width - 1 : x;
-
-            _waferMap.CurrAbsPosX = x;
-            _waferMap.CurrAbsPosY = y;
+            _waferMap.SetCoordOfUserSelectedChip(x, y);
 
             RefreshWaferMapPicture();
             ShowStatInfo();
@@ -79,8 +79,12 @@ namespace ViewCulling
 
         private void pbWaferMap_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            string nameOfFile = String.Format("{0:000}{1:000}.bmp", _waferMap.CurrPosX, _waferMap.CurrPosY);
-            FormAnalyze.Instance.SendDataToShow(nameOfFile);
+            if (_waferMap.CurrUserSelectedChipCoord != null)
+            {
+                Point point = (Point) _waferMap.CurrUserSelectedChipCoord;
+                string nameOfFile = String.Format("{0:000}{1:000}.bmp", point.X, point.Y);
+                FormAnalyze.Instance.SendDataToShow(nameOfFile);
+            }
         }
     }
 }
