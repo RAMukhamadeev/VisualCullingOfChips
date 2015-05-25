@@ -107,8 +107,10 @@ namespace ViewCulling
             if (_waferMap != null)
             {
                 _waferMap.SetChipsStatus(GetChipVerdictsMap());
-                _waferMap.SaveWaferMapFile(GetPathToWaferMapFileMain());
-                _waferMap.SaveWaferMapFile(GetPathToWaferMapFileBackup());
+                _waferMap.SaveWaferMapFile( GetPathToWaferMapFileMain() );
+                FileInfo fi = new FileInfo( GetPathToWaferMapFileMain() );
+
+                fi.CopyTo(GetPathToWaferMapFileBackup(), true);
             }
         }
 
@@ -138,21 +140,21 @@ namespace ViewCulling
 
         public void SetUserCorrectedStatus(string nameOfChip, Verdict.VerdictStructure verdict)
         {
-            int pos = -1;
             int indexOfName = _columns["Название файла"];
+            int indexOfVerdict = _columns["Вердикт"];
+            DataGridViewCell dgvcVerdict = null;
             for (int i = 0; i < dgvTestingOfChips.Rows.Count - 1; i++)
             {
                 if (dgvTestingOfChips.Rows[i].Cells[indexOfName].Value.ToString() == nameOfChip)
                 {
-                    pos = i;
+                    dgvcVerdict = dgvTestingOfChips.Rows[i].Cells[indexOfVerdict];
                     break;
                 }
             }
 
-            if (pos != -1)
+            // если найден соответствующий чип и установлен новый вердикт
+            if (dgvcVerdict != null && dgvcVerdict.Value.ToString() != verdict.Name)
             {
-                int indexOfVerdict = _columns["Вердикт"];
-                DataGridViewCell dgvcVerdict = dgvTestingOfChips.Rows[pos].Cells[indexOfVerdict];
                 if (dgvcVerdict.Value.ToString() == Verdict.Good.Name && verdict.Name == Verdict.Bad.Name)
                 {
                     _statInfo.CountOfGood--;
@@ -165,9 +167,8 @@ namespace ViewCulling
                 }
                 Verdict.SetVerdictCell(dgvcVerdict, verdict);
                 RefreshStatisticControls();
+                SaveWaferMapFile();
             }
-
-            SaveWaferMapFile();
         }
 
         private void InitDgvTestingOfChips()
@@ -206,8 +207,8 @@ namespace ViewCulling
                 dgvTestingOfChips.Rows[currRow].Cells[_columns["Номер"]].Value = (currRow + 1).ToString();
                 dgvTestingOfChips.Rows[currRow].Cells[_columns["Название файла"]].Value = name;
                 Verdict.SetVerdictCell(dgvTestingOfChips.Rows[currRow].Cells[_columns["Вердикт"]], Verdict.Queue);
-                dgvTestingOfChips.Rows[currRow].Cells[_columns["Просмотрено"]].Value = "Нет";
-                dgvTestingOfChips.Rows[currRow].Cells[_columns["Просмотрено"]].Style.BackColor = Color.Khaki;
+                dgvTestingOfChips.Rows[currRow].Cells[_columns["Просмотрено"]].Value = "Недоступно";
+                dgvTestingOfChips.Rows[currRow].Cells[_columns["Просмотрено"]].Style.BackColor = Color.White;
             }
             dgvTestingOfChips.ClearSelection();
         }
@@ -227,13 +228,25 @@ namespace ViewCulling
             _currFileIndex = 0;
         }
 
-        private int FindDgvRowByFileName(string fileName)
+        private int FindDgvRowByFileName(string nameOfFile)
         {
             int indexOfColumn = _columns["Название файла"];
 
             int res = -1;
             for (int i = 0; i < dgvTestingOfChips.Rows.Count - 1; i++)
-                if (dgvTestingOfChips.Rows[i].Cells[indexOfColumn].Value.ToString() == fileName)
+                if (dgvTestingOfChips.Rows[i].Cells[indexOfColumn].Value.ToString() == nameOfFile)
+                    res = i;
+
+            return res;
+        }
+
+        private int FindDgvRowByPrefixOfFileName(string prefix)
+        {
+            int indexOfColumn = _columns["Название файла"];
+
+            int res = -1;
+            for (int i = 0; i < dgvTestingOfChips.Rows.Count - 1; i++)
+                if (dgvTestingOfChips.Rows[i].Cells[indexOfColumn].Value.ToString().IndexOf(prefix) != -1)
                     res = i;
 
             return res;
@@ -262,47 +275,63 @@ namespace ViewCulling
 
                 int currRow = FindDgvRowByFileName(Path.GetFileName(currFileName));
                 var dgvcVerdict = dgvTestingOfChips.Rows[currRow].Cells[_columns["Вердикт"]];
-
-                // если уже проверен то не смотрим
-                if (dgvcVerdict.Value.ToString() != Verdict.Queue.Name && dgvcVerdict.Value.ToString() != Verdict.Processing.Name)
-                    continue;
-
-                Verdict.SetVerdictCell(dgvcVerdict, Verdict.Processing);
-                ScrollToRow(currRow);
-
                 bool isError = false;
-                DateTime dtBefore = DateTime.Now;
-                try
-                {
-                    vi.CheckNextChip(currFileName);
-                    vi.PicWithSprites.Save(String.Format("{0}\\{1}", Settings.PathToCache, Path.GetFileName(currFileName)));
-                }
-                catch (Exception ex)
-                {
-                    isError = true;
-                    //MessageBox.Show(String.Format("Произошла ошибка при обработке: {0}", ex.Message));
-                }
 
-                TimeSpan timeSpan = DateTime.Now - dtBefore;
-                double seconds = timeSpan.TotalMilliseconds / 1000.0;
-                dgvTestingOfChips.Rows[currRow].Cells[_columns["Время обработки, с"]].Value = String.Format("{0:0.000}", seconds);
-                dgvTestingOfChips.Rows[currRow].Cells[_columns["Коэффициент (кластер)"]].Value = vi.CurrMarkIsland.ToString();
-                dgvTestingOfChips.Rows[currRow].Cells[_columns["Коэффициент (пыль)"]].Value = vi.CurrMarkDust.ToString();
-
-                lock (_statInfo)
+                // если не проверен то не смотрим
+                if (dgvcVerdict.Value.ToString() == Verdict.Queue.Name || dgvcVerdict.Value.ToString() == Verdict.Processing.Name)
                 {
-                    if (isError)
-                        Verdict.SetVerdictCell(dgvcVerdict, Verdict.Error);
-                    else
+                    Verdict.SetVerdictCell(dgvcVerdict, Verdict.Processing);
+                    ScrollToRow(currRow);
+
+                    DateTime dtBefore = DateTime.Now;
+                    try
+                    {
+                        vi.CheckNextChip(currFileName);
+                        vi.PicWithSprites.Save(String.Format("{0}\\{1}", Settings.PathToCache, Path.GetFileName(currFileName)));
+                    }
+                    catch (Exception ex)
+                    {
+                        isError = true;
+                        //MessageBox.Show(String.Format("Произошла ошибка при обработке: {0}", ex.Message));
+                    }
+
+                    TimeSpan timeSpan = DateTime.Now - dtBefore;
+                    double seconds = timeSpan.TotalMilliseconds / 1000.0;
+                    dgvTestingOfChips.Rows[currRow].Cells[_columns["Время обработки, с"]].Value = String.Format("{0:0.000}", seconds);
+                    dgvTestingOfChips.Rows[currRow].Cells[_columns["Коэффициент (кластер)"]].Value = vi.CurrMarkIsland.ToString();
+                    dgvTestingOfChips.Rows[currRow].Cells[_columns["Коэффициент (пыль)"]].Value = vi.CurrMarkDust.ToString();
+
+                    if (!isError)
                     {
                         if (vi.CurrVerdict == Verdict.Bad.Name)
                         {
                             Verdict.SetVerdictCell(dgvcVerdict, Verdict.Bad);
-                            _statInfo.CountOfBad++;
                         }
                         if (vi.CurrVerdict == Verdict.Good.Name)
                         {
                             Verdict.SetVerdictCell(dgvcVerdict, Verdict.Good);
+                        }
+                        dgvTestingOfChips.Rows[currRow].Cells[_columns["Просмотрено"]].Value = "Нет";
+                        dgvTestingOfChips.Rows[currRow].Cells[_columns["Просмотрено"]].Style.BackColor = Color.Khaki;
+                    }
+                    else
+                    {
+                         Verdict.SetVerdictCell(dgvcVerdict, Verdict.Error);
+                         dgvTestingOfChips.Rows[currRow].Cells[_columns["Просмотрено"]].Value = "Недоступно";
+                         dgvTestingOfChips.Rows[currRow].Cells[_columns["Просмотрено"]].Style.BackColor = Color.White;
+                    }
+                }
+                
+                lock (_statInfo)
+                {
+                    if (!isError)
+                    {
+                        if (vi.CurrVerdict == Verdict.Bad.Name)
+                        {
+                            _statInfo.CountOfBad++;
+                        }
+                        if (vi.CurrVerdict == Verdict.Good.Name)
+                        {
                             _statInfo.CountOfGood++;
                         }
                     }
@@ -338,6 +367,7 @@ namespace ViewCulling
 
             PrepareImageMas();
             LoadInfoAboutTestingSet();
+            SetVerdictsFromWaferMap();
             if (_waferMap == null)
                 _waferMap = new WaferMap(GetChipNames());
 
@@ -362,6 +392,11 @@ namespace ViewCulling
             return dgvTestingOfChips.Rows[row].Cells[_columns["Вердикт"]].Value.ToString();
         }
 
+        private string GetViewStatus(int row)
+        {
+            return dgvTestingOfChips.Rows[row].Cells[_columns["Просмотрено"]].Value.ToString();
+        }
+
         private int SearchNextChip(int startPoint, bool isNext, string filter)
         {
             int countOfRows = dgvTestingOfChips.Rows.Count - 1;
@@ -372,13 +407,13 @@ namespace ViewCulling
                 if (isNext)
                 {
                     pos++;
-                    while (pos < countOfRows && GetVerdict(pos) != Verdict.Good.Name && GetVerdict(pos) != Verdict.Bad.Name)
+                    while (pos < countOfRows && GetViewStatus(pos) == "Недоступно")
                         pos++;
                 }
                 else
                 {
                     pos--;
-                    while (pos >= 0 && GetVerdict(pos) != Verdict.Good.Name && GetVerdict(pos) != Verdict.Bad.Name)
+                    while (pos >= 0 && GetViewStatus(pos) == "Недоступно")
                         pos--;
                 }
             }
@@ -387,13 +422,13 @@ namespace ViewCulling
                 if (isNext)
                 {
                     pos++;
-                    while (pos < countOfRows && GetVerdict(pos) != filter)
+                    while (pos < countOfRows && (GetVerdict(pos) != filter || GetViewStatus(pos) == "Недоступно"))
                         pos++;
                 }
                 else
                 {
                     pos--;
-                    while (pos >= 0 && GetVerdict(pos) != filter)
+                    while (pos >= 0 && (GetVerdict(pos) != filter || GetViewStatus(pos) == "Недоступно"))
                         pos--;
                 }
             }
@@ -403,9 +438,9 @@ namespace ViewCulling
             return startPoint;
         }
 
-        public void SendDataToShow(string nameOfFile)
+        public void SendDataToShow(string prefix)
         {
-            int pos = FindDgvRowByFileName(nameOfFile);
+            int pos = FindDgvRowByPrefixOfFileName(prefix);
             if (pos != -1)
                 SendDataToShow(pos);
         }
@@ -430,8 +465,8 @@ namespace ViewCulling
             if (isNext != null && filter != null)
                 rowNumber = SearchNextChip(rowNumber, (bool) isNext, filter);
 
-            string verdict = dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Вердикт"]].Value.ToString();
-            if (verdict != Verdict.Good.Name && verdict != Verdict.Bad.Name)
+            string viewStatus = dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Просмотрено"]].Value.ToString();
+            if (viewStatus == "Недоступно")
                 return;
 
             dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Просмотрено"]].Value = "Да";
@@ -440,8 +475,8 @@ namespace ViewCulling
             string coeff = dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Коэффициент (кластер)"]].Value.ToString();
             string spritePicPath = Settings.PathToCache + "\\" + nameOfFile;
             string originalPicPath = _pathToTestingChipsFolder + "\\" + nameOfFile;
-
-
+            string verdict = dgvTestingOfChips.Rows[rowNumber].Cells[_columns["Вердикт"]].Value.ToString();
+            
             FormAnalyzeView formAnalyzeView = GetFormAnalyzeView();
             formAnalyzeView.LoadMainData(_cullingProject, dgvTestingOfChips.Rows.Count - 1);
             formAnalyzeView.LoadData(nameOfFile, spritePicPath, originalPicPath, coeff, rowNumber);
@@ -562,6 +597,21 @@ namespace ViewCulling
             _currFileIndex = Math.Max(0, _currFileIndex - Environment.ProcessorCount * 2);
         }
 
+        private void SetVerdictsFromWaferMap()
+        {
+            if (_waferMap == null || _pathToTestingChipsFolder == null)
+                return;
+
+            int indexOfVerdict = _columns["Вердикт"];
+            int indexOfChipName = _columns["Название файла"];
+            for (int i = 0; i < dgvTestingOfChips.Rows.Count - 1; i++)
+            {
+                Verdict.VerdictStructure verdict = _waferMap.GetStatusOfChip(dgvTestingOfChips.Rows[i].Cells[indexOfChipName].Value.ToString());
+                if (verdict != null)
+                    Verdict.SetVerdictCell(dgvTestingOfChips.Rows[i].Cells[indexOfVerdict], verdict);
+            }
+        }
+
         private void OpenWaferMapFile(string initPath = null)
         {
             OpenFileDialog ofd = new OpenFileDialog
@@ -577,6 +627,7 @@ namespace ViewCulling
                 _pathToWaferMap = ofd.FileName;
                 lblCullingPattern.Text = Path.GetFileName(ofd.FileName);
                 _waferMap = new WaferMap(ofd.FileName);
+                SetVerdictsFromWaferMap();
             }
         }
 
@@ -600,6 +651,7 @@ namespace ViewCulling
             Dictionary<string, string> res = new Dictionary<string, string>();
             int indexOfVerdict = _columns["Вердикт"];
             int indexOfNameOfFile = _columns["Название файла"];
+
             for (int i = 0; i < dgvTestingOfChips.Rows.Count - 1; i++)
                 res.Add(dgvTestingOfChips.Rows[i].Cells[indexOfNameOfFile].Value.ToString(), dgvTestingOfChips.Rows[i].Cells[indexOfVerdict].Value.ToString());
 
@@ -642,7 +694,7 @@ namespace ViewCulling
 
         private void dgvTestingOfChips_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
         {
-            if (e.ColumnIndex == _columns["Просмотрено"])
+            if (e.ColumnIndex == _columns["Просмотрено"] && e.RowIndex < dgvTestingOfChips.Rows.Count - 1)
             {
                 SendDataToShow(e.RowIndex);
             }

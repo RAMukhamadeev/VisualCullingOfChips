@@ -41,9 +41,9 @@ namespace NIIPP.ComputerVision
     /// <summary>
     /// Список вердиктов проверки изобрадения чипа с ассоциированными цветами
     /// </summary>
-    public struct Verdict
+    public class Verdict
     {
-        public struct VerdictStructure
+        public class VerdictStructure
         {
             public readonly string Name;
             public Color Color;
@@ -1615,13 +1615,28 @@ namespace NIIPP.ComputerVision
             ExtractInfoOfWaferMap();
         }
 
+        public Verdict.VerdictStructure GetStatusOfChip(string nameOfFile)
+        {
+            Point? point = GetCoordFromChipName(nameOfFile);
+            if (point != null)
+            {
+                Point temp = (Point)point;
+                int value = _originalMap[temp.X, temp.Y];
+                if (value == 2)
+                    return Verdict.Bad;
+            }
+
+            return null;
+        }
+
         private void SetChipAsBad(string nameOfFile)
         {
             Point? point = GetCoordFromChipName(nameOfFile);
             if (point != null)
             {
                 Point temp = (Point)point;
-                _currMap[temp.X, temp.Y] = 8;
+                if (_currMap[temp.X, temp.Y] != 2)
+                    _currMap[temp.X, temp.Y] = 8;
             }
         }
 
@@ -1719,14 +1734,14 @@ namespace NIIPP.ComputerVision
                 }
             }
 
-            // отмечаем текущий набор чипов с которыми происходит работа
-            DrawActualChips(g);
-
             // рисуем выделенную пользователем клетку (чип)
             DrawUserSelectedChip(g);
 
             // рисуем клетку отображающую текущий обрабатываемый чип
             DrawCurrentProccessedChip(g);
+
+            // отмечаем текущий набор чипов с которыми происходит работа
+            DrawActualChips(g);
 
             // рисуем сетку
             for (int i = _mapMinX; i <= _mapMaxX; i++)
@@ -1748,9 +1763,16 @@ namespace NIIPP.ComputerVision
                 Point? point = GetCoordFromChipName(nameOfChip);
                 if (point != null)
                 {
-                    int x = ((Point) point).X - _mapMinX;
-                    int y = ((Point) point).Y - _mapMinY;
-                    g.DrawEllipse(Pens.Black, x * w0 + w0/4, y * h0 + h0/4, w0/2, h0/2);
+                    Point currPoint = (Point) point;
+                    if (_originalMap[currPoint.X, currPoint.Y] != 2)
+                    {
+                        int x = currPoint.X - _mapMinX;
+                        int y = currPoint.Y - _mapMinY;
+                        g.DrawEllipse(Pens.Black, x * w0 + w0 / 4, y * h0 + h0 / 4, w0 / 2, h0 / 2);
+                    }
+
+                    if (point.Equals(CurrProccessedChipCoord))
+                        break;
                 }
             }
         }

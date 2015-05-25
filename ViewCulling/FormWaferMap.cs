@@ -82,8 +82,8 @@ namespace ViewCulling
             if (_waferMap.CurrUserSelectedChipCoord != null)
             {
                 Point point = (Point) _waferMap.CurrUserSelectedChipCoord;
-                string nameOfFile = String.Format("{0:000}{1:000}.bmp", point.X, point.Y);
-                FormAnalyze.Instance.SendDataToShow(nameOfFile);
+                string prefixOfFile = String.Format("{0:000}{1:000}", point.X, point.Y);
+                FormAnalyze.Instance.SendDataToShow(prefixOfFile);
             }
         }
     }

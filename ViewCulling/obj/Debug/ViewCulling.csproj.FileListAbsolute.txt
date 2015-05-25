@@ -7,7 +7,6 @@ D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.Properties.Reso
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.csproj.GenerateResource.Cache
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.exe
 D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.pdb
-D:\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.FormTestOfImposition.resources
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\bin\Debug\ViewCulling.exe.config
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.exe
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Debug\ViewCulling.pdb

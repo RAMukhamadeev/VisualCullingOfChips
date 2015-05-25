@@ -54,14 +54,6 @@ namespace ViewCulling
             formAddNewProject.Show();
         }
 
-        private void совмещениеToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            FormTestOfImposition formTestOfImposition = new FormTestOfImposition {TopLevel = false};
-            Controls.Add(formTestOfImposition);
-
-            formTestOfImposition.Show();
-        }
-
         private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (MessageBox.Show("Вы действительно хотите выйти?", "Question", MessageBoxButtons.YesNo) == DialogResult.Yes)

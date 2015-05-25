@@ -80,12 +80,6 @@
     <Compile Include="FormSettings.Designer.cs">
       <DependentUpon>FormSettings.cs</DependentUpon>
     </Compile>
-    <Compile Include="FormTestOfImposition.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="FormTestOfImposition.Designer.cs">
-      <DependentUpon>FormTestOfImposition.cs</DependentUpon>
-    </Compile>
     <Compile Include="FormShowPicture.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -131,9 +125,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormSettings.resx">
       <DependentUpon>FormSettings.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="FormTestOfImposition.resx">
-      <DependentUpon>FormTestOfImposition.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormShowPicture.resx">
       <DependentUpon>FormShowPicture.cs</DependentUpon>
