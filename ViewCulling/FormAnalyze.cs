@@ -48,11 +48,14 @@ namespace ViewCulling
 
         private void RefreshWaferMap()
         {
-            if (Utils.FormIsOpen("FormWaferMap"))
+            lock (_waferMap)
             {
-                _waferMap.SetChipsStatus(GetChipVerdictsMap());
-                _waferMap.SetCurrProgramProccessedChip(_statInfo.CurrFile);
-                FormWaferMap.Instance.SetWaferMap(_waferMap);
+                if (Utils.FormIsOpen("FormWaferMap"))
+                {
+                    _waferMap.SetChipsStatus(GetChipVerdictsMap());
+                    _waferMap.SetCurrProgramProccessedChip(_statInfo.CurrFile);
+                    FormWaferMap.Instance.SetWaferMap(_waferMap);
+                }
             }
         }
 
@@ -102,15 +105,24 @@ namespace ViewCulling
             return path;
         }
 
+        private void AsyncSaveWaferMap()
+        {
+            Thread saveThread = new Thread(SaveWaferMapFile);
+            saveThread.Start();
+        }
+
         private void SaveWaferMapFile()
         {
             if (_waferMap != null)
             {
-                _waferMap.SetChipsStatus(GetChipVerdictsMap());
-                _waferMap.SaveWaferMapFile( GetPathToWaferMapFileMain() );
-                FileInfo fi = new FileInfo( GetPathToWaferMapFileMain() );
+                lock (_waferMap)
+                {
+                    _waferMap.SetChipsStatus(GetChipVerdictsMap());
+                    _waferMap.SaveWaferMapFile(GetPathToWaferMapFileMain());
+                    FileInfo fi = new FileInfo(GetPathToWaferMapFileMain());
 
-                fi.CopyTo(GetPathToWaferMapFileBackup(), true);
+                    fi.CopyTo(GetPathToWaferMapFileBackup(), true);
+                }
             }
         }
 
@@ -167,7 +179,7 @@ namespace ViewCulling
                 }
                 Verdict.SetVerdictCell(dgvcVerdict, verdict);
                 RefreshStatisticControls();
-                SaveWaferMapFile();
+                AsyncSaveWaferMap();
             }
         }
 
@@ -292,7 +304,7 @@ namespace ViewCulling
                     catch (Exception ex)
                     {
                         isError = true;
-                        //MessageBox.Show(String.Format("Произошла ошибка при обработке: {0}", ex.Message));
+                        PushMessage(String.Format("Произошла ошибка при обработке: {0}", ex.Message));
                     }
 
                     TimeSpan timeSpan = DateTime.Now - dtBefore;
@@ -379,12 +391,23 @@ namespace ViewCulling
             OpenFolderForTesting();
         }
 
+        private void PushMessage(string message)
+        {
+            BeginInvoke(new MethodInvoker(delegate()
+            {
+                rtbInfo.Text += String.Format("{0}\n", message);
+                rtbInfo.SelectionStart = rtbInfo.Text.Length;
+            }));
+        }
+
         private void FormStartAnalyze_Load(object sender, EventArgs e)
         {
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
             pbLoading.Image = new Bitmap("assets\\waiting.png");
             InitDgvTestingOfChips();
+
+            PushMessage("Модули успешно загружены ...");
         }
 
         private string GetVerdict(int row)
@@ -804,5 +827,171 @@ namespace ViewCulling
         {
             SaveWaferMap();
         }
+
+        private void gpTesting_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void dgvTestingOfChips_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void msMain_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+        }
+
+        private void файлToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void запускАнализаToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void картаРаскрояToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void видToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void калибровкаToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblNameOfTestFolder_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label5_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblProjectOfCulling_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label7_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblCullingPattern_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label9_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pbLoading_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblCountOfFiles_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label13_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblTimeLeft_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label10_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblTimeOfCalculation_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label6_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblCountOfBad_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label11_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblCountOfGood_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblPercentOfProgress_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblPercentOfOut_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label8_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblCountOfCalced_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pbProgress_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void gbInstruments_Enter(object sender, EventArgs e)
+        {
+
+        }
+
     }
 }
