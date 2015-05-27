@@ -21,8 +21,10 @@ namespace ViewCulling
             Random rnd = new Random();
             string nameOfImage = String.Format("vision_{0}.jpg", rnd.Next(4) + 1);
             BackgroundImage = new Bitmap("assets\\" + nameOfImage);
-
             Utils.CreateCache();
+
+            //string path = "C:\\123 one two three.txt";
+            //Mailer.SendMessage("новое сообщение", "важно!", path);
         }
 
         private void закрытьToolStripMenuItem_Click(object sender, EventArgs e)

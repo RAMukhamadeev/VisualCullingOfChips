@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows.Forms;
@@ -1473,6 +1475,8 @@ namespace NIIPP.ComputerVision
 
         public WaferMap(List<string> namesOfChips)
         {
+			Width = 50;
+            Height = 50;
             for (int i = 0; i < YLim; i++)
                 for (int j = 0; j < XLim; j++)
                 {
@@ -2139,6 +2143,32 @@ namespace NIIPP.ComputerVision
                 bmpRes.UnlockBits(bd);
             }
             return bmpRes;
+        }
+    }
+
+    public static class Mailer
+    {
+        public static void SendMessage(string body, string subject, string attachement = null)
+        {
+            string from = "lab41.niipp@gmail.com";
+            string to = "muhamadeev_ra@niipp.ru";
+            MailAddress mailFrom = new MailAddress(from, "Lab41 Visual Inspection", System.Text.Encoding.UTF8);
+            MailAddress mailTo = new MailAddress(to);
+
+            MailMessage message = new MailMessage(mailFrom, mailTo) {Body = body, Subject = subject};
+
+            if (!string.IsNullOrEmpty(attachement))
+                message.Attachments.Add(new Attachment(attachement));
+
+            SmtpClient client = new SmtpClient
+            {
+                Host = "smtp.gmail.com",
+                Port = 587,
+                EnableSsl = true,
+                Credentials = new NetworkCredential("lab41.niipp", "lab41pass"),
+                DeliveryMethod = SmtpDeliveryMethod.Network
+            };
+            client.SendMailAsync(message);
         }
     }
 }
