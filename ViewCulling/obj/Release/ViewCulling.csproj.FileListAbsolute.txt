@@ -15,3 +15,5 @@ C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\bin\Rele
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\bin\Release\ViewCulling.pdb
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Release\ViewCulling.exe
 C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\obj\Release\ViewCulling.pdb
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\bin\Release\ViewCulling.exe.CodeAnalysisLog.xml
+C:\Users\Руслан\Documents\GitHub\VisualCullingOfChips\ViewCulling\bin\Release\ViewCulling.exe.lastcodeanalysissucceeded
